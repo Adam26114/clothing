@@ -17,8 +17,7 @@
     "lint": "eslint",
     "format": "prettier --write \"**/*.{ts,tsx}\"",
     "format:check": "prettier --check \"**/*.{ts,tsx}\"",
-    "typecheck": "tsc --noEmit",
-    "codegen": "convex codegen"
+    "typecheck": "tsc --noEmit"
   },
   "dependencies": {
     "@auth/core": "^0.41.1",
