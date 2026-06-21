@@ -7,6 +7,10 @@
     "./_generated/api": "./_generated/api.js",
     "./_generated/api.js": "./_generated/api.js",
     "./_generated/api.d.ts": "./_generated/api.d.ts",
+    "./_generated/dataModel": "./_generated/dataModel.d.ts",
+    "./_generated/dataModel.d.ts": "./_generated/dataModel.d.ts",
+    "./_generated/server": "./_generated/server.d.ts",
+    "./_generated/server.d.ts": "./_generated/server.d.ts",
     "./*": "./*.ts"
   },
   "scripts": {

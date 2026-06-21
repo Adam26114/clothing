@@ -4,6 +4,11 @@ export const STORE_PICKUP_FEE = 0;
 export const SIZE_OPTIONS = ['XS', 'S', 'M', 'L', 'XL', 'XXL'] as const;
 export type SizeOption = (typeof SIZE_OPTIONS)[number];
 
+export const LOW_STOCK_THRESHOLD = 5;
+export const SHIPPING_DELIVERY_DAYS = '1–3 business days';
+export const GUEST_CART_STORAGE_KEY = 'khit:guest-cart';
+export const GUEST_CART_VERSION = 1;
+
 export const ORDER_STATUSES = [
   'pending',
   'confirmed',

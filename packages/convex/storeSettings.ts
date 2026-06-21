@@ -49,6 +49,9 @@ export const update = mutation({
     socialInstagram: v.optional(v.string()),
     socialFacebook: v.optional(v.string()),
     socialTiktok: v.optional(v.string()),
+    pickupStoreName: v.optional(v.string()),
+    pickupStoreAddress: v.optional(v.string()),
+    pickupStoreHours: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
     await requireAdmin(ctx);
@@ -73,6 +76,9 @@ export const update = mutation({
       'socialInstagram',
       'socialFacebook',
       'socialTiktok',
+      'pickupStoreName',
+      'pickupStoreAddress',
+      'pickupStoreHours',
     ] as const;
     for (const key of optionalKeys) {
       if (args[key] !== undefined) {

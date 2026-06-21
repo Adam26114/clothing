@@ -5,7 +5,7 @@ import type { NextConfig } from 'next';
 import { Sentry } from '@workspace/lib/sentry';
 
 const nextConfig: NextConfig = {
-  transpilePackages: ['@workspace/ui'],
+  transpilePackages: ['@workspace/ui', '@workspace/lib', '@workspace/convex'],
   turbopack: {
     root: path.resolve(import.meta.dirname, '../..'),
   },

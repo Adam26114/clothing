@@ -386,6 +386,9 @@ export const run = action({
         socialInstagram: 'https://instagram.com/khit',
         socialFacebook: 'https://facebook.com/khit',
         socialTiktok: 'https://tiktok.com/@khit',
+        pickupStoreName: 'Khit Yangon Flagship',
+        pickupStoreAddress: 'No. 12, Shwedagon Pagoda Road, Yangon',
+        pickupStoreHours: 'Mon–Sun, 10:00–20:00',
         updatedAt: Date.now(),
       });
       summary.storeSettings.created = true;

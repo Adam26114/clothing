@@ -29,7 +29,7 @@ const buttonVariants = cva(
         'icon-xs':
           "size-6 rounded-[min(var(--radius-md),10px)] in-data-[slot=button-group]:rounded-lg [&_svg:not([class*='size-'])]:size-3",
         'icon-sm':
-          'size-7 rounded-[min(var(--radius-md),12px)] in-data-[slot=button-group]:rounded-lg',
+          "size-7 rounded-[min(var(--radius-md),12px)] in-data-[slot=button-group]:rounded-lg",
         'icon-lg': 'size-9',
       },
     },
@@ -40,16 +40,25 @@ const buttonVariants = cva(
   }
 );
 
+// Custom: Base UI's `useButton` hook fires a dev warning when `render` is used
+// without `nativeButton={false}`. We auto-detect a `render` prop and disable
+// the native-button assumption so callers can do `<Button render={<Link/>} />`
+// without a console warning. When no `render` is provided, `nativeButton` is
+// left undefined so Base UI keeps its default of `true` (renders a real
+// <button>).
 function Button({
   className,
   variant = 'default',
   size = 'default',
+  render,
   ...props
 }: ButtonPrimitive.Props & VariantProps<typeof buttonVariants>) {
   return (
     <ButtonPrimitive
       data-slot="button"
+      nativeButton={render ? false : undefined}
       className={cn(buttonVariants({ variant, size, className }))}
+      render={render}
       {...props}
     />
   );
