@@ -94,6 +94,9 @@ export const insertStoreSettings = internalMutation({
     socialInstagram: v.optional(v.string()),
     socialFacebook: v.optional(v.string()),
     socialTiktok: v.optional(v.string()),
+    pickupStoreName: v.optional(v.string()),
+    pickupStoreAddress: v.optional(v.string()),
+    pickupStoreHours: v.optional(v.string()),
     updatedAt: v.number(),
   },
   handler: async (ctx, args) => {

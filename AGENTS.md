@@ -88,7 +88,7 @@
 
 ## NEVER DO
 
-1. Never edit `components/ui/*` directly - customize by composition in app-specific component folders
+1. Never edit `components/ui/*` directly - customize by composition in app-specific component folders. The one exception is `packages/ui/src/components/button.tsx`, which has a custom `nativeButton={render ? false : undefined}` shim layered on top of the shadcn-generated code — preserve that shim if you regenerate the file (e.g. via `bunx shadcn@latest add button --overwrite`).
 2. Never use `npm`, `yarn`, or `pnpm` - Bun only
 3. Never normalize product variants into separate Convex tables - embedded only
 4. Never hardcode user-facing strings - use the `t()` function

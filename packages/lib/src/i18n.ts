@@ -4,6 +4,8 @@ type Locale = 'en';
 
 type LocaleMessages = Record<string, unknown>;
 
+type PlaceholderParams = Record<string, string | number>;
+
 const locales: Record<Locale, LocaleMessages> = {
   en,
 };
@@ -22,6 +24,17 @@ function getValue(obj: LocaleMessages, key: string): string | undefined {
   return typeof current === 'string' ? current : undefined;
 }
 
-export function t(key: string, locale: Locale = 'en'): string {
-  return getValue(locales[locale], key) ?? key;
+function applyParams(template: string, params: PlaceholderParams | undefined): string {
+  if (!params) {
+    return template;
+  }
+  return template.replace(/\{(\w+)\}/g, (match, name: string) => {
+    const value = params[name];
+    return value === undefined ? match : String(value);
+  });
+}
+
+export function t(key: string, locale: Locale = 'en', params?: PlaceholderParams): string {
+  const value = getValue(locales[locale], key) ?? key;
+  return applyParams(value, params);
 }

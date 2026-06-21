@@ -177,3 +177,86 @@ export const clear = mutation({
     return items.length;
   },
 });
+
+export const mergeGuest = mutation({
+  args: {
+    items: v.array(
+      v.object({
+        productId: v.id('products'),
+        colorVariantId: v.string(),
+        size: v.string(),
+        quantity: v.number(),
+      })
+    ),
+  },
+  handler: async (ctx, args) => {
+    const userId = await requireUserId(ctx);
+    let merged = 0;
+    const skipped: Array<{
+      productId: Id<'products'>;
+      colorVariantId: string;
+      size: string;
+      reason: string;
+    }> = [];
+    const now = Date.now();
+
+    for (const item of args.items) {
+      if (item.quantity <= 0) {
+        skipped.push({ ...item, reason: 'invalid quantity' });
+        continue;
+      }
+      const product = await ctx.db.get(item.productId);
+      if (!product || !product.isPublished) {
+        skipped.push({ ...item, reason: 'product unavailable' });
+        continue;
+      }
+      const variant = product.colorVariants.find((v) => v.id === item.colorVariantId);
+      if (!variant) {
+        skipped.push({ ...item, reason: 'variant not found' });
+        continue;
+      }
+      if (!variant.selectedSizes.includes(item.size)) {
+        skipped.push({ ...item, reason: 'size not available' });
+        continue;
+      }
+      const available = variant.stock[item.size] ?? 0;
+      if (available < item.quantity) {
+        skipped.push({ ...item, reason: `only ${available} in stock` });
+        continue;
+      }
+
+      const existing = await ctx.db
+        .query('cartItems')
+        .withIndex('by_user_product_variant', (q) =>
+          q
+            .eq('userId', userId)
+            .eq('productId', item.productId)
+            .eq('colorVariantId', item.colorVariantId)
+            .eq('size', item.size)
+        )
+        .unique();
+
+      if (existing) {
+        const newQty = existing.quantity + item.quantity;
+        if (available < newQty) {
+          skipped.push({ ...item, reason: `only ${available} in stock` });
+          continue;
+        }
+        await ctx.db.patch(existing._id, { quantity: newQty, updatedAt: now });
+      } else {
+        await ctx.db.insert('cartItems', {
+          userId,
+          productId: item.productId,
+          colorVariantId: item.colorVariantId,
+          size: item.size,
+          quantity: item.quantity,
+          addedAt: now,
+          updatedAt: now,
+        });
+      }
+      merged++;
+    }
+
+    return { merged, skipped };
+  },
+});

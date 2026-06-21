@@ -6,7 +6,11 @@
   "exports": {
     "./*": "./src/*.ts",
     "./providers/convex": "./src/providers/convex.tsx",
-    "./locales/*": "./src/locales/*"
+    "./locales/*": "./src/locales/*",
+    "./cart/guest": "./src/cart/guest.ts",
+    "./cart/merge": "./src/cart/merge.ts",
+    "./cart/summary": "./src/cart/summary.ts",
+    "./hooks/use-cart-ui": "./src/hooks/use-cart-ui.ts"
   },
   "scripts": {
     "lint": "eslint",

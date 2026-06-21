@@ -2,15 +2,12 @@
 
 import { type ReactNode } from 'react';
 import { ConvexReactClient } from 'convex/react';
-import { ConvexAuthNextjsProvider } from '@convex-dev/auth/nextjs';
+import { ConvexAuthProvider as ConvexAuthCoreProvider } from '@convex-dev/auth/react';
 
-const convexUrl = process.env.NEXT_PUBLIC_CONVEX_URL;
-const convex = convexUrl ? new ConvexReactClient(convexUrl) : null;
+const PLACEHOLDER_CONVEX_URL = 'https://unconfigured-khit-000.convex.cloud';
+const convexUrl = process.env.NEXT_PUBLIC_CONVEX_URL ?? PLACEHOLDER_CONVEX_URL;
+const convex = new ConvexReactClient(convexUrl);
 
 export function ConvexProvider({ children }: { children: ReactNode }) {
-  if (!convex) {
-    return children;
-  }
-
-  return <ConvexAuthNextjsProvider client={convex}>{children}</ConvexAuthNextjsProvider>;
+  return <ConvexAuthCoreProvider client={convex}>{children}</ConvexAuthCoreProvider>;
 }
