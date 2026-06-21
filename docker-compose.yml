@@ -1,0 +1,28 @@
+version: "3.8"
+
+services:
+  storefront:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    command: ["bun", "run", "--cwd", "apps/storefront", "dev"]
+    ports:
+      - "3000:3000"
+    volumes:
+      - .:/app
+      - /app/node_modules
+    environment:
+      - NODE_ENV=development
+
+  admin:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    command: ["bun", "run", "--cwd", "apps/admin", "dev"]
+    ports:
+      - "3001:3001"
+    volumes:
+      - .:/app
+      - /app/node_modules
+    environment:
+      - NODE_ENV=development

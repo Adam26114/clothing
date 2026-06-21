@@ -1,6 +1,11 @@
 {
   "$schema": "https://turbo.build/schema.json",
   "ui": "tui",
+  "globalEnv": [
+    "NEXT_PUBLIC_CONVEX_URL",
+    "NEXT_PUBLIC_SENTRY_DSN",
+    "NEXT_PUBLIC_STOREFRONT_URL"
+  ],
   "tasks": {
     "build": {
       "dependsOn": ["^build"],
@@ -12,6 +17,9 @@
     },
     "format": {
       "dependsOn": ["^format"]
+    },
+    "format:check": {
+      "dependsOn": ["^format:check"]
     },
     "typecheck": {
       "dependsOn": ["^typecheck"]

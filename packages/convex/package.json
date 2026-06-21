@@ -1,0 +1,31 @@
+{
+  "name": "@workspace/convex",
+  "version": "0.0.1",
+  "type": "module",
+  "private": true,
+  "exports": {
+    "./_generated/api": "./_generated/api.js",
+    "./_generated/api.js": "./_generated/api.js",
+    "./_generated/api.d.ts": "./_generated/api.d.ts",
+    "./*": "./*.ts"
+  },
+  "scripts": {
+    "lint": "eslint",
+    "format": "prettier --write \"**/*.{ts,tsx}\"",
+    "format:check": "prettier --check \"**/*.{ts,tsx}\"",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@auth/core": "^0.41.1",
+    "@convex-dev/auth": "^0.0.94",
+    "@workspace/lib": "workspace:*",
+    "convex": "^1.41.0"
+  },
+  "devDependencies": {
+    "@workspace/eslint-config": "workspace:*",
+    "@workspace/typescript-config": "workspace:*",
+    "@types/node": "^20",
+    "eslint": "^9",
+    "typescript": "^5"
+  }
+}

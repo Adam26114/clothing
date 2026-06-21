@@ -1,0 +1,9 @@
+node_modules
+.next
+dist
+build
+_generated
+convex/_generated
+*.d.ts
+bun.lockb
+next-env.d.ts

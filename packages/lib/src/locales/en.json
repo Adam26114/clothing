@@ -1,0 +1,38 @@
+{
+  "brandName": "Khit",
+  "storefrontTitle": "Khit",
+  "adminTitle": "Khit Admin",
+  "nav": {
+    "dashboard": "Dashboard",
+    "orders": "Orders",
+    "products": "Products",
+    "inventory": "Inventory",
+    "users": "Users",
+    "settings": "Settings"
+  },
+  "auth": {
+    "loginTitle": "Sign in",
+    "registerTitle": "Create account",
+    "forgotPasswordTitle": "Reset password",
+    "email": "Email",
+    "password": "Password",
+    "signIn": "Sign in",
+    "signUp": "Create account",
+    "resetPassword": "Send reset link"
+  },
+  "account": {
+    "title": "My account",
+    "description": "Manage your orders and profile."
+  },
+  "homepage": {
+    "title": "Khit",
+    "description": "Myanmar local brand shirts."
+  },
+  "placeholder": {
+    "genericTitle": "Coming soon",
+    "genericDescription": "This page is under construction."
+  },
+  "actions": {
+    "continue": "Continue"
+  }
+}

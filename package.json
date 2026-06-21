@@ -7,10 +7,13 @@
     "dev": "turbo dev",
     "lint": "turbo lint",
     "format": "turbo format",
-    "typecheck": "turbo typecheck"
+    "format:check": "turbo format:check",
+    "typecheck": "turbo typecheck",
+    "seed": "bun run scripts/seed-convex.ts"
   },
   "devDependencies": {
     "@workspace/eslint-config": "workspace:*",
+    "@workspace/tailwind-config": "workspace:*",
     "@workspace/typescript-config": "workspace:*",
     "prettier": "^3.8.3",
     "prettier-plugin-tailwindcss": "^0.8.0",
@@ -23,6 +26,12 @@
   },
   "workspaces": [
     "apps/*",
-    "packages/*"
-  ]
+    "packages/*",
+    "packages/config/*"
+  ],
+  "dependencies": {
+    "@auth/core": "^0.41.1",
+    "@convex-dev/auth": "^0.0.94",
+    "convex": "^1.41.0"
+  }
 }
