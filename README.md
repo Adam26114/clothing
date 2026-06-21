@@ -1,21 +1,75 @@
-# shadcn/ui monorepo template
+# Khit E-Commerce Platform
 
-This is a Next.js monorepo template with shadcn/ui.
+A Myanmar local brand shirt e-commerce platform built as a Turborepo monorepo with Bun.
 
-## Adding components
+## Apps
 
-To add components to your app, run the following command at the root of your `web` app:
+- `apps/storefront` — customer-facing Next.js app (port `3000`)
+- `apps/admin` — admin panel Next.js app (port `3001`)
+
+## Shared packages
+
+- `packages/ui` — shadcn/ui components and design tokens
+- `packages/convex` — shared Convex backend
+- `packages/lib` — shared utilities (cn, formatMMK, i18n, constants, Sentry stub)
+- `packages/config` — shared ESLint, Tailwind, and TypeScript configs
+
+## Local development
+
+### 1. Install dependencies
 
 ```bash
-pnpm dlx shadcn@latest add button -c apps/web
+bun install
 ```
 
-This will place the ui components in the `packages/ui/src/components` directory.
+### 2. Configure environment variables
 
-## Using components
+```bash
+cp .env.example .env.local
+```
 
-To use the components in your app, import them from the `ui` package.
+Fill in the required values in `.env.local`:
 
-```tsx
-import { Button } from "@workspace/ui/components/button";
+- Convex deployment URL and auth keys
+- Sentry DSN / auth token (optional for local dev)
+- `SEED_ADMIN_PASSWORD` for the seed admin user
+
+### 3. Start the dev servers
+
+```bash
+bun run dev
+```
+
+- Storefront: http://localhost:3000
+- Admin: http://localhost:3001
+
+## Available commands
+
+```bash
+bun run build        # Build all apps and packages
+bun run lint         # Lint all apps and packages
+bun run format       # Format all files with Prettier
+bun run format:check # Check formatting (used in CI)
+bun run typecheck    # Type-check all apps and packages
+```
+
+## Docker
+
+```bash
+# Development with hot reload
+docker-compose up
+
+# Production build
+docker build -t khit:latest .
+```
+
+## CI
+
+The GitHub Actions workflow runs:
+
+```bash
+bun install --frozen-lockfile
+bun run lint
+bun run build
+bun run format:check
 ```
