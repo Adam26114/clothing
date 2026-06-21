@@ -1,10 +1,27 @@
+import { OrdersList } from '@/components/storefront/account/orders-list';
+import { ProfileForm } from '@/components/storefront/account/profile-form';
+import { WishlistSummary } from '@/components/storefront/account/wishlist-summary';
 import { t } from '@workspace/lib/i18n';
+
+export const dynamic = 'force-dynamic';
 
 export default function Page() {
   return (
-    <main className="container mx-auto max-w-7xl px-4 py-8 lg:py-12">
-      <h1 className="text-2xl font-semibold tracking-tight">{t('account.title')}</h1>
-      <p className="text-muted-foreground mt-2 text-base leading-7">{t('account.description')}</p>
-    </main>
+    <div className="flex flex-col gap-10">
+      <section className="flex flex-col gap-4">
+        <h2 className="text-base font-semibold">{t('account.profileHeading')}</h2>
+        <ProfileForm />
+      </section>
+
+      <section className="flex flex-col gap-4">
+        <h2 className="text-base font-semibold">{t('account.recentOrdersHeading')}</h2>
+        <OrdersList limit={5} showHeader showEmpty />
+      </section>
+
+      <section className="flex flex-col gap-4">
+        <h2 className="text-base font-semibold">{t('account.wishlistHeading')}</h2>
+        <WishlistSummary />
+      </section>
+    </div>
   );
 }

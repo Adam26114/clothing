@@ -9,6 +9,9 @@ export const SHIPPING_DELIVERY_DAYS = '1–3 business days';
 export const GUEST_CART_STORAGE_KEY = 'khit:guest-cart';
 export const GUEST_CART_VERSION = 1;
 
+export const GUEST_WISHLIST_STORAGE_KEY = 'khit:guest-wishlist';
+export const GUEST_WISHLIST_VERSION = 1;
+
 export const ORDER_STATUSES = [
   'pending',
   'confirmed',

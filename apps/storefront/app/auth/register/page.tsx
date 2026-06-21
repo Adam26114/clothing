@@ -1,12 +1,13 @@
+import { AuthForm } from '@/components/storefront/auth/auth-form';
+import { RegisterForm } from '@/components/storefront/auth/register-form';
 import { t } from '@workspace/lib/i18n';
+
+export const dynamic = 'force-dynamic';
 
 export default function Page() {
   return (
-    <main className="flex min-h-svh items-center justify-center px-6 py-16">
-      <div className="w-full max-w-sm">
-        <h1 className="text-2xl font-semibold tracking-tight">{t('auth.registerTitle')}</h1>
-        <p className="text-muted-foreground mt-2 text-sm">{t('placeholder.genericDescription')}</p>
-      </div>
-    </main>
+    <AuthForm title={t('auth.signUpTitle')} description={t('auth.signUpDescription')}>
+      <RegisterForm />
+    </AuthForm>
   );
 }

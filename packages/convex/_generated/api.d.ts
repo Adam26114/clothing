@@ -17,6 +17,7 @@ import type * as seed from "../seed.js";
 import type * as seedInternal from "../seedInternal.js";
 import type * as storeSettings from "../storeSettings.js";
 import type * as users from "../users.js";
+import type * as wishlistItems from "../wishlistItems.js";
 
 import type {
   ApiFromModules,
@@ -34,6 +35,7 @@ declare const fullApi: ApiFromModules<{
   seedInternal: typeof seedInternal;
   storeSettings: typeof storeSettings;
   users: typeof users;
+  wishlistItems: typeof wishlistItems;
 }>;
 
 /**

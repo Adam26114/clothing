@@ -8,6 +8,7 @@ import { ChevronRightIcon, XIcon } from 'lucide-react';
 
 import { t } from '@workspace/lib/i18n';
 import { cn } from '@workspace/lib/cn';
+import { useAuth } from '@workspace/lib/auth/use-auth';
 import { api } from '@workspace/convex/_generated/api';
 
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@workspace/ui/components/sheet';
@@ -21,6 +22,7 @@ interface MobileNavProps {
 
 export function MobileNav({ open, onOpenChange }: MobileNavProps) {
   const tree = useQuery(api.categories.listAsTree);
+  const { isAuthenticated, isLoading } = useAuth();
   const [expandedSlug, setExpandedSlug] = useState<string | null>(null);
 
   const handleClose = () => {
@@ -129,11 +131,11 @@ export function MobileNav({ open, onOpenChange }: MobileNavProps) {
             </li>
             <li>
               <Link
-                href="/auth/login"
+                href={isAuthenticated ? '/account' : '/auth/login'}
                 onClick={handleClose}
                 className="hover:bg-muted focus-visible:bg-muted block cursor-pointer px-3 py-2 text-sm focus-visible:outline-none"
               >
-                {t('nav.signIn')}
+                {isLoading ? t('nav.signIn') : isAuthenticated ? t('nav.account') : t('nav.signIn')}
               </Link>
             </li>
           </ul>

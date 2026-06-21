@@ -7,10 +7,13 @@
     "./*": "./src/*.ts",
     "./providers/convex": "./src/providers/convex.tsx",
     "./locales/*": "./src/locales/*",
+    "./auth/flows": "./src/auth/flows.ts",
+    "./auth/use-auth": "./src/auth/use-auth.ts",
     "./cart/guest": "./src/cart/guest.ts",
     "./cart/merge": "./src/cart/merge.ts",
     "./cart/summary": "./src/cart/summary.ts",
-    "./hooks/use-cart-ui": "./src/hooks/use-cart-ui.ts"
+    "./hooks/use-cart-ui": "./src/hooks/use-cart-ui.ts",
+    "./wishlist": "./src/wishlist.ts"
   },
   "scripts": {
     "lint": "eslint",

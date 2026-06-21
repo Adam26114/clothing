@@ -4,7 +4,9 @@
   "globalEnv": [
     "NEXT_PUBLIC_CONVEX_URL",
     "NEXT_PUBLIC_SENTRY_DSN",
-    "NEXT_PUBLIC_STOREFRONT_URL"
+    "NEXT_PUBLIC_STOREFRONT_URL",
+    "RESEND_API_KEY",
+    "RESEND_FROM_EMAIL"
   ],
   "tasks": {
     "build": {
