@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useRef } from 'react';
 import { ConvexError } from 'convex/values';
 import { useMutation, useQuery } from 'convex/react';
-import { api } from '@workspace/convex/_generated/api';
+import { api } from '@workspace/convex/_generated/api.js';
 import type { Id } from '@workspace/convex/_generated/dataModel';
 import { useConvexAuth } from '@workspace/lib/auth/client';
 import { clearGuestCart, readGuestCart, useGuestCart } from './guest';
