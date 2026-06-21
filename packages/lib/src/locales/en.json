@@ -314,6 +314,53 @@
   "actions": {
     "continue": "Continue"
   },
+  "admin": {
+    "common": {
+      "loading": "Loading…",
+      "noResults": "No results",
+      "searchPlaceholder": "Search…",
+      "clearFilters": "Clear filters",
+      "actions": {
+        "delete": "Delete",
+        "edit": "Edit",
+        "save": "Save",
+        "cancel": "Cancel",
+        "confirm": "Confirm"
+      }
+    },
+    "dashboard": {
+      "title": "Dashboard",
+      "totalRevenue": "Total Revenue",
+      "newCustomers": "New Customers",
+      "activeAccounts": "Active Accounts",
+      "growthRate": "Growth Rate",
+      "ordersToday": "Orders Today",
+      "pendingOrders": "Pending Orders",
+      "lowStockAlert": "Low Stock Alert",
+      "recentOrders": "Recent Orders",
+      "productCount": "Products",
+      "visitorsChart": "Total Visitors",
+      "range7d": "7 days",
+      "range30d": "30 days",
+      "range3mo": "3 months",
+      "viewAll": "View all",
+      "manageInventory": "Manage inventory",
+      "review": "Review",
+      "noRecentOrders": "No recent orders",
+      "noLowStock": "No low stock items",
+      "noOrders": "No orders today",
+      "trendUp": "Trending up this month",
+      "trendDown": "Trending down this month",
+      "sinceLastMonth": "vs. last month",
+      "productCountSummary": "{active} active / {inactive} inactive",
+      "lowStockItem": "{product} ({color} / {size})",
+      "lowStockQuantity": "{count} left",
+      "gmv": "GMV",
+      "errorLoad": "Could not load dashboard data.",
+      "statusUpdated": "Status updated",
+      "statusUpdateFailed": "Could not update status."
+    }
+  },
   "a11y": {
     "primaryNav": "Primary",
     "decreaseQuantity": "Decrease quantity",

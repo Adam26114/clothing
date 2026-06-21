@@ -6,7 +6,7 @@ import { HeartIcon } from 'lucide-react';
 import { Button } from '@workspace/ui/components/button';
 import { t } from '@workspace/lib/i18n';
 
-import { EmptyState } from '../empty-state';
+import { EmptyState } from '@workspace/ui/components/empty-state';
 
 export function EmptyWishlist() {
   return (

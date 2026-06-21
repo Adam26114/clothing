@@ -13,6 +13,7 @@
     "./cart/merge": "./src/cart/merge.ts",
     "./cart/summary": "./src/cart/summary.ts",
     "./hooks/use-cart-ui": "./src/hooks/use-cart-ui.ts",
+    "./hooks/*": "./src/hooks/*.ts",
     "./wishlist": "./src/wishlist.ts"
   },
   "scripts": {

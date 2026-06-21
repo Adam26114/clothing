@@ -11,7 +11,7 @@ import { Skeleton } from '@workspace/ui/components/skeleton';
 import { api } from '@workspace/convex/_generated/api';
 import type { Doc } from '@workspace/convex/_generated/dataModel';
 
-import { EmptyState } from '../empty-state';
+import { EmptyState } from '@workspace/ui/components/empty-state';
 
 function formatDate(timestamp: number): string {
   try {

@@ -10,7 +10,11 @@ type AuthedQueryCtx = {
   auth: Auth;
   db: { get: (id: Id<'users'>) => Promise<Doc<'users'> | null> };
 };
-type AuthedMutationCtx = AuthedQueryCtx;
+type AuthedMutationCtx = AuthedQueryCtx & {
+  db: AuthedQueryCtx['db'] & {
+    patch: (id: Id<'users'>, fields: Partial<Doc<'users'>>) => Promise<void>;
+  };
+};
 
 async function requireUser(ctx: AuthedQueryCtx): Promise<Doc<'users'>> {
   const userId = await getAuthUserId(ctx);
@@ -24,7 +28,7 @@ async function requireUser(ctx: AuthedQueryCtx): Promise<Doc<'users'>> {
   return user;
 }
 
-async function requireAdmin(ctx: AuthedMutationCtx): Promise<Doc<'users'>> {
+async function requireAdmin(ctx: AuthedQueryCtx): Promise<Doc<'users'>> {
   const user = await requireUser(ctx);
   if (!isAdminRole(user.role)) {
     throw new ConvexError('Forbidden: admin role required');
@@ -108,21 +112,28 @@ export const updateRole = mutation({
     role: v.union(v.literal('customer'), v.literal('admin'), v.literal('super-admin')),
   },
   handler: async (ctx, args) => {
-    const actor = await requireAdmin(ctx);
-    if (actor.role !== 'super-admin' && args.role !== 'customer') {
-      throw new ConvexError('Only super-admin can promote to admin');
-    }
-    if (args.userId === actor._id && args.role !== 'super-admin') {
-      throw new ConvexError('Cannot demote your own super-admin account');
-    }
-    const target = await ctx.db.get(args.userId);
-    if (!target) {
-      throw new ConvexError('User not found');
-    }
-    await ctx.db.patch(args.userId, { role: args.role });
-    return args.userId;
+    return await setUserRoleImpl(ctx, args);
   },
 });
+
+async function setUserRoleImpl(
+  ctx: AuthedMutationCtx,
+  args: { userId: Id<'users'>; role: 'customer' | 'admin' | 'super-admin' }
+): Promise<Id<'users'>> {
+  const actor = await requireAdmin(ctx);
+  if (actor.role !== 'super-admin' && args.role !== 'customer') {
+    throw new ConvexError('Only super-admin can promote to admin');
+  }
+  if (args.userId === actor._id && args.role !== 'super-admin') {
+    throw new ConvexError('Cannot demote your own super-admin account');
+  }
+  const target = await ctx.db.get(args.userId);
+  if (!target) {
+    throw new ConvexError('User not found');
+  }
+  await ctx.db.patch(args.userId, { role: args.role });
+  return args.userId;
+}
 
 export const setActive = mutation({
   args: {
@@ -155,6 +166,69 @@ export const updateProfile = mutation({
     return user._id;
   },
 });
+
+export const adminListStats = query({
+  args: {},
+  handler: async (ctx) => {
+    await requireAdmin(ctx);
+    const all = await ctx.db.query('users').collect();
+    return {
+      customerCount: all.filter((u) => u.role === 'customer').length,
+      adminCount: all.filter((u) => u.role === 'admin').length,
+      superAdminCount: all.filter((u) => u.role === 'super-admin').length,
+      activeCount: all.filter((u) => u.isActive).length,
+    };
+  },
+});
+
+export const setRole = mutation({
+  args: {
+    userId: v.id('users'),
+    role: v.union(v.literal('customer'), v.literal('admin'), v.literal('super-admin')),
+  },
+  handler: async (ctx, args) => {
+    return await setUserRoleImpl(ctx, args);
+  },
+});
+
+export const getCustomerHistory = query({
+  args: { id: v.id('users') },
+  handler: async (ctx, args) => {
+    await requireAdmin(ctx);
+    const user = await ctx.db.get(args.id);
+    if (!user) {
+      return null;
+    }
+    const orders = await ctx.db
+      .query('orders')
+      .withIndex('by_customer', (q) => q.eq('customerId', args.id))
+      .collect();
+    orders.sort((a, b) => b.createdAt - a.createdAt);
+    const stats = computeCustomerStats(orders);
+    return { user, orders, stats };
+  },
+});
+
+function computeCustomerStats(orders: Doc<'orders'>[]): {
+  totalOrders: number;
+  totalSpent: number;
+  ltvMonths: number;
+} {
+  const totalOrders = orders.length;
+  const totalSpent = orders
+    .filter((o) => o.status !== 'cancelled')
+    .reduce((sum, o) => sum + o.total, 0);
+  let ltvMonths = 0;
+  if (totalOrders > 0) {
+    const sorted = [...orders].sort((a, b) => a.createdAt - b.createdAt);
+    const first = new Date(sorted[0]!.createdAt);
+    const last = new Date(sorted[sorted.length - 1]!.createdAt);
+    const months =
+      (last.getFullYear() - first.getFullYear()) * 12 + (last.getMonth() - first.getMonth());
+    ltvMonths = Math.max(1, months);
+  }
+  return { totalOrders, totalSpent, ltvMonths };
+}
 
 export type CurrentUserView = {
   _id: Id<'users'>;
