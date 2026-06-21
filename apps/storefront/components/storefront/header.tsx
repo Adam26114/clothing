@@ -3,17 +3,30 @@
 import { useEffect, useState } from 'react';
 
 import Link from 'next/link';
-import { MenuIcon, SearchIcon, UserIcon } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import { HeartIcon, LogOutIcon, MenuIcon, PackageIcon, SearchIcon, UserIcon } from 'lucide-react';
+import { toast } from 'sonner';
 
 import { t } from '@workspace/lib/i18n';
 import { cn } from '@workspace/lib/cn';
+import { useAuth } from '@workspace/lib/auth/use-auth';
 
 import { Button } from '@workspace/ui/components/button';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@workspace/ui/components/dropdown-menu';
+
 import { CartIcon } from './cart-icon';
 import { MobileNav } from './mobile-nav';
 import { SearchOverlay } from './search-overlay';
 import { MegaMenu } from './mega-menu';
 import { SaleBanner } from './sale-banner';
+import { WishlistIcon } from './wishlist-icon';
 
 interface NavSpec {
   key: 'women' | 'men' | 'new' | 'sale';
@@ -31,6 +44,9 @@ const NAV_ITEMS: NavSpec[] = [
 export function StorefrontHeader() {
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
+  const [signingOut, setSigningOut] = useState(false);
+  const router = useRouter();
+  const { user, isAuthenticated, isLoading, signOut } = useAuth();
 
   useEffect(() => {
     const handleKey = (event: KeyboardEvent) => {
@@ -43,6 +59,18 @@ export function StorefrontHeader() {
     window.addEventListener('keydown', handleKey);
     return () => window.removeEventListener('keydown', handleKey);
   }, []);
+
+  const handleSignOut = async () => {
+    setSigningOut(true);
+    const result = await signOut();
+    setSigningOut(false);
+    if (!result.ok) {
+      toast.error(t(result.error));
+      return;
+    }
+    router.push('/');
+    router.refresh();
+  };
 
   return (
     <header className="bg-background sticky top-0 z-40 w-full border-b">
@@ -95,13 +123,69 @@ export function StorefrontHeader() {
           >
             <SearchIcon className="size-5" />
           </Button>
-          <Link
-            href="/auth/login"
-            aria-label={t('nav.account')}
-            className="hover:bg-muted focus-visible:ring-ring/50 inline-flex h-9 w-9 cursor-pointer items-center justify-center rounded-md focus-visible:ring-2 focus-visible:outline-none"
-          >
-            <UserIcon className="size-5" aria-hidden />
-          </Link>
+          {isAuthenticated && !isLoading ? (
+            <DropdownMenu>
+              <DropdownMenuTrigger
+                render={
+                  <Button
+                    variant="ghost"
+                    size="icon-sm"
+                    aria-label={t('nav.account')}
+                    className="cursor-pointer"
+                  />
+                }
+              >
+                <UserIcon className="size-5" aria-hidden />
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" sideOffset={8} className="min-w-56">
+                <DropdownMenuLabel className="font-normal">
+                  <div className="flex flex-col gap-0.5">
+                    <span className="text-sm font-medium">{user?.name ?? t('nav.account')}</span>
+                    {user?.email ? (
+                      <span className="text-muted-foreground truncate text-xs">{user.email}</span>
+                    ) : null}
+                  </div>
+                </DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem render={<Link href="/account" />} className="cursor-pointer">
+                  <UserIcon className="size-4" aria-hidden />
+                  {t('account.profileHeading')}
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  render={<Link href="/account/orders" />}
+                  className="cursor-pointer"
+                >
+                  <PackageIcon className="size-4" aria-hidden />
+                  {t('account.ordersHeading')}
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  render={<Link href="/account/wishlist" />}
+                  className="cursor-pointer"
+                >
+                  <HeartIcon className="size-4" aria-hidden />
+                  {t('account.wishlistHeading')}
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem
+                  onClick={handleSignOut}
+                  disabled={signingOut}
+                  className="text-muted-foreground cursor-pointer"
+                >
+                  <LogOutIcon className="size-4" aria-hidden />
+                  {t('account.signOutButton')}
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          ) : (
+            <Link
+              href={isLoading ? '#' : '/auth/login'}
+              aria-label={t('nav.account')}
+              className="hover:bg-muted focus-visible:ring-ring/50 inline-flex h-9 w-9 cursor-pointer items-center justify-center rounded-md focus-visible:ring-2 focus-visible:outline-none"
+            >
+              <UserIcon className="size-5" aria-hidden />
+            </Link>
+          )}
+          <WishlistIcon />
           <CartIcon />
         </div>
       </div>

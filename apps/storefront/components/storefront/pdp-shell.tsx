@@ -22,6 +22,7 @@ import { FreePickupBadge } from './free-pickup-badge';
 import { StockIndicator } from './stock-indicator';
 import { ColorSelector, type ColorSwatch } from './color-selector';
 import { SizeSelector } from './size-selector';
+import { PdpWishlistButton } from './pdp-wishlist-button';
 import type { ProductListItem } from '@workspace/convex/products';
 import type { GalleryColorVariant } from './image-gallery';
 
@@ -127,14 +128,30 @@ export function PdpShell({ product }: PdpShellProps) {
         </div>
         <Separator />
         <div className="flex flex-col gap-3">
-          <Button
-            size="lg"
-            onClick={handleAdd}
-            disabled={!canAdd}
-            className={cn('w-full cursor-pointer')}
-          >
-            {submitting ? t('checkout.orderProcessing') : t('pdp.addToCart')}
-          </Button>
+          <div className="flex items-stretch gap-2">
+            <Button
+              size="lg"
+              onClick={handleAdd}
+              disabled={!canAdd}
+              className={cn('flex-1 cursor-pointer')}
+            >
+              {submitting ? t('checkout.orderProcessing') : t('pdp.addToCart')}
+            </Button>
+            {selectedSize ? (
+              <PdpWishlistButton
+                productId={product._id}
+                colorVariantId={selectedColor.id}
+                size={selectedSize}
+              />
+            ) : (
+              <PdpWishlistButton
+                productId={product._id}
+                colorVariantId={selectedColor.id}
+                size={firstVariant.selectedSizes[0] ?? selectedColor.selectedSizes[0] ?? ''}
+                className="opacity-60"
+              />
+            )}
+          </div>
           <FreePickupBadge className="self-start" />
         </div>
         <Separator />

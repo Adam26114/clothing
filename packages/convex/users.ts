@@ -140,6 +140,22 @@ export const setActive = mutation({
   },
 });
 
+export const updateProfile = mutation({
+  args: {
+    name: v.optional(v.string()),
+    phone: v.optional(v.string()),
+  },
+  handler: async (ctx, args) => {
+    const user = await requireUser(ctx);
+    const patch: { name?: string; phone?: string } = {};
+    if (args.name !== undefined) patch.name = args.name;
+    if (args.phone !== undefined) patch.phone = args.phone;
+    if (Object.keys(patch).length === 0) return user._id;
+    await ctx.db.patch(user._id, patch);
+    return user._id;
+  },
+});
+
 export type CurrentUserView = {
   _id: Id<'users'>;
   email: string;
