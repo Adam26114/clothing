@@ -1,4 +1,4 @@
-import { v } from 'convex/values';
+import { ConvexError, v } from 'convex/values';
 import { internalMutation, internalQuery } from './_generated/server';
 import type { Id } from './_generated/dataModel';
 
@@ -123,5 +123,20 @@ export const updateUserRole = internalMutation({
     const target: Id<'users'> = args.userId;
     await ctx.db.patch(target, { role: args.role });
     return target;
+  },
+});
+
+export const promoteSuperAdmin = internalMutation({
+  args: { userId: v.id('users') },
+  handler: async (ctx, args) => {
+    const user = await ctx.db.get(args.userId);
+    if (!user) {
+      throw new ConvexError('User not found');
+    }
+    if (user.role === 'super-admin') {
+      return args.userId;
+    }
+    await ctx.db.patch(args.userId, { role: 'super-admin' });
+    return args.userId;
   },
 });

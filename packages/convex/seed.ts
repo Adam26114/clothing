@@ -294,11 +294,13 @@ export const run = action({
       products: { created: number; skipped: number };
       storeSettings: { created: boolean };
       admin: { created: boolean; reason?: string; userId?: Id<'users'> };
+      superAdmin: { created: boolean; reason?: string; userId?: Id<'users'> };
     } = {
       categories: { created: 0, skipped: 0 },
       products: { created: 0, skipped: 0 },
       storeSettings: { created: false },
       admin: { created: false },
+      superAdmin: { created: false },
     };
 
     const existingCategories = await ctx.runQuery(internal.seedInternal.listCategories, {});
@@ -428,6 +430,41 @@ export const run = action({
           role: 'admin',
         });
         summary.admin = { created: true, userId: result.user._id };
+      }
+    }
+
+    const superAdminEmail = process.env.SEED_SUPER_ADMIN_EMAIL;
+    const superAdminPassword = process.env.SEED_SUPER_ADMIN_PASSWORD;
+    if (!superAdminEmail || !superAdminPassword) {
+      summary.superAdmin = {
+        created: false,
+        reason: 'SEED_SUPER_ADMIN_EMAIL or SEED_SUPER_ADMIN_PASSWORD not set',
+      };
+    } else {
+      const existingSuperAdmin = await ctx.runQuery(internal.seedInternal.findUserByEmail, {
+        email: superAdminEmail,
+      });
+      if (existingSuperAdmin) {
+        const userId = await ctx.runMutation(internal.seedInternal.promoteSuperAdmin, {
+          userId: existingSuperAdmin._id,
+        });
+        summary.superAdmin = { created: false, userId };
+      } else {
+        const result = await createAccount(ctx, {
+          provider: 'password',
+          account: { id: superAdminEmail, secret: superAdminPassword },
+          profile: {
+            email: superAdminEmail,
+            role: 'super-admin' as const,
+            isActive: true as const,
+            createdAt: Date.now(),
+          },
+          shouldLinkViaEmail: true,
+        });
+        await ctx.runMutation(internal.seedInternal.promoteSuperAdmin, {
+          userId: result.user._id,
+        });
+        summary.superAdmin = { created: true, userId: result.user._id };
       }
     }
 

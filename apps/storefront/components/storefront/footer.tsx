@@ -1,12 +1,24 @@
+'use client';
+
 import Link from 'next/link';
-import { AtSignIcon, MessageCircleIcon, TruckIcon } from 'lucide-react';
+import { AtSignIcon, MailIcon, MessageCircleIcon, PhoneIcon, TruckIcon } from 'lucide-react';
+import { useQuery } from 'convex/react';
 
 import { t } from '@workspace/lib/i18n';
+import { api } from '@workspace/convex/_generated/api';
 import { Badge } from '@workspace/ui/components/badge';
 import { Separator } from '@workspace/ui/components/separator';
 
 export function StorefrontFooter() {
+  const settings = useQuery(api.storeSettings.get);
   const year = new Date().getFullYear();
+
+  const email = settings?.contactEmail?.trim() || 'hello@khit.example';
+  const phone = settings?.contactPhone?.trim() || '+95 9 000 000 000';
+  const instagram = settings?.socialInstagram?.trim();
+  const facebook = settings?.socialFacebook?.trim();
+  const tiktok = settings?.socialTiktok?.trim();
+
   return (
     <footer className="bg-muted/30 text-muted-foreground border-t">
       <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:py-16">
@@ -38,8 +50,8 @@ export function StorefrontFooter() {
           <FooterColumn
             heading={t('footer.contact')}
             links={[
-              { label: 'hello@khit.example', href: 'mailto:hello@khit.example' },
-              { label: '+95 9 000 000 000', href: 'tel:+959000000000' },
+              { label: email, href: `mailto:${email}`, icon: <MailIcon className="size-3.5" /> },
+              { label: phone, href: phoneHref(phone), icon: <PhoneIcon className="size-3.5" /> },
             ]}
           />
         </div>
@@ -58,18 +70,31 @@ export function StorefrontFooter() {
               <TruckIcon aria-hidden className="size-3.5" />
               {t('footer.paymentCod')}
             </Badge>
-            <div className="flex items-center gap-1">
-              <FooterSocialLink
-                href="#"
-                label={t('footer.socialInstagram')}
-                icon={<AtSignIcon className="size-4" aria-hidden />}
-              />
-              <FooterSocialLink
-                href="#"
-                label={t('footer.socialFacebook')}
-                icon={<MessageCircleIcon className="size-4" aria-hidden />}
-              />
-            </div>
+            {(instagram || facebook || tiktok) && (
+              <div className="flex items-center gap-1">
+                {instagram ? (
+                  <FooterSocialLink
+                    href={instagram}
+                    label={t('footer.socialInstagram')}
+                    icon={<AtSignIcon className="size-4" aria-hidden />}
+                  />
+                ) : null}
+                {facebook ? (
+                  <FooterSocialLink
+                    href={facebook}
+                    label={t('footer.socialFacebook')}
+                    icon={<MessageCircleIcon className="size-4" aria-hidden />}
+                  />
+                ) : null}
+                {tiktok ? (
+                  <FooterSocialLink
+                    href={tiktok}
+                    label="TikTok"
+                    icon={<TikTokGlyph className="size-4" aria-hidden />}
+                  />
+                ) : null}
+              </div>
+            )}
           </div>
         </div>
         <p className="text-muted-foreground mt-6 text-xs">{t('header.tagline')}</p>
@@ -78,9 +103,28 @@ export function StorefrontFooter() {
   );
 }
 
+function phoneHref(phone: string): string {
+  const cleaned = phone.replace(/[^\d+]/g, '');
+  return cleaned ? `tel:${cleaned}` : '#';
+}
+
+function TikTokGlyph({ className }: { className?: string }) {
+  return (
+    <svg
+      className={className}
+      viewBox="0 0 24 24"
+      fill="currentColor"
+      aria-hidden
+      focusable="false"
+    >
+      <path d="M16.6 5.82a4.28 4.28 0 0 1-3.77-4.07h-3.32v12.4a2.59 2.59 0 0 1-2.59 2.5c-1.42 0-2.6-1.16-2.6-2.6a2.6 2.6 0 0 1 2.6-2.55c.27 0 .53.04.78.12V8.4a6 6 0 0 0-.78-.05 5.85 5.85 0 0 0-5.85 5.85 5.85 5.85 0 0 0 5.85 5.85 5.85 5.85 0 0 0 5.85-5.85V9.55a7.49 7.49 0 0 0 4.42 1.43V7.66a4.36 4.36 0 0 1-.59-1.84Z" />
+    </svg>
+  );
+}
+
 interface FooterColumnProps {
   heading: string;
-  links: Array<{ label: string; href: string }>;
+  links: Array<{ label: string; href: string; icon?: React.ReactNode }>;
 }
 
 function FooterColumn({ heading, links }: FooterColumnProps) {
@@ -92,8 +136,9 @@ function FooterColumn({ heading, links }: FooterColumnProps) {
           <li key={`${heading}-${link.label}`}>
             <Link
               href={link.href}
-              className="hover:text-foreground focus-visible:ring-ring/50 cursor-pointer text-sm transition-colors focus-visible:ring-2 focus-visible:outline-none"
+              className="hover:text-foreground focus-visible:ring-ring/50 inline-flex cursor-pointer items-center gap-1.5 text-sm transition-colors focus-visible:ring-2 focus-visible:outline-none"
             >
+              {link.icon}
               {link.label}
             </Link>
           </li>

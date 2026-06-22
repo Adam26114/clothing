@@ -1,6 +1,5 @@
-import { PlaceholderPage } from '@/components/placeholder-page';
-import { t } from '@workspace/lib/i18n';
+import { OrdersTableClient } from './orders-table-client';
 
 export default function Page() {
-  return <PlaceholderPage title={t('nav.orders')} />;
+  return <OrdersTableClient />;
 }

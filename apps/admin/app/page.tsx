@@ -1,12 +1,20 @@
+import { Suspense } from 'react';
+
+import { AdminPageHeader } from '@workspace/ui/components/admin/page-header';
 import { t } from '@workspace/lib/i18n';
+
+import { DashboardClient } from '@/components/admin/dashboard/dashboard-client';
+import { DashboardSkeleton } from '@/components/admin/dashboard/dashboard-skeleton';
+
+export const dynamic = 'force-dynamic';
 
 export default function Page() {
   return (
-    <div className="flex min-h-[calc(100svh-3.5rem)] items-center justify-center">
-      <div className="text-center">
-        <h1 className="text-2xl font-semibold tracking-tight">{t('adminTitle')}</h1>
-        <p className="text-muted-foreground mt-2 text-sm">{t('placeholder.genericDescription')}</p>
-      </div>
+    <div className="flex flex-col gap-2">
+      <AdminPageHeader title={t('admin.dashboard.title')} />
+      <Suspense fallback={<DashboardSkeleton />}>
+        <DashboardClient />
+      </Suspense>
     </div>
   );
 }

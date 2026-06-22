@@ -1,6 +1,12 @@
-import { PlaceholderPage } from '@/components/placeholder-page';
-import { t } from '@workspace/lib/i18n';
+import { Suspense } from 'react';
+
+import { SettingsClient } from './settings-client';
+import { SettingsSkeleton } from '@/components/admin/settings/settings-skeleton';
 
 export default function Page() {
-  return <PlaceholderPage title={t('nav.settings')} />;
+  return (
+    <Suspense fallback={<SettingsSkeleton />}>
+      <SettingsClient />
+    </Suspense>
+  );
 }

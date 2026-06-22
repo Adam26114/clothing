@@ -3,7 +3,7 @@ import { ShoppingBagIcon } from 'lucide-react';
 
 import { t } from '@workspace/lib/i18n';
 import { Button } from '@workspace/ui/components/button';
-import { EmptyState } from './empty-state';
+import { EmptyState } from '@workspace/ui/components/empty-state';
 
 export function EmptyCart() {
   return (

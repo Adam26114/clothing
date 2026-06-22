@@ -13,7 +13,7 @@ import { ProductCard } from './product-card';
 import { ProductFilters } from './product-filters';
 import { SortSelect } from './sort-select';
 import { PaginationLoadMore } from './pagination-load-more';
-import { EmptyState } from './empty-state';
+import { EmptyState } from '@workspace/ui/components/empty-state';
 import { Skeleton } from '@workspace/ui/components/skeleton';
 
 type SortValue = 'newest' | 'oldest' | 'price-asc' | 'price-desc' | 'name-asc' | 'name-desc';

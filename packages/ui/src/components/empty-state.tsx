@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react';
 
-import { cn } from '@workspace/lib/cn';
+import { cn } from '@workspace/ui/lib/utils';
 
 interface EmptyStateProps {
   icon?: ReactNode;

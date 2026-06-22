@@ -152,6 +152,24 @@ function incrementStock(
   return { ...product, colorVariants };
 }
 
+export function setStockForVariant(
+  product: Doc<'products'>,
+  variantId: string,
+  size: string,
+  qty: number
+): Doc<'products'> {
+  const colorVariants = product.colorVariants.map((variant) => {
+    if (variant.id !== variantId) {
+      return variant;
+    }
+    return {
+      ...variant,
+      stock: { ...variant.stock, [size]: qty },
+    };
+  });
+  return { ...product, colorVariants };
+}
+
 export const list = query({
   args: {
     status: v.optional(
@@ -418,5 +436,207 @@ export const cancel = mutation({
       updatedAt: now,
     });
     return args.id;
+  },
+});
+
+export const restore = mutation({
+  args: { id: v.id('orders') },
+  handler: async (ctx, args) => {
+    await requireAdmin(ctx);
+    const order = await ctx.db.get(args.id);
+    if (!order) {
+      throw new ConvexError('Order not found');
+    }
+    if (order.status !== 'cancelled') {
+      throw new ConvexError('Only cancelled orders can be restored');
+    }
+
+    const now = Date.now();
+    for (const item of order.items) {
+      const product = await ctx.db.get(item.productId);
+      if (!product) {
+        continue;
+      }
+      const variant = product.colorVariants.find((v) => v.id === item.colorVariantId);
+      if (!variant) {
+        throw new ConvexError(`Variant ${item.colorVariantId} not found for ${item.name}`);
+      }
+      const available = variant.stock[item.size] ?? 0;
+      if (available < item.quantity) {
+        throw new ConvexError(
+          `Insufficient stock to restore ${item.name} (${variant.colorName} / ${item.size}): only ${available} available`
+        );
+      }
+      const decremented = decrementStock(product, item.colorVariantId, item.size, item.quantity);
+      await ctx.db.patch(item.productId, {
+        colorVariants: decremented.colorVariants,
+        updatedAt: now,
+      });
+    }
+
+    await ctx.db.patch(args.id, {
+      status: 'pending' as const,
+      updatedAt: now,
+    });
+    return args.id;
+  },
+});
+
+export const adminList = query({
+  args: {
+    status: v.optional(
+      v.union(
+        v.literal('pending'),
+        v.literal('confirmed'),
+        v.literal('processing'),
+        v.literal('shipped'),
+        v.literal('delivered'),
+        v.literal('cancelled')
+      )
+    ),
+    customerId: v.optional(v.id('users')),
+    search: v.optional(v.string()),
+    page: v.optional(v.number()),
+    pageSize: v.optional(v.number()),
+  },
+  handler: async (ctx, args) => {
+    await requireAdmin(ctx);
+    const all = await ctx.db.query('orders').collect();
+    const search = args.search?.toLowerCase().trim();
+
+    const filtered = all.filter((order) => {
+      if (args.customerId !== undefined && order.customerId !== args.customerId) {
+        return false;
+      }
+      if (args.status && order.status !== args.status) {
+        return false;
+      }
+      if (search) {
+        const haystack =
+          `${order.orderNumber} ${order.customerInfo.name} ${order.customerInfo.email} ${order.customerInfo.phone}`.toLowerCase();
+        if (!haystack.includes(search)) {
+          return false;
+        }
+      }
+      return true;
+    });
+
+    filtered.sort((a, b) => b.createdAt - a.createdAt);
+    const pageSize = args.pageSize ?? DEFAULT_PAGE_SIZE;
+    const page = Math.max(0, args.page ?? 0);
+    const total = filtered.length;
+    const start = page * pageSize;
+    const items = filtered.slice(start, start + pageSize);
+
+    return { items, total, page, pageSize };
+  },
+});
+
+function startOfToday(): number {
+  const d = new Date();
+  d.setHours(0, 0, 0, 0);
+  return d.getTime();
+}
+
+function startOfMonth(d: Date = new Date()): number {
+  return new Date(d.getFullYear(), d.getMonth(), 1).getTime();
+}
+
+function addMonths(d: Date, months: number): Date {
+  return new Date(d.getFullYear(), d.getMonth() + months, 1);
+}
+
+export const dashboardStats = query({
+  args: {},
+  handler: async (ctx) => {
+    await requireAdmin(ctx);
+
+    const now = new Date();
+    const todayStart = startOfToday();
+    const monthStart = startOfMonth(now);
+    const prevMonthStart = startOfMonth(addMonths(now, -1));
+
+    const allOrders = await ctx.db.query('orders').collect();
+    const allUsers = await ctx.db.query('users').collect();
+    const allProducts = await ctx.db.query('products').collect();
+
+    const ordersToday = allOrders.filter((o) => o.createdAt >= todayStart);
+    const ordersTodayGmv = ordersToday.reduce((sum, o) => sum + o.total, 0);
+
+    const pendingCount = allOrders.filter((o) => o.status === 'pending').length;
+
+    const mtdOrders = allOrders.filter((o) => o.createdAt >= monthStart);
+    const mtdRevenue = mtdOrders.reduce((sum, o) => sum + o.total, 0);
+
+    const prevMonthOrders = allOrders.filter(
+      (o) => o.createdAt >= prevMonthStart && o.createdAt < monthStart
+    );
+    const prevMonthRevenue = prevMonthOrders.reduce((sum, o) => sum + o.total, 0);
+    const mtdRevenueTrendPct =
+      prevMonthRevenue === 0
+        ? mtdRevenue > 0
+          ? 100
+          : 0
+        : ((mtdRevenue - prevMonthRevenue) / prevMonthRevenue) * 100;
+
+    const newCustomersThisMonth = allUsers.filter((u) => u.createdAt >= monthStart).length;
+    const newCustomersPrevMonth = allUsers.filter(
+      (u) => u.createdAt >= prevMonthStart && u.createdAt < monthStart
+    ).length;
+    const newCustomersTrendPct =
+      newCustomersPrevMonth === 0
+        ? newCustomersThisMonth > 0
+          ? 100
+          : 0
+        : ((newCustomersThisMonth - newCustomersPrevMonth) / newCustomersPrevMonth) * 100;
+
+    const sortedOrders = [...allOrders].sort((a, b) => b.createdAt - a.createdAt);
+    const recentOrders = sortedOrders.slice(0, 10);
+
+    const productCountActive = allProducts.filter((p) => p.isPublished).length;
+    const productCountInactive = allProducts.length - productCountActive;
+
+    const customerCount = allUsers.filter((u) => u.role === 'customer').length;
+    const activeAccountCount = allUsers.filter((u) => u.isActive).length;
+
+    return {
+      ordersToday: ordersToday.length,
+      ordersTodayGmv,
+      pendingCount,
+      mtdRevenue,
+      mtdRevenueTrendPct,
+      newCustomersThisMonth,
+      newCustomersTrendPct,
+      recentOrders,
+      productCountActive,
+      productCountInactive,
+      customerCount,
+      activeAccountCount,
+    };
+  },
+});
+
+export const customerStats = query({
+  args: { customerId: v.id('users') },
+  handler: async (ctx, args) => {
+    await requireAdmin(ctx);
+    const orders = await ctx.db
+      .query('orders')
+      .withIndex('by_customer', (q) => q.eq('customerId', args.customerId))
+      .collect();
+    const totalOrders = orders.length;
+    const totalSpent = orders
+      .filter((o) => o.status !== 'cancelled')
+      .reduce((sum, o) => sum + o.total, 0);
+    let ltvMonths = 0;
+    if (totalOrders > 0) {
+      const sorted = [...orders].sort((a, b) => a.createdAt - b.createdAt);
+      const first = new Date(sorted[0]!.createdAt);
+      const last = new Date(sorted[sorted.length - 1]!.createdAt);
+      const months =
+        (last.getFullYear() - first.getFullYear()) * 12 + (last.getMonth() - first.getMonth());
+      ltvMonths = Math.max(1, months);
+    }
+    return { totalOrders, totalSpent, ltvMonths };
   },
 });
