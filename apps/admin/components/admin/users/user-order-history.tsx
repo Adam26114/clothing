@@ -18,6 +18,8 @@ import {
 import { formatMMK } from '@workspace/lib/formatMMK';
 import { t } from '@workspace/lib/i18n';
 
+import { orderStatusLabel } from '@/lib/order-status-label';
+
 interface UserOrderHistoryProps {
   orders: Doc<'orders'>[];
 }
@@ -86,7 +88,10 @@ export function UserOrderHistory({ orders }: UserOrderHistoryProps) {
                       {formatMMK(order.total)}
                     </TableCell>
                     <TableCell>
-                      <StatusBadge status={order.status as OrderStatus} />
+                      <StatusBadge
+                        status={order.status as OrderStatus}
+                        label={orderStatusLabel(order.status as OrderStatus)}
+                      />
                     </TableCell>
                     <TableCell className="text-muted-foreground text-sm">
                       {deliveryLabel(order.deliveryMethod)}

@@ -14,6 +14,8 @@ import { StatusBadge, type OrderStatus } from '@workspace/ui/components/admin/st
 import { formatMMK } from '@workspace/lib/formatMMK';
 import { t } from '@workspace/lib/i18n';
 
+import { orderStatusLabel } from '@/lib/order-status-label';
+
 export interface OrderRow {
   _id: string;
   orderNumber: string;
@@ -138,7 +140,9 @@ export function makeOrderColumns(): ColumnDef<OrderRow, unknown>[] {
     {
       accessorKey: 'status',
       header: t('admin.orders.columns.status'),
-      cell: ({ row }) => <StatusBadge status={row.original.status} />,
+      cell: ({ row }) => (
+        <StatusBadge status={row.original.status} label={orderStatusLabel(row.original.status)} />
+      ),
     },
     {
       id: 'actions',

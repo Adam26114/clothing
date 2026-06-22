@@ -7,6 +7,8 @@ import { Button } from '@workspace/ui/components/button';
 import { StatusBadge, type OrderStatus } from '@workspace/ui/components/admin/status-badge';
 import { t } from '@workspace/lib/i18n';
 
+import { orderStatusLabel } from '@/lib/order-status-label';
+
 interface OrderDetailHeaderProps {
   orderNumber: string;
   status: OrderStatus;
@@ -51,7 +53,7 @@ export function OrderDetailHeader({ orderNumber, status, createdAt }: OrderDetai
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
-          <StatusBadge status={status} />
+          <StatusBadge status={status} label={orderStatusLabel(status)} />
         </div>
       </div>
     </div>
