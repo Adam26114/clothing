@@ -1,3 +1,4 @@
+import Image from 'next/image';
 import Link from 'next/link';
 
 import { cn } from '@workspace/lib/cn';
@@ -8,6 +9,7 @@ import { PlaceholderImage } from './placeholder-image';
 
 interface HeroBannerProps {
   heroImageColorHex?: string | null;
+  heroImageUrl?: string | null;
   eyebrow?: string | null;
   title?: string | null;
   subtitle?: string | null;
@@ -18,6 +20,7 @@ interface HeroBannerProps {
 
 export function HeroBanner({
   heroImageColorHex,
+  heroImageUrl,
   eyebrow,
   title,
   subtitle,
@@ -36,11 +39,23 @@ export function HeroBanner({
       className={cn('bg-card text-card-foreground relative overflow-hidden rounded-xl', className)}
     >
       <div className="relative">
-        <PlaceholderImage
-          colorHex={heroImageColorHex ?? fallbackHex}
-          aspectRatio="banner"
-          label={t('a11y.hero')}
-        />
+        {heroImageUrl ? (
+          <Image
+            src={heroImageUrl}
+            alt={t('a11y.hero')}
+            width={1600}
+            height={900}
+            priority
+            unoptimized
+            className="aspect-3/4 w-full object-cover md:aspect-video"
+          />
+        ) : (
+          <PlaceholderImage
+            colorHex={heroImageColorHex ?? fallbackHex}
+            aspectRatio="banner"
+            label={t('a11y.hero')}
+          />
+        )}
         <div className="absolute inset-0 flex flex-col justify-end gap-4 bg-gradient-to-t from-black/40 via-black/10 to-transparent p-6 md:p-12 lg:p-16">
           {eyebrow ? (
             <p className="text-xs font-medium tracking-widest text-white/80 uppercase md:text-sm">

@@ -572,6 +572,90 @@
       "errorInvalid": "Stock must be a non-negative integer",
       "viewProduct": "View product"
     },
+    "settings": {
+      "title": "Settings",
+      "sections": {
+        "hero": "Hero banner",
+        "sale": "Sale banner",
+        "announcement": "Announcement bar",
+        "featured": "Featured products",
+        "contact": "Contact & social",
+        "pickup": "Pickup information"
+      },
+      "hero": {
+        "title": "Hero title",
+        "titlePlaceholder": "e.g. New season. New shirts.",
+        "subtitle": "Hero subtitle",
+        "subtitlePlaceholder": "e.g. Crafted in Myanmar. Worn everywhere.",
+        "image": "Hero image",
+        "imageHint": "Recommended: 1600×900 px. JPG/PNG/WebP.",
+        "removeImage": "Remove image",
+        "ctaLabel": "CTA label",
+        "ctaLabelPlaceholder": "e.g. Shop new arrivals",
+        "ctaLink": "CTA link",
+        "ctaLinkPlaceholder": "/new"
+      },
+      "sale": {
+        "enable": "Enable sale banner",
+        "text": "Banner text",
+        "textPlaceholder": "e.g. End of season sale — up to 25% off",
+        "link": "Banner link",
+        "linkPlaceholder": "/sale",
+        "hint": "When enabled, shows a dismissible banner above the main nav."
+      },
+      "announcement": {
+        "text": "Announcement text",
+        "textPlaceholder": "e.g. Free shipping on orders over Ks 100,000",
+        "hint": "Optional thin bar shown above the main nav."
+      },
+      "featured": {
+        "searchPlaceholder": "Search products to add…",
+        "addToFeatured": "Add",
+        "removeFromFeatured": "Remove",
+        "currentlyFeatured": "Currently featured",
+        "noFeatured": "No products are featured yet.",
+        "addNew": "Add new featured products",
+        "thumbnail": "Thumbnail",
+        "name": "Name",
+        "sku": "SKU",
+        "action": "Action"
+      },
+      "contact": {
+        "email": "Contact email",
+        "emailPlaceholder": "hello@khit.example",
+        "phone": "Contact phone",
+        "phonePlaceholder": "+95 9 000 000 000",
+        "socialInstagram": "Instagram",
+        "socialInstagramPlaceholder": "https://instagram.com/khit",
+        "socialFacebook": "Facebook",
+        "socialFacebookPlaceholder": "https://facebook.com/khit",
+        "socialTiktok": "TikTok",
+        "socialTiktokPlaceholder": "https://tiktok.com/@khit"
+      },
+      "pickup": {
+        "name": "Pickup store name",
+        "namePlaceholder": "Khit Yangon Flagship",
+        "address": "Pickup address",
+        "addressPlaceholder": "No. 12, Shwedagon Pagoda Road, Yangon",
+        "hours": "Pickup hours",
+        "hoursPlaceholder": "Mon–Sun, 10:00–20:00"
+      },
+      "save": {
+        "save": "Save changes",
+        "saving": "Saving…",
+        "saved": "Settings saved",
+        "discard": "Discard",
+        "dirty": "You have unsaved changes"
+      },
+      "error": {
+        "update": "Failed to save settings",
+        "invalidCtaLink": "CTA link must start with /"
+      },
+      "success": {
+        "featuredAdded": "Added to featured",
+        "featuredRemoved": "Removed from featured"
+      }
+    },
     "users": {
       "title": "Users",
       "columns": {

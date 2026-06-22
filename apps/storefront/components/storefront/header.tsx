@@ -26,6 +26,7 @@ import { MobileNav } from './mobile-nav';
 import { SearchOverlay } from './search-overlay';
 import { MegaMenu } from './mega-menu';
 import { SaleBanner } from './sale-banner';
+import { AnnouncementBar } from './announcement-bar';
 import { WishlistIcon } from './wishlist-icon';
 
 interface NavSpec {
@@ -74,6 +75,7 @@ export function StorefrontHeader() {
 
   return (
     <header className="bg-background sticky top-0 z-40 w-full border-b">
+      <AnnouncementBar />
       <SaleBanner />
       <div className="flex h-16 items-center justify-between gap-2 px-4 sm:px-6">
         <div className="flex flex-1 items-center gap-2">
