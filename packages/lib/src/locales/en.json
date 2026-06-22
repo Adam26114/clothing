@@ -543,6 +543,34 @@
         "update": "Product updated",
         "softDelete": "Product unpublished"
       }
+    },
+    "inventory": {
+      "title": "Inventory",
+      "columns": {
+        "product": "Product",
+        "variant": "Variant",
+        "size": "Size",
+        "stock": "Stock",
+        "actions": "Actions"
+      },
+      "searchPlaceholder": "Search by product or color…",
+      "filterCategory": "Category",
+      "filterCategoryAll": "All categories",
+      "filterLowStock": "Low stock only",
+      "filterOutOfStock": "Out of stock only",
+      "noResults": "No inventory rows match your filters",
+      "noResultsDescription": "Try adjusting the search or filters.",
+      "noResultsEmpty": "No inventory yet",
+      "noResultsEmptyDescription": "Add stock to a product variant to see it here.",
+      "clearFilters": "Clear filters",
+      "showingOf": "Showing {shown} of {total} rows",
+      "stockLow": "Low stock",
+      "stockOut": "Out of stock",
+      "editStock": "Edit stock",
+      "stockUpdated": "Stock updated",
+      "errorUpdate": "Failed to update stock",
+      "errorInvalid": "Stock must be a non-negative integer",
+      "viewProduct": "View product"
     }
   },
   "a11y": {
