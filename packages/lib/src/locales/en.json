@@ -571,6 +571,70 @@
       "errorUpdate": "Failed to update stock",
       "errorInvalid": "Stock must be a non-negative integer",
       "viewProduct": "View product"
+    },
+    "users": {
+      "title": "Users",
+      "columns": {
+        "name": "Name",
+        "email": "Email",
+        "phone": "Phone",
+        "role": "Role",
+        "joined": "Joined",
+        "actions": "Actions"
+      },
+      "searchPlaceholder": "Search by name, email, or phone…",
+      "filterRole": "Role",
+      "filterRoleAll": "All roles",
+      "showingOf": "Showing {shown} of {total} users",
+      "noResults": "No users match your filters",
+      "noResultsDescription": "Try adjusting the search or role filter.",
+      "noResultsEmpty": "No users yet",
+      "noResultsEmptyDescription": "When customers sign up they will appear here.",
+      "clearFilters": "Clear filters",
+      "viewDetails": "View details",
+      "detail": {
+        "title": "{name}",
+        "backToUsers": "← Back to users",
+        "profile": "Profile",
+        "stats": "Stats",
+        "totalOrders": "Total orders",
+        "totalSpent": "Total spent",
+        "ltv": "Customer since {months} months",
+        "ltvOne": "Customer since 1 month",
+        "joinedOn": "Joined on {date}",
+        "orderHistory": "Order history ({count})",
+        "itemsCount": "{count, plural, one {# order} other {# orders}}",
+        "noOrders": "No orders yet",
+        "noOrdersDescription": "This customer has not placed any orders.",
+        "orderNumber": "Order #",
+        "date": "Date",
+        "total": "Total",
+        "status": "Status",
+        "delivery": "Delivery",
+        "deliveryShipping": "Shipping",
+        "deliveryPickup": "Pickup"
+      },
+      "error": {
+        "loadDetail": "Could not load user",
+        "setRole": "Failed to update role"
+      },
+      "success": {
+        "setRole": "Role updated"
+      },
+      "role": {
+        "customer": "Customer",
+        "admin": "Admin",
+        "superAdmin": "Super-admin"
+      },
+      "confirm": {
+        "promoteTitle": "Promote {name} to {role}?",
+        "promoteDescription": "They will gain access to admin features.",
+        "demoteTitle": "Demote {name} to {role}?",
+        "demoteDescription": "They will lose access to admin features immediately.",
+        "promote": "Promote",
+        "demote": "Demote",
+        "cancel": "Cancel"
+      }
     }
   },
   "a11y": {
