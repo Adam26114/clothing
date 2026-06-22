@@ -359,6 +359,79 @@
       "errorLoad": "Could not load dashboard data.",
       "statusUpdated": "Status updated",
       "statusUpdateFailed": "Could not update status."
+    },
+    "orders": {
+      "title": "Orders",
+      "searchPlaceholder": "Search by order #, name, email, or phone…",
+      "columns": {
+        "orderNumber": "Order #",
+        "customer": "Customer",
+        "date": "Date",
+        "total": "Total",
+        "delivery": "Delivery",
+        "status": "Status",
+        "actions": "Actions"
+      },
+      "statusFilter": "Status",
+      "statusFilterAll": "All statuses",
+      "showingOf": "Showing {shown} of {total} orders",
+      "noResults": "No orders match your filters",
+      "noResultsDescription": "Try adjusting the search or status filter.",
+      "noResultsEmpty": "No orders yet",
+      "noResultsEmptyDescription": "When customers place an order it will appear here.",
+      "clearFilters": "Clear filters",
+      "deliveryShipping": "Shipping",
+      "deliveryPickup": "Pickup",
+      "viewDetails": "View details",
+      "backToOrders": "← Back to orders",
+      "detail": {
+        "title": "Order {number}",
+        "placedOn": "Placed on {date}",
+        "customer": "Customer",
+        "delivery": "Delivery",
+        "shipping": "Shipping",
+        "pickup": "In-store pickup",
+        "payment": "Payment",
+        "paymentCod": "Cash on delivery",
+        "itemsHeading": "Items ({count})",
+        "itemsCount": "{count, plural, one {# item} other {# items}}",
+        "notesLabel": "Order notes",
+        "notesEmpty": "No notes",
+        "statusUpdate": "Update status",
+        "statusRestoreNote": "Use Restore to uncancel a cancelled order",
+        "cancelOrder": "Cancel order",
+        "cancelConfirmTitle": "Cancel this order?",
+        "cancelConfirmDescription": "Stock will be returned to inventory. This action can be undone with Restore.",
+        "cancelConfirmAction": "Yes, cancel order",
+        "cancelConfirmCancel": "Keep order",
+        "restoreOrder": "Restore order",
+        "restoreConfirmTitle": "Restore this order?",
+        "restoreConfirmDescription": "Stock will be re-decremented. The order will return to Pending status.",
+        "restoreConfirmAction": "Yes, restore",
+        "restoreConfirmCancel": "Keep cancelled"
+      },
+      "items": {
+        "thumbnail": "Thumbnail",
+        "name": "Item",
+        "color": "Color",
+        "size": "Size",
+        "quantity": "Qty",
+        "unitPrice": "Unit price",
+        "lineTotal": "Line total",
+        "imagePlaceholder": "No image"
+      },
+      "error": {
+        "load": "Could not load orders",
+        "loadDetail": "Could not load order",
+        "cancel": "Failed to cancel order",
+        "restore": "Failed to restore order",
+        "updateStatus": "Failed to update status"
+      },
+      "success": {
+        "cancel": "Order cancelled",
+        "restore": "Order restored",
+        "updateStatus": "Status updated"
+      }
     }
   },
   "a11y": {
