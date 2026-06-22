@@ -1,6 +1,5 @@
-import { PlaceholderPage } from '@/components/placeholder-page';
-import { t } from '@workspace/lib/i18n';
+import { ProductsTableClient } from './products-table-client';
 
 export default function Page() {
-  return <PlaceholderPage title={t('nav.products')} />;
+  return <ProductsTableClient />;
 }
