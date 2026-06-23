@@ -1,6 +1,7 @@
 import { ConvexError, v } from 'convex/values';
 import { getAuthUserId } from '@convex-dev/auth/server';
 import type { Auth } from 'convex/server';
+import { internal } from './_generated/api';
 import { mutation, query } from './_generated/server';
 import type { Doc, Id } from './_generated/dataModel';
 import { DEFAULT_PAGE_SIZE, SHIPPING_FEE, STORE_PICKUP_FEE } from '@workspace/lib/constants';
@@ -336,6 +337,18 @@ export const create = mutation({
       updatedAt: now,
     });
 
+    await ctx.runMutation(internal.stockAudit.recordMany, {
+      entries: validated.map((item) => ({
+        productId: item.product._id,
+        variantId: item.variant.id,
+        size: item.size,
+        delta: -item.quantity,
+        reason: 'order_placed' as const,
+        actorId: userId ?? undefined,
+        orderId,
+      })),
+    });
+
     if (userId) {
       const cartItems = await ctx.db
         .query('cartItems')
@@ -411,6 +424,15 @@ export const cancel = mutation({
     }
 
     const now = Date.now();
+    const auditEntries: Array<{
+      productId: Id<'products'>;
+      variantId: string;
+      size: string;
+      delta: number;
+      reason: 'order_cancelled';
+      actorId: Id<'users'>;
+      orderId: Id<'orders'>;
+    }> = [];
     for (const item of order.items) {
       const product = await ctx.db.get(item.productId);
       if (!product) {
@@ -421,12 +443,27 @@ export const cancel = mutation({
         colorVariants: restored.colorVariants,
         updatedAt: now,
       });
+      auditEntries.push({
+        productId: item.productId,
+        variantId: item.colorVariantId,
+        size: item.size,
+        delta: item.quantity,
+        reason: 'order_cancelled',
+        actorId: userId,
+        orderId: args.id,
+      });
     }
 
     await ctx.db.patch(args.id, {
       status: 'cancelled' as const,
       updatedAt: now,
     });
+
+    if (auditEntries.length > 0) {
+      await ctx.runMutation(internal.stockAudit.recordMany, {
+        entries: auditEntries,
+      });
+    }
     return args.id;
   },
 });
@@ -444,6 +481,16 @@ export const restore = mutation({
     }
 
     const now = Date.now();
+    const adminId = await requireAdmin(ctx);
+    const auditEntries: Array<{
+      productId: Id<'products'>;
+      variantId: string;
+      size: string;
+      delta: number;
+      reason: 'order_restored';
+      actorId: Id<'users'>;
+      orderId: Id<'orders'>;
+    }> = [];
     for (const item of order.items) {
       const product = await ctx.db.get(item.productId);
       if (!product) {
@@ -464,12 +511,27 @@ export const restore = mutation({
         colorVariants: decremented.colorVariants,
         updatedAt: now,
       });
+      auditEntries.push({
+        productId: item.productId,
+        variantId: item.colorVariantId,
+        size: item.size,
+        delta: -item.quantity,
+        reason: 'order_restored',
+        actorId: adminId._id,
+        orderId: args.id,
+      });
     }
 
     await ctx.db.patch(args.id, {
       status: 'pending' as const,
       updatedAt: now,
     });
+
+    if (auditEntries.length > 0) {
+      await ctx.runMutation(internal.stockAudit.recordMany, {
+        entries: auditEntries,
+      });
+    }
     return args.id;
   },
 });
@@ -488,6 +550,8 @@ export const adminList = query({
     ),
     customerId: v.optional(v.id('users')),
     search: v.optional(v.string()),
+    dateFrom: v.optional(v.number()),
+    dateTo: v.optional(v.number()),
     page: v.optional(v.number()),
     pageSize: v.optional(v.number()),
   },
@@ -501,6 +565,12 @@ export const adminList = query({
         return false;
       }
       if (args.status && order.status !== args.status) {
+        return false;
+      }
+      if (args.dateFrom !== undefined && order.createdAt < args.dateFrom) {
+        return false;
+      }
+      if (args.dateTo !== undefined && order.createdAt > args.dateTo) {
         return false;
       }
       if (search) {

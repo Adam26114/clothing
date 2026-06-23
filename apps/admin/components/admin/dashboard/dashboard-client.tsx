@@ -2,6 +2,7 @@
 
 import { useQuery } from 'convex/react';
 import { api } from '@workspace/convex/_generated/api';
+import { LOW_STOCK_THRESHOLD } from '@workspace/lib/constants';
 
 import { Card, CardContent } from '@workspace/ui/components/card';
 import { t } from '@workspace/lib/i18n';
@@ -25,11 +26,27 @@ function DashboardError() {
   );
 }
 
+function resolveLowStockThreshold(
+  settings: { lowStockThreshold?: number } | null | undefined
+): number {
+  if (settings && typeof settings === 'object' && 'lowStockThreshold' in settings) {
+    const value = settings.lowStockThreshold;
+    if (typeof value === 'number' && Number.isFinite(value)) {
+      return value;
+    }
+  }
+  return LOW_STOCK_THRESHOLD;
+}
+
 export function DashboardClient() {
   const stats = useQuery(api.orders.dashboardStats, {});
-  const lowStock = useQuery(api.products.lowStockCount, { limit: 5 });
+  const settings = useQuery(api.storeSettings.get, {});
+  const lowStock = useQuery(api.products.lowStockCount, {
+    limit: 5,
+    threshold: resolveLowStockThreshold(settings),
+  });
 
-  if (stats === undefined || lowStock === undefined) {
+  if (stats === undefined || lowStock === undefined || settings === undefined) {
     return <DashboardSkeleton />;
   }
 

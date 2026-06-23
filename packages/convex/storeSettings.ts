@@ -52,6 +52,7 @@ export const update = mutation({
     pickupStoreName: v.optional(v.string()),
     pickupStoreAddress: v.optional(v.string()),
     pickupStoreHours: v.optional(v.string()),
+    lowStockThreshold: v.optional(v.number()),
   },
   handler: async (ctx, args) => {
     await requireAdmin(ctx);
@@ -79,6 +80,7 @@ export const update = mutation({
       'pickupStoreName',
       'pickupStoreAddress',
       'pickupStoreHours',
+      'lowStockThreshold',
     ] as const;
     for (const key of optionalKeys) {
       if (args[key] !== undefined) {

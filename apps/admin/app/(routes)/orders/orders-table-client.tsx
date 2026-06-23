@@ -19,6 +19,10 @@ import {
   OrdersTableToolbar,
   type OrderStatusFilter,
 } from '@/components/admin/orders/orders-table-toolbar';
+import {
+  dateRangeToBounds,
+  type DateRangeValue,
+} from '@/components/admin/orders/date-range-picker';
 import { EmptyOrders } from '@/components/admin/orders/empty-orders';
 
 const DEFAULT_PAGE_SIZE = 20;
@@ -38,15 +42,19 @@ function toOrderRow(order: Doc<'orders'>): OrderRow {
 export function OrdersTableClient() {
   const [search, setSearch] = React.useState('');
   const [status, setStatus] = React.useState<OrderStatusFilter>('all');
+  const [dateRange, setDateRange] = React.useState<DateRangeValue>({ preset: 'all' });
 
   const debouncedSearch = useDebouncedSearch(search, 300);
 
   const statusArg = status === 'all' ? undefined : status;
   const searchArg = debouncedSearch.trim() === '' ? undefined : debouncedSearch.trim();
+  const { dateFrom, dateTo } = React.useMemo(() => dateRangeToBounds(dateRange), [dateRange]);
 
   const result = useQuery(api.orders.adminList, {
     status: statusArg,
     search: searchArg,
+    dateFrom,
+    dateTo,
     pageSize: DEFAULT_PAGE_SIZE,
   });
 
@@ -60,7 +68,13 @@ export function OrdersTableClient() {
   const total = result?.total ?? 0;
   const shown = rows.length;
 
-  const hasActiveFilter = search.length > 0 || status !== 'all';
+  const hasActiveFilter = search.length > 0 || status !== 'all' || dateRange.preset !== 'all';
+
+  const handleClear = React.useCallback(() => {
+    setSearch('');
+    setStatus('all');
+    setDateRange({ preset: 'all' });
+  }, []);
 
   return (
     <div className="flex flex-col gap-6">
@@ -70,10 +84,9 @@ export function OrdersTableClient() {
         onSearchChange={setSearch}
         status={status}
         onStatusChange={setStatus}
-        onClear={() => {
-          setSearch('');
-          setStatus('all');
-        }}
+        dateRange={dateRange}
+        onDateRangeChange={setDateRange}
+        onClear={handleClear}
         shown={shown}
         total={total}
       />
@@ -122,10 +135,7 @@ export function OrdersTableClient() {
               type="button"
               variant="outline"
               size="sm"
-              onClick={() => {
-                setSearch('');
-                setStatus('all');
-              }}
+              onClick={handleClear}
               className="cursor-pointer"
             >
               {t('admin.orders.clearFilters')}

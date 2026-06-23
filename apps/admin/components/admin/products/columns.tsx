@@ -5,6 +5,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { useMutation, useQuery } from 'convex/react';
 import { useRouter } from 'next/navigation';
+import { CopyIcon } from 'lucide-react';
 import { toast } from 'sonner';
 import type { Doc, Id } from '@workspace/convex/_generated/dataModel';
 import { api } from '@workspace/convex/_generated/api';
@@ -16,6 +17,16 @@ import {
   SortableHeader,
   type ColumnDef,
 } from '@workspace/ui/components/data-table';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@workspace/ui/components/alert-dialog';
 import { Badge } from '@workspace/ui/components/badge';
 import { DropdownMenuItem } from '@workspace/ui/components/dropdown-menu';
 import { formatMMK } from '@workspace/lib/formatMMK';
@@ -253,8 +264,11 @@ interface ProductRowActionsProps {
 function ProductRowActions({ productId, productName }: ProductRowActionsProps) {
   const router = useRouter();
   const togglePublished = useMutation(api.products.togglePublished);
+  const duplicate = useMutation(api.products.duplicate);
   const [pending, setPending] = React.useState(false);
+  const [duplicatePending, setDuplicatePending] = React.useState(false);
   const [deleteOpen, setDeleteOpen] = React.useState(false);
+  const [duplicateOpen, setDuplicateOpen] = React.useState(false);
 
   const handleToggle = React.useCallback(async () => {
     setPending(true);
@@ -269,6 +283,21 @@ function ProductRowActions({ productId, productName }: ProductRowActionsProps) {
     }
   }, [productId, togglePublished]);
 
+  const handleDuplicate = React.useCallback(async () => {
+    setDuplicatePending(true);
+    try {
+      const newId = await duplicate({ id: productId });
+      setDuplicateOpen(false);
+      toast.success(t('admin.products.success.duplicate'));
+      router.push(`/products/${newId}/edit`);
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : t('admin.products.error.softDelete');
+      toast.error(message);
+    } finally {
+      setDuplicatePending(false);
+    }
+  }, [productId, duplicate, router]);
+
   return (
     <>
       <RowActions>
@@ -277,6 +306,14 @@ function ProductRowActions({ productId, productName }: ProductRowActionsProps) {
           render={<Link href={`/products/${productId}/edit`} />}
         >
           {t('admin.common.actions.edit')}
+        </DropdownMenuItem>
+        <DropdownMenuItem
+          className="cursor-pointer"
+          disabled={duplicatePending}
+          onClick={() => setDuplicateOpen(true)}
+        >
+          <CopyIcon className="me-1.5 size-4" aria-hidden />
+          {t('admin.products.duplicate.label')}
         </DropdownMenuItem>
         <DropdownMenuItem
           className="cursor-pointer"
@@ -304,6 +341,33 @@ function ProductRowActions({ productId, productName }: ProductRowActionsProps) {
         }}
         renderTrigger={false}
       />
+      <AlertDialog open={duplicateOpen} onOpenChange={setDuplicateOpen}>
+        <AlertDialogContent size="sm">
+          <AlertDialogHeader>
+            <AlertDialogTitle>{t('admin.products.duplicate.confirmTitle')}</AlertDialogTitle>
+            <AlertDialogDescription>
+              {productName ? `${productName} — ` : ''}
+              {t('admin.products.duplicate.confirmDescription')}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={duplicatePending} className="cursor-pointer">
+              {t('admin.products.duplicate.confirmCancel')}
+            </AlertDialogCancel>
+            <AlertDialogAction
+              variant="default"
+              disabled={duplicatePending}
+              onClick={(event) => {
+                event.preventDefault();
+                void handleDuplicate();
+              }}
+              className="cursor-pointer"
+            >
+              {t('admin.products.duplicate.confirmAction')}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </>
   );
 }

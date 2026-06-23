@@ -30,6 +30,7 @@ interface InventoryTableToolbarProps {
   onClear: () => void;
   shown: number;
   total: number;
+  lowStockThreshold: number;
 }
 
 export function InventoryTableToolbar({
@@ -43,6 +44,7 @@ export function InventoryTableToolbar({
   onClear,
   shown,
   total,
+  lowStockThreshold,
 }: InventoryTableToolbarProps) {
   const hasSearch = search.length > 0;
   const hasCategory = category !== 'all';
@@ -160,7 +162,7 @@ export function InventoryTableToolbar({
           <Badge variant="secondary" className="gap-1.5">
             <span className="text-xs">
               {stockFilter === 'low'
-                ? t('admin.inventory.filterLowStock')
+                ? `${t('admin.inventory.filterLowStock')} (< ${lowStockThreshold})`
                 : t('admin.inventory.filterOutOfStock')}
             </span>
             <button

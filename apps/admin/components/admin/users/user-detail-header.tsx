@@ -1,12 +1,24 @@
 'use client';
 
+import * as React from 'react';
 import Link from 'next/link';
 import { ArrowLeftIcon, MailIcon, PhoneIcon, CalendarIcon } from 'lucide-react';
-import type { Doc } from '@workspace/convex/_generated/dataModel';
+import type { Doc, Id } from '@workspace/convex/_generated/dataModel';
 
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@workspace/ui/components/alert-dialog';
 import { Badge } from '@workspace/ui/components/badge';
 import { Button } from '@workspace/ui/components/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@workspace/ui/components/card';
+import { Switch } from '@workspace/ui/components/switch';
 import { t } from '@workspace/lib/i18n';
 import { formatMMK } from '@workspace/lib/formatMMK';
 import type { UserRole } from '@workspace/lib/auth';
@@ -18,6 +30,9 @@ interface UserDetailHeaderProps {
     totalSpent: number;
     ltvMonths: number;
   } | null;
+  currentUser: { _id: Id<'users'>; role: 'customer' | 'admin' | 'super-admin' } | null;
+  onSuspend?: () => void | Promise<void>;
+  onReactivate?: () => void | Promise<void>;
 }
 
 function formatDate(timestamp: number): string {
@@ -42,12 +57,23 @@ function roleVariant(role: UserRole): 'default' | 'secondary' | 'destructive' {
   return 'secondary';
 }
 
-export function UserDetailHeader({ user, stats }: UserDetailHeaderProps) {
+export function UserDetailHeader({
+  user,
+  stats,
+  currentUser,
+  onSuspend,
+  onReactivate,
+}: UserDetailHeaderProps) {
   const name = user.name && user.name.length > 0 ? user.name : (user.email ?? '—');
+  const displayName = user.name && user.name.length > 0 ? user.name : (user.email ?? '');
   const totalOrders = stats?.totalOrders ?? 0;
   const totalSpent = stats?.totalSpent ?? 0;
   const ltvMonths = stats?.ltvMonths ?? 0;
   const showLtv = totalOrders > 0;
+
+  const isSelf = currentUser !== null && currentUser._id === user._id;
+  const isSuperAdmin = currentUser?.role === 'super-admin';
+  const canToggle = isSuperAdmin && !isSelf;
 
   return (
     <div className="flex flex-col gap-6">
@@ -84,6 +110,33 @@ export function UserDetailHeader({ user, stats }: UserDetailHeaderProps) {
                   {t('admin.users.detail.joinedOn', 'en', { date: formatDate(user.createdAt) })}
                 </span>
               </div>
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="text-muted-foreground text-xs">
+                  {t('admin.users.suspend.label')}
+                </span>
+                <Badge
+                  variant={user.isActive ? 'default' : 'destructive'}
+                  className="cursor-default"
+                >
+                  {user.isActive
+                    ? t('admin.users.suspend.active')
+                    : t('admin.users.suspend.inactive')}
+                </Badge>
+              </div>
+              {canToggle ? (
+                <AccountStatusControl
+                  userId={user._id}
+                  isActive={user.isActive}
+                  displayName={displayName}
+                  onSuspend={onSuspend}
+                  onReactivate={onReactivate}
+                />
+              ) : null}
+              {isSelf ? (
+                <p className="text-muted-foreground text-xs">
+                  {t('admin.users.suspend.selfSuspendTitle')}
+                </p>
+              ) : null}
               <dl className="flex flex-col gap-2 text-sm">
                 {user.email ? (
                   <div className="flex items-center gap-2">
@@ -141,5 +194,93 @@ export function UserDetailHeader({ user, stats }: UserDetailHeaderProps) {
         </Card>
       </div>
     </div>
+  );
+}
+
+interface AccountStatusControlProps {
+  userId: Id<'users'>;
+  isActive: boolean;
+  displayName: string;
+  onSuspend?: () => void | Promise<void>;
+  onReactivate?: () => void | Promise<void>;
+}
+
+function AccountStatusControl({
+  isActive,
+  displayName,
+  onSuspend,
+  onReactivate,
+}: AccountStatusControlProps) {
+  const [open, setOpen] = React.useState(false);
+  const [pending, setPending] = React.useState(false);
+
+  const handleConfirm = React.useCallback(async () => {
+    setPending(true);
+    try {
+      if (isActive) {
+        await onSuspend?.();
+      } else {
+        await onReactivate?.();
+      }
+      setOpen(false);
+    } catch (err) {
+      void err;
+    } finally {
+      setPending(false);
+    }
+  }, [isActive, onReactivate, onSuspend]);
+
+  return (
+    <AlertDialog open={open} onOpenChange={setOpen}>
+      <div className="flex items-center gap-3">
+        <Switch
+          size="sm"
+          checked={isActive}
+          onCheckedChange={() => {
+            if (!pending) {
+              setOpen(true);
+            }
+          }}
+          disabled={pending}
+          aria-label={
+            isActive ? t('admin.users.suspend.suspend') : t('admin.users.suspend.reactivate')
+          }
+          className="cursor-pointer"
+        />
+        <span className="text-muted-foreground text-xs">
+          {isActive ? t('admin.users.suspend.suspend') : t('admin.users.suspend.reactivate')}
+        </span>
+      </div>
+      <AlertDialogContent size="sm">
+        <AlertDialogHeader>
+          <AlertDialogTitle>
+            {isActive
+              ? t('admin.users.suspend.confirmSuspendTitle', 'en', { name: displayName })
+              : t('admin.users.suspend.confirmReactivateTitle', 'en', { name: displayName })}
+          </AlertDialogTitle>
+          <AlertDialogDescription>
+            {isActive
+              ? t('admin.users.suspend.confirmSuspendDescription')
+              : t('admin.users.suspend.confirmReactivateDescription')}
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel disabled={pending} className="cursor-pointer">
+            {t('admin.users.suspend.confirmCancel')}
+          </AlertDialogCancel>
+          <AlertDialogAction
+            variant={isActive ? 'destructive' : 'default'}
+            disabled={pending}
+            onClick={(event) => {
+              event.preventDefault();
+              void handleConfirm();
+            }}
+            className="cursor-pointer"
+          >
+            {t('admin.users.suspend.confirmAction')}
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
   );
 }

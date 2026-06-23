@@ -31,6 +31,10 @@ import {
   PickupInfoForm,
   type PickupInfoFormState,
 } from '@/components/admin/settings/sections/pickup-info-form';
+import {
+  InventoryThresholdsForm,
+  type InventoryThresholdsFormState,
+} from '@/components/admin/settings/sections/inventory-thresholds-form';
 import { FeaturedProductsManager } from '@/components/admin/settings/sections/featured-products-manager';
 import { SaveBar } from '@/components/admin/settings/save-bar';
 import { SettingsSkeleton } from '@/components/admin/settings/settings-skeleton';
@@ -79,6 +83,10 @@ export function SettingsClient() {
   }, []);
 
   const updatePickup = React.useCallback((next: PickupInfoFormState) => {
+    setState((prev) => ({ ...prev, ...next }));
+  }, []);
+
+  const updateInventory = React.useCallback((next: InventoryThresholdsFormState) => {
     setState((prev) => ({ ...prev, ...next }));
   }, []);
 
@@ -196,6 +204,18 @@ export function SettingsClient() {
               pickupStoreHours: state.pickupStoreHours,
             }}
             onChange={updatePickup}
+          />
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>{t('admin.settings.sections.inventory')}</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <InventoryThresholdsForm
+            state={{ lowStockThreshold: state.lowStockThreshold }}
+            onChange={updateInventory}
           />
         </CardContent>
       </Card>

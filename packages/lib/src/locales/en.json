@@ -363,6 +363,19 @@
     "orders": {
       "title": "Orders",
       "searchPlaceholder": "Search by order #, name, email, or phone…",
+      "dateRange": {
+        "label": "Date range",
+        "all": "All time",
+        "today": "Today",
+        "7d": "Last 7 days",
+        "30d": "Last 30 days",
+        "90d": "Last 90 days",
+        "custom": "Custom range",
+        "from": "From",
+        "to": "To",
+        "apply": "Apply",
+        "clear": "Clear"
+      },
       "columns": {
         "orderNumber": "Order #",
         "customer": "Customer",
@@ -541,7 +554,15 @@
       "success": {
         "create": "Product created",
         "update": "Product updated",
-        "softDelete": "Product unpublished"
+        "softDelete": "Product unpublished",
+        "duplicate": "Product duplicated"
+      },
+      "duplicate": {
+        "label": "Duplicate",
+        "confirmTitle": "Duplicate this product?",
+        "confirmDescription": "A copy will be created with empty stock images and marked as draft. You'll be taken to the copy for editing.",
+        "confirmAction": "Duplicate",
+        "confirmCancel": "Cancel"
       }
     },
     "inventory": {
@@ -570,7 +591,31 @@
       "stockUpdated": "Stock updated",
       "errorUpdate": "Failed to update stock",
       "errorInvalid": "Stock must be a non-negative integer",
-      "viewProduct": "View product"
+      "viewProduct": "View product",
+      "audit": {
+        "title": "Stock audit log",
+        "showFor": "Show history for {product}",
+        "hide": "Hide history",
+        "loading": "Loading audit log…",
+        "empty": "No stock changes recorded yet.",
+        "columns": {
+          "when": "When",
+          "variant": "Variant",
+          "size": "Size",
+          "delta": "Change",
+          "reason": "Reason",
+          "actor": "Actor"
+        },
+        "reason": {
+          "order_placed": "Order placed",
+          "order_cancelled": "Order cancelled",
+          "order_restored": "Order restored",
+          "manual_adjustment": "Manual adjustment"
+        },
+        "deltaPositive": "+{n}",
+        "deltaNegative": "{n}",
+        "actorSystem": "System"
+      }
     },
     "settings": {
       "title": "Settings",
@@ -580,7 +625,8 @@
         "announcement": "Announcement bar",
         "featured": "Featured products",
         "contact": "Contact & social",
-        "pickup": "Pickup information"
+        "pickup": "Pickup information",
+        "inventory": "Inventory"
       },
       "hero": {
         "title": "Hero title",
@@ -640,6 +686,12 @@
         "hours": "Pickup hours",
         "hoursPlaceholder": "Mon–Sun, 10:00–20:00"
       },
+      "inventory": {
+        "title": "Inventory thresholds",
+        "lowStockThreshold": "Low-stock threshold",
+        "lowStockThresholdHint": "Items with stock below this number appear in the low-stock filter and dashboard widget.",
+        "lowStockThresholdPlaceholder": "e.g. 5"
+      },
       "save": {
         "save": "Save changes",
         "saving": "Saving…",
@@ -697,6 +749,24 @@
         "delivery": "Delivery",
         "deliveryShipping": "Shipping",
         "deliveryPickup": "Pickup"
+      },
+      "suspend": {
+        "label": "Account status",
+        "active": "Active",
+        "inactive": "Suspended",
+        "suspend": "Suspend account",
+        "reactivate": "Reactivate account",
+        "confirmSuspendTitle": "Suspend {name}?",
+        "confirmSuspendDescription": "They will not be able to sign in until you reactivate the account.",
+        "confirmReactivateTitle": "Reactivate {name}?",
+        "confirmReactivateDescription": "They will be able to sign in again immediately.",
+        "confirmAction": "Confirm",
+        "confirmCancel": "Cancel",
+        "selfSuspendTitle": "You cannot suspend your own account",
+        "selfSuspendDescription": "Ask another super-admin to do this.",
+        "error": "Could not update account status",
+        "successSuspended": "Account suspended",
+        "successReactivated": "Account reactivated"
       },
       "error": {
         "loadDetail": "Could not load user",

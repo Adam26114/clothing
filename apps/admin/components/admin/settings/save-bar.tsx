@@ -32,6 +32,14 @@ export function SaveBar({ state, disabled, onSaved, onDiscard }: SaveBarProps) {
         const trimmed = value.trim();
         return trimmed.length === 0 ? undefined : trimmed;
       };
+      const cleanNumber = (value: string): number | undefined => {
+        const trimmed = value.trim();
+        if (trimmed.length === 0) {
+          return undefined;
+        }
+        const parsed = Number(trimmed);
+        return Number.isFinite(parsed) ? parsed : undefined;
+      };
       const args = {
         heroTitle: cleanString(state.heroTitle),
         heroSubtitle: cleanString(state.heroSubtitle),
@@ -50,6 +58,7 @@ export function SaveBar({ state, disabled, onSaved, onDiscard }: SaveBarProps) {
         pickupStoreName: cleanString(state.pickupStoreName),
         pickupStoreAddress: cleanString(state.pickupStoreAddress),
         pickupStoreHours: cleanString(state.pickupStoreHours),
+        lowStockThreshold: cleanNumber(state.lowStockThreshold),
       };
       await update(args);
       onSaved(state);
