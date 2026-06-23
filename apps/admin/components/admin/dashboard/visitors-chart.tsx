@@ -56,12 +56,14 @@ function isVisitorsRange(value: string): value is VisitorsRange {
 export function VisitorsChart() {
   const isMobile = useIsMobile();
   const [range, setRange] = React.useState<VisitorsRange>('3mo');
+  const [prevIsMobile, setPrevIsMobile] = React.useState(isMobile);
 
-  React.useEffect(() => {
+  if (isMobile !== prevIsMobile) {
+    setPrevIsMobile(isMobile);
     if (isMobile) {
       setRange('7d');
     }
-  }, [isMobile]);
+  }
 
   const data = React.useMemo(() => getVisitorsSeries(range), [range]);
 

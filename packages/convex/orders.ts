@@ -13,14 +13,6 @@ interface OrderItemInput {
   quantity: number;
 }
 
-async function requireUserId(ctx: { auth: Auth }): Promise<Id<'users'>> {
-  const userId = await getAuthUserId(ctx);
-  if (!userId) {
-    throw new ConvexError('Not authenticated');
-  }
-  return userId;
-}
-
 async function requireAdmin(ctx: {
   auth: Auth;
   db: { get: (id: Id<'users'>) => Promise<Doc<'users'> | null> };

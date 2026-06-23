@@ -124,6 +124,7 @@ export function useDataTable<T>({
     }
   }, [columnVisibility, storageKey]);
 
+  // eslint-disable-next-line react-hooks/incompatible-library -- TanStack Table's useReactTable returns non-memoizable functions by API contract; downstream consumers must treat `table` as opaque. This is upstream behavior, not local anti-pattern.
   const table = useReactTable<T>({
     data,
     columns,

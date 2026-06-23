@@ -2,11 +2,21 @@
   "$schema": "https://turbo.build/schema.json",
   "ui": "tui",
   "globalEnv": [
+    "CONVEX_DEPLOYMENT",
+    "CONVEX_DEPLOY_TYPE",
+    "NODE_ENV",
     "NEXT_PUBLIC_CONVEX_URL",
     "NEXT_PUBLIC_SENTRY_DSN",
     "NEXT_PUBLIC_STOREFRONT_URL",
     "RESEND_API_KEY",
-    "RESEND_FROM_EMAIL"
+    "RESEND_FROM_EMAIL",
+    "SEED_ADMIN_EMAIL",
+    "SEED_ADMIN_PASSWORD",
+    "SEED_SUPER_ADMIN_EMAIL",
+    "SEED_SUPER_ADMIN_PASSWORD",
+    "SENTRY_AUTH_TOKEN",
+    "SENTRY_ORG",
+    "SENTRY_PROJECT"
   ],
   "tasks": {
     "build": {
