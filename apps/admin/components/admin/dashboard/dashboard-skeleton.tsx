@@ -66,6 +66,22 @@ export function DashboardSkeleton() {
           <Skeleton className="h-[250px] w-full" />
         </CardContent>
       </Card>
+
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-4">
+        <Card className="lg:col-span-2">
+          <CardHeader>
+            <Skeleton className="h-4 w-36" />
+            <Skeleton className="h-8 w-24" />
+          </CardHeader>
+          <CardContent className="flex flex-col gap-3">
+            <div className="flex gap-6">
+              <Skeleton className="h-10 w-24" />
+              <Skeleton className="h-10 w-24" />
+            </div>
+            <Skeleton className="h-3 w-40" />
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 }

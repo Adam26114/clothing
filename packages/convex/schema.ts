@@ -154,6 +154,7 @@ export default defineSchema({
     pickupStoreAddress: v.optional(v.string()),
     pickupStoreHours: v.optional(v.string()),
     lowStockThreshold: v.optional(v.number()),
+    featuredOrder: v.optional(v.array(v.id('products'))),
     updatedAt: v.number(),
   }),
 

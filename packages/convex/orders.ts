@@ -400,6 +400,47 @@ export const updateStatus = mutation({
   },
 });
 
+export const bulkUpdateStatus = mutation({
+  args: {
+    ids: v.array(v.id('orders')),
+    status: v.union(
+      v.literal('pending'),
+      v.literal('confirmed'),
+      v.literal('processing'),
+      v.literal('shipped'),
+      v.literal('delivered'),
+      v.literal('cancelled')
+    ),
+  },
+  handler: async (ctx, args) => {
+    await requireAdmin(ctx);
+    if (args.ids.length === 0) {
+      return { updated: 0, skipped: 0 };
+    }
+    const now = Date.now();
+    let updated = 0;
+    let skipped = 0;
+    for (const id of args.ids) {
+      const order = await ctx.db.get(id);
+      if (!order) {
+        skipped += 1;
+        continue;
+      }
+      if (order.status === 'cancelled' && args.status !== 'cancelled') {
+        skipped += 1;
+        continue;
+      }
+      if (order.status === args.status) {
+        skipped += 1;
+        continue;
+      }
+      await ctx.db.patch(id, { status: args.status, updatedAt: now });
+      updated += 1;
+    }
+    return { updated, skipped };
+  },
+});
+
 export const cancel = mutation({
   args: { id: v.id('orders') },
   handler: async (ctx, args) => {

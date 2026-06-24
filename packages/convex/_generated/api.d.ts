@@ -16,6 +16,7 @@ import type * as orders from "../orders.js";
 import type * as products from "../products.js";
 import type * as seed from "../seed.js";
 import type * as seedInternal from "../seedInternal.js";
+import type * as sentry from "../sentry.js";
 import type * as stockAudit from "../stockAudit.js";
 import type * as storage from "../storage.js";
 import type * as storeSettings from "../storeSettings.js";
@@ -37,6 +38,7 @@ declare const fullApi: ApiFromModules<{
   products: typeof products;
   seed: typeof seed;
   seedInternal: typeof seedInternal;
+  sentry: typeof sentry;
   stockAudit: typeof stockAudit;
   storage: typeof storage;
   storeSettings: typeof storeSettings;

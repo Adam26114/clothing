@@ -24,6 +24,10 @@ import {
   type DateRangeValue,
 } from '@/components/admin/orders/date-range-picker';
 import { EmptyOrders } from '@/components/admin/orders/empty-orders';
+import {
+  OrdersTableBulkExport,
+  OrdersTableBulkStatus,
+} from '@/components/admin/orders/orders-table-bulk';
 
 const DEFAULT_PAGE_SIZE = 20;
 
@@ -141,6 +145,12 @@ export function OrdersTableClient() {
               {t('admin.orders.clearFilters')}
             </Button>
           }
+          bulkActions={(selected) => (
+            <>
+              <OrdersTableBulkStatus selectedRows={selected} />
+              <OrdersTableBulkExport selectedRows={selected} />
+            </>
+          )}
         />
       )}
     </div>
