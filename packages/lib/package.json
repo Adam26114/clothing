@@ -20,7 +20,8 @@
     "lint": "eslint",
     "format": "prettier --write \"**/*.{ts,tsx}\"",
     "format:check": "prettier --check \"**/*.{ts,tsx}\"",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "test": "bun test src"
   },
   "dependencies": {
     "@convex-dev/auth": "^0.0.94",
@@ -31,6 +32,7 @@
     "react-dom": "19.2.4"
   },
   "devDependencies": {
+    "@types/bun": "^1.3.14",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",

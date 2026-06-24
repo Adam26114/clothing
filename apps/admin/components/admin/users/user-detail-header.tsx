@@ -182,11 +182,7 @@ export function UserDetailHeader({
               <div className="flex items-center justify-between gap-3">
                 <dt className="text-muted-foreground text-xs">LTV</dt>
                 <dd className="text-muted-foreground text-sm tabular-nums">
-                  {showLtv
-                    ? ltvMonths === 1
-                      ? t('admin.users.detail.ltvOne')
-                      : t('admin.users.detail.ltv', 'en', { months: ltvMonths })
-                    : '—'}
+                  {showLtv ? t('admin.users.detail.ltv', 'en', { months: ltvMonths }) : '—'}
                 </dd>
               </div>
             </dl>
