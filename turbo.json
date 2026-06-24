@@ -2,10 +2,12 @@
   "$schema": "https://turbo.build/schema.json",
   "ui": "tui",
   "globalEnv": [
+    "CI",
     "CONVEX_DEPLOYMENT",
     "CONVEX_DEPLOY_TYPE",
     "NODE_ENV",
     "NEXT_PUBLIC_CONVEX_URL",
+    "NEXT_PUBLIC_ENVIRONMENT",
     "NEXT_PUBLIC_SENTRY_DSN",
     "NEXT_PUBLIC_STOREFRONT_URL",
     "RESEND_API_KEY",
@@ -15,8 +17,13 @@
     "SEED_SUPER_ADMIN_EMAIL",
     "SEED_SUPER_ADMIN_PASSWORD",
     "SENTRY_AUTH_TOKEN",
+    "SENTRY_DSN",
     "SENTRY_ORG",
-    "SENTRY_PROJECT"
+    "SENTRY_PROJECT",
+    "SENTRY_PROJECT_IDS",
+    "SENTRY_PUBLIC_KEY",
+    "SENTRY_RELEASE",
+    "VERCEL_ENV"
   ],
   "tasks": {
     "build": {

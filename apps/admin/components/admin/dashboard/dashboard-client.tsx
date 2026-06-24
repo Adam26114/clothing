@@ -5,6 +5,7 @@ import { useAction, useQuery } from 'convex/react';
 import { api } from '@workspace/convex/_generated/api';
 import type { SentryStats } from '@workspace/convex/sentry';
 import { LOW_STOCK_THRESHOLD } from '@workspace/lib/constants';
+import { Sentry } from '@workspace/lib/sentry';
 
 import { Card, CardContent } from '@workspace/ui/components/card';
 import { t } from '@workspace/lib/i18n';
@@ -67,7 +68,9 @@ export function DashboardClient() {
         if (cancelled) {
           return;
         }
-        console.error('Sentry stats action failed:', err);
+        Sentry.captureException(err, {
+          tags: { component: 'WidgetSentryErrors', action: 'sentryStats' },
+        });
         setSentryLoadError(true);
       });
     return () => {

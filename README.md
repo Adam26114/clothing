@@ -90,6 +90,35 @@ The admin app is live in `apps/admin` and ships six pages plus a dashboard, all 
 - **3f** — Users list + customer detail + role management.
 - **3g** — Settings (hero, sale banner, featured products, announcement bar, contact, pickup info).
 
+## Phase 4 — QA & polish + production hardening
+
+Phase 4 ships the deferred items from Phase 3 plus the production-readiness work from PRD §14. Sub-PRs `4a`–`4d` already merged; this section documents `4e` (production hardening).
+
+### 4a — Foundations (merged)
+
+Convex deployment wired up, CI hardened (added `bun run typecheck`), lint cleaned (0 warnings), one Convex smoke test added, middleware → proxy migration per Next 16 deprecation, `docs/adr/0001-ui-lib-cycle.md` captures the `lib` ↔ `ui` cycle decision. See commit `81716e7`.
+
+### 4b — P1 admin features (merged)
+
+Date range filter on orders, account suspension toggle, duplicate product, restock alert threshold, stock audit log per variant with append-only `stockAudit` table. See commit `1eaeb32`.
+
+### 4c — P2 admin features (merged)
+
+Bulk status update + CSV export, drag-reorder of featured products (`@dnd-kit/sortable`), Sentry error rate widget on the admin dashboard. See commit `42fafa0`.
+
+### 4d — i18n infrastructure (merged)
+
+ICU plural support in `t()` without a new dep — `packages/lib/src/i18n.ts` grew a tiny ICU parser that handles `plural`. The Burmese `my.json` locale and locale switcher are deferred to Phase 5 alongside the accessibility audit. See commit `af5718`.
+
+### 4e — Production hardening (this PR)
+
+- **Sentry production readiness** — `withSentryConfig` now takes org/project/authToken/release/environment options; init configs set `release` from `SENTRY_RELEASE` and `environment` from `NEXT_PUBLIC_ENVIRONMENT` (falling back to `VERCEL_ENV`); sample rate drops to 0.1 in production. A `/sentry-tunnel` route in both apps proxies envelopes to bypass ad-blockers. `Sentry.captureException` is wired into `orders.create`, `storage.generateUploadUrl`, `users.setRole`, and the admin Sentry widget consumer. Convex init lives in `packages/convex/sentry-init.ts` (gated on `SENTRY_DSN`).
+- **CI source map + release** — `.github/workflows/ci.yml` runs a new `sentry-release` job on every `main` push. It creates a Sentry release, links it to the git commit, and finalizes. Source maps are uploaded automatically by `withSentryConfig` during the `build` job when the three Sentry secrets are present.
+- **SEO foundation** — `apps/storefront/app/sitemap.ts` and `robots.ts` (native App Router conventions); a new `listForSitemap` Convex query; full Next.js `metadata` + `viewport` exports on both apps; a `site.webmanifest`; a dynamic `opengraph-image.tsx` using `next/og` with the teal design-token gradient; `next.config.ts` adds `images.formats` (`avif` + `webp`) and Convex `remotePatterns`.
+- **Browser support matrix** — `.browserslistrc` pins Chrome 100+, Safari 15+, Firefox 100+, Samsung Internet 18+, plus a per-release test plan at `docs/cross-browser-test-plan.md`.
+- **Ops docs** — `docs/operations/production-deploy.md` (Vercel + Convex + Sentry + DNS), `docs/operations/sentry-alerts.md` (the four PRD §11.1 alerts + runbook), `docs/operations/backup-and-export.md` (Convex data dump/restore contract), `docs/operations/production-admin-seed.md` (the `--force` seed checklist).
+- **Admin favicon** — `apps/admin/app/favicon.ico` is a copy of the storefront favicon for now; the admin is `noindex`/`nofollow` so this is not a launch blocker.
+
 ## First-time setup
 
 This is the one-time environment provisioning that a fresh clone needs before `bun run dev` will work. Both apps depend on the same Convex backend; the Convex project only needs to be created once.
@@ -217,7 +246,7 @@ docker build -t khit:latest .
 
 ## CI
 
-The GitHub Actions workflow (`.github/workflows/ci.yml`) runs:
+The GitHub Actions workflow (`.github/workflows/ci.yml`) runs four gates on every push and PR to `main` and `develop`:
 
 ```bash
 bun install --frozen-lockfile
@@ -227,8 +256,21 @@ bun run build
 bun run format:check
 ```
 
+A second `sentry-release` job (added in 4e) creates a Sentry release on every `main` push and links it to the commit; source maps are uploaded during the `build` job by `withSentryConfig` when `SENTRY_AUTH_TOKEN` / `SENTRY_ORG` / `SENTRY_PROJECT` are set as repository secrets. The release is what groups stack traces by commit on the Sentry dashboard — see [`docs/operations/sentry-alerts.md`](docs/operations/sentry-alerts.md).
+
 `bun.lock` is committed and CI uses `--frozen-lockfile` to guarantee a reproducible install.
 
 ## Code review
 
-CodeRabbit runs on every PR to `main` and `develop` (config: `.coderabbit.yml`). Critical-severity issues block merge. See [`docs/adr/0001-ui-lib-cycle.md`](docs/adr/0001-ui-lib-cycle.md) for the architectural decisions behind the current `lib` ↔ `ui` dependency direction.
+CodeRabbit runs on every PR to `main` and `develop` (config: `.coderabbit.yml`). Critical-severity issues block merge. See [`docs/adr/0001-ui-lib-cycle.md`](docs/adr/0001-ui-lib-cycle.md) for the architectural decisions behind the current `lib` ↔ `ui` dependency direction. Sentry release tracking fires on every merge to `main` (see [`docs/operations/sentry-alerts.md`](docs/operations/sentry-alerts.md)).
+
+## Deploying to production
+
+The full production deploy runbook lives at [`docs/operations/production-deploy.md`](docs/operations/production-deploy.md). The short version:
+
+1. **Provision** — create a Convex production deployment (`bunx convex deploy --prod`); create two Vercel projects (`khit-storefront` and `khit-admin`) with separate Sentry projects and DSNs; verify the Resend sender domain; add DNS records for `shop.khit.example` and `admin.khit.example` (Vercel auto-provisions SSL).
+2. **Configure env vars in Vercel** — for each project, set `NEXT_PUBLIC_CONVEX_URL` (the prod URL), `NEXT_PUBLIC_SENTRY_DSN`, `SENTRY_AUTH_TOKEN`, `SENTRY_ORG`, `SENTRY_PROJECT`, and the Resend keys. See the full table in the deploy doc.
+3. **Seed the first admin** — set `SEED_ADMIN_*` and `SEED_SUPER_ADMIN_*` in a local `.env.local` with `CONVEX_DEPLOY_TYPE=production`, then `bun run seed --force`. Full checklist: [`docs/operations/production-admin-seed.md`](docs/operations/production-admin-seed.md).
+4. **Merge to `main`** — CI runs lint, typecheck, build, format:check, then the `sentry-release` job creates the Sentry release. Vercel auto-deploys both projects to production.
+5. **Post-deploy smoke test** — the 10-item checklist at the bottom of the deploy doc (storefront home loads, Sentry release shows in dashboard, etc.).
+6. **Rollback** — Vercel **Deployments → ⋯ → Promote to Production** for instant app rollback. Convex has no app-level rollback; for data corruption, follow [`docs/operations/backup-and-export.md`](docs/operations/backup-and-export.md).

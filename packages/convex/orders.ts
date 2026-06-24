@@ -6,6 +6,7 @@ import { mutation, query } from './_generated/server';
 import type { Doc, Id } from './_generated/dataModel';
 import { DEFAULT_PAGE_SIZE, SHIPPING_FEE, STORE_PICKUP_FEE } from '@workspace/lib/constants';
 import { isAdminRole } from '@workspace/lib/auth';
+import { Sentry } from './sentry-init';
 
 interface OrderItemInput {
   productId: Id<'products'>;
@@ -292,82 +293,96 @@ export const create = mutation({
     }
 
     const now = Date.now();
-    for (const item of validated) {
-      const decremented = decrementStock(
-        productMap.get(item.product._id)!,
-        item.variant.id,
-        item.size,
-        item.quantity
-      );
-      await ctx.db.patch(item.product._id, {
-        colorVariants: decremented.colorVariants,
+    try {
+      for (const item of validated) {
+        const decremented = decrementStock(
+          productMap.get(item.product._id)!,
+          item.variant.id,
+          item.size,
+          item.quantity
+        );
+        await ctx.db.patch(item.product._id, {
+          colorVariants: decremented.colorVariants,
+          updatedAt: now,
+        });
+      }
+
+      const subtotal = validated.reduce((sum, item) => sum + item.lineTotal, 0);
+      const shippingFee = args.deliveryMethod === 'shipping' ? SHIPPING_FEE : STORE_PICKUP_FEE;
+      const total = subtotal + shippingFee;
+      const orderNumber = await nextOrderNumber(ctx);
+
+      const orderItems = validated.map((item) => ({
+        productId: item.product._id,
+        colorVariantId: item.variant.id,
+        name: item.product.name,
+        size: item.size,
+        color: item.variant.colorName,
+        colorHex: item.variant.colorHex,
+        quantity: item.quantity,
+        price: item.unitPrice,
+      }));
+
+      const orderId = await ctx.db.insert('orders', {
+        orderNumber,
+        customerId: userId ?? undefined,
+        customerInfo: args.customerInfo,
+        items: orderItems,
+        subtotal,
+        shippingFee,
+        total,
+        deliveryMethod: args.deliveryMethod,
+        paymentMethod: 'cod' as const,
+        status: 'pending' as const,
+        notes: args.notes,
+        createdAt: now,
         updatedAt: now,
       });
-    }
 
-    const subtotal = validated.reduce((sum, item) => sum + item.lineTotal, 0);
-    const shippingFee = args.deliveryMethod === 'shipping' ? SHIPPING_FEE : STORE_PICKUP_FEE;
-    const total = subtotal + shippingFee;
-    const orderNumber = await nextOrderNumber(ctx);
+      await ctx.runMutation(internal.stockAudit.recordMany, {
+        entries: validated.map((item) => ({
+          productId: item.product._id,
+          variantId: item.variant.id,
+          size: item.size,
+          delta: -item.quantity,
+          reason: 'order_placed' as const,
+          actorId: userId ?? undefined,
+          orderId,
+        })),
+      });
 
-    const orderItems = validated.map((item) => ({
-      productId: item.product._id,
-      colorVariantId: item.variant.id,
-      name: item.product.name,
-      size: item.size,
-      color: item.variant.colorName,
-      colorHex: item.variant.colorHex,
-      quantity: item.quantity,
-      price: item.unitPrice,
-    }));
-
-    const orderId = await ctx.db.insert('orders', {
-      orderNumber,
-      customerId: userId ?? undefined,
-      customerInfo: args.customerInfo,
-      items: orderItems,
-      subtotal,
-      shippingFee,
-      total,
-      deliveryMethod: args.deliveryMethod,
-      paymentMethod: 'cod' as const,
-      status: 'pending' as const,
-      notes: args.notes,
-      createdAt: now,
-      updatedAt: now,
-    });
-
-    await ctx.runMutation(internal.stockAudit.recordMany, {
-      entries: validated.map((item) => ({
-        productId: item.product._id,
-        variantId: item.variant.id,
-        size: item.size,
-        delta: -item.quantity,
-        reason: 'order_placed' as const,
-        actorId: userId ?? undefined,
-        orderId,
-      })),
-    });
-
-    if (userId) {
-      const cartItems = await ctx.db
-        .query('cartItems')
-        .withIndex('by_user', (q) => q.eq('userId', userId))
-        .collect();
-      for (const ci of cartItems) {
-        const matching = args.items.find(
-          (i) =>
-            i.productId === ci.productId &&
-            i.colorVariantId === ci.colorVariantId &&
-            i.size === ci.size
-        );
-        if (matching) {
-          await ctx.db.delete(ci._id);
+      if (userId) {
+        const cartItems = await ctx.db
+          .query('cartItems')
+          .withIndex('by_user', (q) => q.eq('userId', userId))
+          .collect();
+        for (const ci of cartItems) {
+          const matching = args.items.find(
+            (i) =>
+              i.productId === ci.productId &&
+              i.colorVariantId === ci.colorVariantId &&
+              i.size === ci.size
+          );
+          if (matching) {
+            await ctx.db.delete(ci._id);
+          }
         }
       }
-    }
 
-    return { orderId, orderNumber };
+      return { orderId, orderNumber };
+    } catch (err) {
+      if (!(err instanceof ConvexError)) {
+        Sentry.captureException(err, {
+          tags: { mutation: 'orders.create', phase: 'persist' },
+          extra: {
+            customerEmail: args.customerInfo.email,
+            itemCount: validated.length,
+            deliveryMethod: args.deliveryMethod,
+          },
+        });
+      }
+      throw err;
+    }
   },
 });
 

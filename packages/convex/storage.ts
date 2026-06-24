@@ -4,6 +4,7 @@ import type { Auth } from 'convex/server';
 import { mutation, query } from './_generated/server';
 import type { Doc, Id } from './_generated/dataModel';
 import { isAdminRole } from '@workspace/lib/auth';
+import { Sentry } from './sentry-init';
 
 async function requireAdmin(ctx: {
   auth: Auth;
@@ -24,7 +25,12 @@ export const generateUploadUrl = mutation({
   args: {},
   handler: async (ctx) => {
     await requireAdmin(ctx);
-    return await ctx.storage.generateUploadUrl();
+    try {
+      return await ctx.storage.generateUploadUrl();
+    } catch (err) {
+      Sentry.captureException(err, { tags: { mutation: 'storage.generateUploadUrl' } });
+      throw err;
+    }
   },
 });
 

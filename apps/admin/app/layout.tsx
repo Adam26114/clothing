@@ -1,3 +1,4 @@
+import type { Metadata, Viewport } from 'next';
 import { Geist, Geist_Mono } from 'next/font/google';
 
 import './globals.css';
@@ -19,6 +20,31 @@ const fontMono = Geist_Mono({
   subsets: ['latin'],
   variable: '--font-mono',
 });
+
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  themeColor: [
+    { media: '(prefers-color-scheme: light)', color: '#ffffff' },
+    { media: '(prefers-color-scheme: dark)', color: '#0a0a0a' },
+  ],
+};
+
+export const metadata: Metadata = {
+  title: {
+    default: 'Khit Admin',
+    template: '%s | Khit Admin',
+  },
+  description: 'Internal admin panel for the Khit storefront.',
+  robots: {
+    index: false,
+    follow: false,
+    googleBot: { index: false, follow: false },
+  },
+  icons: {
+    icon: '/favicon.ico',
+  },
+};
 
 export default function RootLayout({
   children,

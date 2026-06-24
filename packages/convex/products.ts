@@ -227,6 +227,17 @@ export const getBySlug = query({
   },
 });
 
+export const listForSitemap = query({
+  args: {},
+  handler: async (ctx) => {
+    const rows = await ctx.db
+      .query('products')
+      .withIndex('by_active', (q) => q.eq('isPublished', true))
+      .collect();
+    return rows.map((r) => ({ slug: r.slug, updatedAt: r.updatedAt }));
+  },
+});
+
 export const getById = query({
   args: { id: v.id('products') },
   handler: async (ctx, args) => {

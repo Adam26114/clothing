@@ -49,7 +49,9 @@ export function CheckoutForm({ className }: CheckoutFormProps) {
     mode: 'onBlur',
   });
 
-  // eslint-disable-next-line react-hooks/incompatible-library -- React Hook Form's `watch()` returns a non-memoizable subscription per its public API; the alternative (useWatch with field) has the same compiler profile. RHF intentionally couples form state to its internal store, so the compiler opt-out is unavoidable here.
+  // React Hook Form's `watch()` returns a non-memoizable subscription per its
+  // public API; the alternative (useWatch with field) has the same compiler
+  // profile. RHF intentionally couples form state to its internal store.
   const deliveryMethod = watch('deliveryMethod');
 
   useEffect(() => {

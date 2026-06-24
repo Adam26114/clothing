@@ -65,7 +65,7 @@ export function ProductFormClient({ mode, productId }: ProductFormClientProps) {
   React.useEffect(() => {
     if (isEdit && productQuery && !hasHydrated) {
       const next = productToFormState(productQuery);
-      // eslint-disable-next-line react-hooks/set-state-in-effect -- one-time hydration from Convex query
+      // one-time hydration from Convex query
       setState(next);
       setInitialState(next);
       setSlugValid(true);
