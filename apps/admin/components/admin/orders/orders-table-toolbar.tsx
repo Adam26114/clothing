@@ -15,6 +15,8 @@ import { t } from '@workspace/lib/i18n';
 
 import type { OrderStatus } from '@workspace/ui/components/admin/status-badge';
 
+import { DateRangePicker, type DateRangeValue } from '@/components/admin/orders/date-range-picker';
+
 export type OrderStatusFilter = OrderStatus | 'all';
 
 const STATUS_OPTIONS: ReadonlyArray<{ value: OrderStatusFilter; labelKey: string }> = [
@@ -38,6 +40,8 @@ interface OrdersTableToolbarProps {
   onSearchChange: (next: string) => void;
   status: OrderStatusFilter;
   onStatusChange: (next: OrderStatusFilter) => void;
+  dateRange: DateRangeValue;
+  onDateRangeChange: (next: DateRangeValue) => void;
   onClear: () => void;
   shown: number;
   total: number;
@@ -48,11 +52,13 @@ export function OrdersTableToolbar({
   onSearchChange,
   status,
   onStatusChange,
+  dateRange,
+  onDateRangeChange,
   onClear,
   shown,
   total,
 }: OrdersTableToolbarProps) {
-  const hasActive = search.length > 0 || status !== 'all';
+  const hasActive = search.length > 0 || status !== 'all' || dateRange.preset !== 'all';
   const hasSearch = search.length > 0;
 
   return (
@@ -102,6 +108,8 @@ export function OrdersTableToolbar({
             ))}
           </SelectContent>
         </Select>
+
+        <DateRangePicker value={dateRange} onChange={onDateRangeChange} />
 
         {hasActive ? (
           <Button

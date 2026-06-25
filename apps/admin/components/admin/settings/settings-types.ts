@@ -18,6 +18,7 @@ export interface SettingsFormState {
   pickupStoreName: string;
   pickupStoreAddress: string;
   pickupStoreHours: string;
+  lowStockThreshold: string;
 }
 
 export const EMPTY_FORM_STATE: SettingsFormState = {
@@ -38,6 +39,7 @@ export const EMPTY_FORM_STATE: SettingsFormState = {
   pickupStoreName: '',
   pickupStoreAddress: '',
   pickupStoreHours: '',
+  lowStockThreshold: '',
 };
 
 export function settingsStateFromDoc(
@@ -59,6 +61,7 @@ export function settingsStateFromDoc(
     pickupStoreName?: string;
     pickupStoreAddress?: string;
     pickupStoreHours?: string;
+    lowStockThreshold?: number;
   } | null
 ): SettingsFormState {
   if (!doc) {
@@ -82,5 +85,6 @@ export function settingsStateFromDoc(
     pickupStoreName: doc.pickupStoreName ?? '',
     pickupStoreAddress: doc.pickupStoreAddress ?? '',
     pickupStoreHours: doc.pickupStoreHours ?? '',
+    lowStockThreshold: doc.lowStockThreshold === undefined ? '' : String(doc.lowStockThreshold),
   };
 }

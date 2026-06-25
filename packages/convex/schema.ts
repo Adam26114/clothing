@@ -153,6 +153,27 @@ export default defineSchema({
     pickupStoreName: v.optional(v.string()),
     pickupStoreAddress: v.optional(v.string()),
     pickupStoreHours: v.optional(v.string()),
+    lowStockThreshold: v.optional(v.number()),
+    featuredOrder: v.optional(v.array(v.id('products'))),
     updatedAt: v.number(),
   }),
+
+  stockAudit: defineTable({
+    productId: v.id('products'),
+    variantId: v.string(),
+    size: v.string(),
+    delta: v.number(),
+    reason: v.union(
+      v.literal('order_placed'),
+      v.literal('order_cancelled'),
+      v.literal('order_restored'),
+      v.literal('manual_adjustment')
+    ),
+    actorId: v.optional(v.id('users')),
+    orderId: v.optional(v.id('orders')),
+    createdAt: v.number(),
+  })
+    .index('by_product_variant', ['productId', 'variantId'])
+    .index('by_product_created', ['productId', 'createdAt'])
+    .index('by_created', ['createdAt']),
 });

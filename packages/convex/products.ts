@@ -6,6 +6,11 @@ import type { Doc, Id } from './_generated/dataModel';
 import { DEFAULT_PAGE_SIZE, LOW_STOCK_THRESHOLD } from '@workspace/lib/constants';
 import { isAdminRole } from '@workspace/lib/auth';
 
+function newVariantId(): string {
+  const random = Math.random().toString(36).slice(2, 8);
+  return `variant-${random}`;
+}
+
 const sortValidator = v.optional(
   v.union(
     v.literal('newest'),
@@ -219,6 +224,17 @@ export const getBySlug = query({
       return null;
     }
     return toProductListItem(product);
+  },
+});
+
+export const listForSitemap = query({
+  args: {},
+  handler: async (ctx) => {
+    const rows = await ctx.db
+      .query('products')
+      .withIndex('by_active', (q) => q.eq('isPublished', true))
+      .collect();
+    return rows.map((r) => ({ slug: r.slug, updatedAt: r.updatedAt }));
   },
 });
 
@@ -463,10 +479,11 @@ export const toggleFeatured = mutation({
 });
 
 export const lowStockCount = query({
-  args: { limit: v.optional(v.number()) },
+  args: { limit: v.optional(v.number()), threshold: v.optional(v.number()) },
   handler: async (ctx, args) => {
     await requireAdmin(ctx);
     const limit = args.limit ?? 20;
+    const threshold = args.threshold ?? LOW_STOCK_THRESHOLD;
     const products = await ctx.db.query('products').collect();
     const items: Array<{
       productId: Id<'products'>;
@@ -481,7 +498,7 @@ export const lowStockCount = query({
     for (const product of products) {
       for (const variant of product.colorVariants) {
         for (const [size, qty] of Object.entries(variant.stock)) {
-          if (qty < LOW_STOCK_THRESHOLD) {
+          if (qty < threshold) {
             items.push({
               productId: product._id,
               productSlug: product.slug,
@@ -498,5 +515,58 @@ export const lowStockCount = query({
     }
     items.sort((a, b) => a.stock - b.stock);
     return items.slice(0, limit);
+  },
+});
+
+export const duplicate = mutation({
+  args: { id: v.id('products') },
+  handler: async (ctx, args) => {
+    await requireAdmin(ctx);
+    const product = await ctx.db.get(args.id);
+    if (!product) {
+      throw new ConvexError('Product not found');
+    }
+    const baseSlug = `${product.slug}-copy`;
+    let candidateSlug = baseSlug;
+    let attempt = 1;
+    while (true) {
+      const existing = await ctx.db
+        .query('products')
+        .withIndex('by_slug', (q) => q.eq('slug', candidateSlug))
+        .unique();
+      if (!existing) {
+        break;
+      }
+      attempt += 1;
+      candidateSlug = `${baseSlug}-${attempt}`;
+    }
+    const now = Date.now();
+    const clonedColorVariants = product.colorVariants.map((variant) => ({
+      id: newVariantId(),
+      colorName: variant.colorName,
+      colorHex: variant.colorHex,
+      images: [],
+      selectedSizes: [...variant.selectedSizes],
+      stock: Object.fromEntries(Object.entries(variant.stock)),
+      measurements: variant.measurements
+        ? Object.fromEntries(
+            Object.entries(variant.measurements).map(([size, m]) => [size, { ...m }])
+          )
+        : undefined,
+    }));
+    return await ctx.db.insert('products', {
+      sku: product.sku,
+      name: `${product.name} (Copy)`,
+      slug: candidateSlug,
+      description: product.description,
+      categoryId: product.categoryId,
+      basePrice: product.basePrice,
+      salePrice: product.salePrice,
+      isFeatured: false,
+      isPublished: false,
+      createdAt: now,
+      updatedAt: now,
+      colorVariants: clonedColorVariants,
+    });
   },
 });

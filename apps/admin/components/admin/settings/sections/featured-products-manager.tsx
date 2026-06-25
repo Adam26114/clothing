@@ -3,7 +3,32 @@
 import * as React from 'react';
 import Image from 'next/image';
 import { useMutation, useQuery } from 'convex/react';
-import { Loader2Icon, MinusIcon, PlusIcon, SearchIcon, StarIcon, XIcon } from 'lucide-react';
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  type DragEndEvent,
+} from '@dnd-kit/core';
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  useSortable,
+  verticalListSortingStrategy,
+} from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
+import {
+  GripVerticalIcon,
+  Loader2Icon,
+  MinusIcon,
+  PlusIcon,
+  SearchIcon,
+  StarIcon,
+  XIcon,
+} from 'lucide-react';
 import { toast } from 'sonner';
 import type { Doc, Id } from '@workspace/convex/_generated/dataModel';
 import { api } from '@workspace/convex/_generated/api';
@@ -20,6 +45,7 @@ import {
   TableRow,
 } from '@workspace/ui/components/table';
 import { useDebouncedValue } from '@workspace/lib/hooks/use-debounced-value';
+import { cn } from '@workspace/lib/cn';
 import { t } from '@workspace/lib/i18n';
 
 const DEFAULT_PAGE_SIZE = 20;
@@ -85,6 +111,7 @@ export function FeaturedProductsManager() {
   const debouncedSearch = useDebouncedValue(search, 300);
   const [pendingId, setPendingId] = React.useState<Id<'products'> | null>(null);
 
+  const settings = useQuery(api.storeSettings.get, {});
   const featured = useQuery(api.products.adminList, {
     isFeatured: true,
     isPublished: true,
@@ -98,6 +125,7 @@ export function FeaturedProductsManager() {
   });
 
   const toggleFeatured = useMutation(api.products.toggleFeatured);
+  const updateSettings = useMutation(api.storeSettings.update);
 
   const featuredRows = React.useMemo<FeaturedProduct[]>(
     () => (featured?.items ?? []).map((p) => toFeaturedProduct(p)),
@@ -106,6 +134,39 @@ export function FeaturedProductsManager() {
   const availableRows = React.useMemo<FeaturedProduct[]>(
     () => (available?.items ?? []).map((p) => toFeaturedProduct(p)),
     [available]
+  );
+
+  const featuredOrder = settings?.featuredOrder;
+  const canonicalReorderList = React.useMemo<FeaturedProduct[]>(() => {
+    if (!featuredOrder || featuredOrder.length === 0) {
+      return featuredRows;
+    }
+    const byId = new Map(featuredRows.map((row) => [row._id, row]));
+    const ordered: FeaturedProduct[] = [];
+    for (const id of featuredOrder) {
+      const row = byId.get(id);
+      if (row) {
+        ordered.push(row);
+        byId.delete(id);
+      }
+    }
+    for (const row of byId.values()) {
+      ordered.push(row);
+    }
+    return ordered;
+  }, [featuredOrder, featuredRows]);
+
+  const handleSaveOrder = React.useCallback(
+    async (next: FeaturedProduct[]) => {
+      try {
+        await updateSettings({ featuredOrder: next.map((p) => p._id) });
+        toast.success(t('admin.settings.featured.reorderSaved'));
+      } catch (err: unknown) {
+        const message = err instanceof Error ? err.message : t('admin.settings.error.update');
+        toast.error(message);
+      }
+    },
+    [updateSettings]
   );
 
   const isFeaturedLoading = featured === undefined;
@@ -188,6 +249,12 @@ export function FeaturedProductsManager() {
           actionTestId="add"
         />
       </div>
+
+      <ReorderSection
+        canonicalList={canonicalReorderList}
+        isLoading={featured === undefined}
+        onSave={handleSaveOrder}
+      />
     </div>
   );
 }
@@ -295,5 +362,159 @@ function FeaturedList({
         </div>
       )}
     </div>
+  );
+}
+
+interface ReorderSectionProps {
+  canonicalList: FeaturedProduct[];
+  isLoading: boolean;
+  onSave: (next: FeaturedProduct[]) => Promise<void>;
+}
+
+function ReorderSection({ canonicalList, isLoading, onSave }: ReorderSectionProps) {
+  const [localList, setLocalList] = React.useState<FeaturedProduct[]>(canonicalList);
+  const [isSaving, setIsSaving] = React.useState(false);
+  const [lastSyncedIds, setLastSyncedIds] = React.useState(() =>
+    canonicalList.map((p) => p._id).join('|')
+  );
+
+  const currentCanonicalIds = canonicalList.map((p) => p._id).join('|');
+  if (currentCanonicalIds !== lastSyncedIds) {
+    setLastSyncedIds(currentCanonicalIds);
+    setLocalList(canonicalList);
+  }
+
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 4 } }),
+    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
+  );
+
+  const handleDragEnd = React.useCallback(
+    (event: DragEndEvent) => {
+      const { active, over } = event;
+      if (!over || active.id === over.id) {
+        return;
+      }
+      setLocalList((current) => {
+        const oldIndex = current.findIndex((p) => p._id === active.id);
+        const newIndex = current.findIndex((p) => p._id === over.id);
+        if (oldIndex < 0 || newIndex < 0) {
+          return current;
+        }
+        const next = arrayMove(current, oldIndex, newIndex);
+        setIsSaving(true);
+        void onSave(next)
+          .catch(() => {})
+          .finally(() => {
+            setIsSaving(false);
+          });
+        return next;
+      });
+    },
+    [onSave]
+  );
+
+  return (
+    <section aria-labelledby="featured-reorder-heading" className="flex flex-col gap-3">
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <h3 id="featured-reorder-heading" className="text-base font-medium">
+          {t('admin.settings.featured.reorder')}
+        </h3>
+        {isSaving ? (
+          <span className="text-muted-foreground inline-flex items-center gap-1.5 text-xs">
+            <Loader2Icon className="size-3.5 animate-spin" aria-hidden />
+            <span className="sr-only">{t('admin.settings.saving.saving')}</span>
+          </span>
+        ) : null}
+      </div>
+      <p className="text-muted-foreground text-xs">{t('admin.settings.featured.reorderHint')}</p>
+      {isLoading ? (
+        <div className="border-border flex items-center justify-center rounded-lg border py-8">
+          <Loader2Icon className="text-muted-foreground size-5 animate-spin" aria-hidden />
+        </div>
+      ) : localList.length === 0 ? (
+        <div className="border-border flex flex-col items-center justify-center gap-2 rounded-lg border border-dashed py-8 text-center">
+          <StarIcon className="text-muted-foreground size-5" aria-hidden />
+          <p className="text-muted-foreground text-sm">
+            {t('admin.settings.featured.reorderEmpty')}
+          </p>
+        </div>
+      ) : (
+        <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+          <SortableContext
+            items={localList.map((p) => p._id)}
+            strategy={verticalListSortingStrategy}
+          >
+            <ul
+              aria-roledescription="sortable"
+              className="border-border flex flex-col divide-y overflow-hidden rounded-lg border"
+            >
+              {localList.map((row, index) => (
+                <SortableFeaturedRow
+                  key={row._id}
+                  product={row}
+                  position={index + 1}
+                  total={localList.length}
+                />
+              ))}
+            </ul>
+          </SortableContext>
+        </DndContext>
+      )}
+    </section>
+  );
+}
+
+interface SortableFeaturedRowProps {
+  product: FeaturedProduct;
+  position: number;
+  total: number;
+}
+
+function SortableFeaturedRow({ product, position, total }: SortableFeaturedRowProps) {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
+    id: product._id,
+  });
+
+  const style: React.CSSProperties = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    zIndex: isDragging ? 1 : undefined,
+  };
+
+  return (
+    <li
+      ref={setNodeRef}
+      style={style}
+      aria-roledescription="sortable"
+      aria-label={`${position} / ${total}`}
+      className={cn(
+        'bg-card flex items-center gap-3 px-3 py-2 transition-shadow',
+        isDragging && 'shadow-md'
+      )}
+    >
+      <button
+        type="button"
+        {...attributes}
+        {...listeners}
+        aria-label={t('admin.settings.featured.dragHandle')}
+        className="text-muted-foreground hover:text-foreground focus-visible:ring-ring inline-flex size-7 shrink-0 cursor-grab items-center justify-center rounded-md transition-colors focus-visible:ring-2 focus-visible:outline-none active:cursor-grabbing"
+      >
+        <GripVerticalIcon className="size-4" aria-hidden />
+      </button>
+      <ThumbnailCell
+        storageId={product.firstImageId}
+        colorHex={product.firstImageColorHex}
+        alt={product.name}
+      />
+      <div className="flex min-w-0 flex-1 flex-col">
+        <span className="truncate text-sm font-medium">{product.name}</span>
+        {product.sku ? (
+          <span className="text-muted-foreground font-mono text-xs tabular-nums">
+            {product.sku}
+          </span>
+        ) : null}
+      </div>
+    </li>
   );
 }

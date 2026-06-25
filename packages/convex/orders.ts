@@ -1,24 +1,18 @@
 import { ConvexError, v } from 'convex/values';
 import { getAuthUserId } from '@convex-dev/auth/server';
 import type { Auth } from 'convex/server';
+import { internal } from './_generated/api';
 import { mutation, query } from './_generated/server';
 import type { Doc, Id } from './_generated/dataModel';
 import { DEFAULT_PAGE_SIZE, SHIPPING_FEE, STORE_PICKUP_FEE } from '@workspace/lib/constants';
 import { isAdminRole } from '@workspace/lib/auth';
+import { Sentry } from './sentry-init';
 
 interface OrderItemInput {
   productId: Id<'products'>;
   colorVariantId: string;
   size: string;
   quantity: number;
-}
-
-async function requireUserId(ctx: { auth: Auth }): Promise<Id<'users'>> {
-  const userId = await getAuthUserId(ctx);
-  if (!userId) {
-    throw new ConvexError('Not authenticated');
-  }
-  return userId;
 }
 
 async function requireAdmin(ctx: {
@@ -299,70 +293,96 @@ export const create = mutation({
     }
 
     const now = Date.now();
-    for (const item of validated) {
-      const decremented = decrementStock(
-        productMap.get(item.product._id)!,
-        item.variant.id,
-        item.size,
-        item.quantity
-      );
-      await ctx.db.patch(item.product._id, {
-        colorVariants: decremented.colorVariants,
+    try {
+      for (const item of validated) {
+        const decremented = decrementStock(
+          productMap.get(item.product._id)!,
+          item.variant.id,
+          item.size,
+          item.quantity
+        );
+        await ctx.db.patch(item.product._id, {
+          colorVariants: decremented.colorVariants,
+          updatedAt: now,
+        });
+      }
+
+      const subtotal = validated.reduce((sum, item) => sum + item.lineTotal, 0);
+      const shippingFee = args.deliveryMethod === 'shipping' ? SHIPPING_FEE : STORE_PICKUP_FEE;
+      const total = subtotal + shippingFee;
+      const orderNumber = await nextOrderNumber(ctx);
+
+      const orderItems = validated.map((item) => ({
+        productId: item.product._id,
+        colorVariantId: item.variant.id,
+        name: item.product.name,
+        size: item.size,
+        color: item.variant.colorName,
+        colorHex: item.variant.colorHex,
+        quantity: item.quantity,
+        price: item.unitPrice,
+      }));
+
+      const orderId = await ctx.db.insert('orders', {
+        orderNumber,
+        customerId: userId ?? undefined,
+        customerInfo: args.customerInfo,
+        items: orderItems,
+        subtotal,
+        shippingFee,
+        total,
+        deliveryMethod: args.deliveryMethod,
+        paymentMethod: 'cod' as const,
+        status: 'pending' as const,
+        notes: args.notes,
+        createdAt: now,
         updatedAt: now,
       });
-    }
 
-    const subtotal = validated.reduce((sum, item) => sum + item.lineTotal, 0);
-    const shippingFee = args.deliveryMethod === 'shipping' ? SHIPPING_FEE : STORE_PICKUP_FEE;
-    const total = subtotal + shippingFee;
-    const orderNumber = await nextOrderNumber(ctx);
+      await ctx.runMutation(internal.stockAudit.recordMany, {
+        entries: validated.map((item) => ({
+          productId: item.product._id,
+          variantId: item.variant.id,
+          size: item.size,
+          delta: -item.quantity,
+          reason: 'order_placed' as const,
+          actorId: userId ?? undefined,
+          orderId,
+        })),
+      });
 
-    const orderItems = validated.map((item) => ({
-      productId: item.product._id,
-      colorVariantId: item.variant.id,
-      name: item.product.name,
-      size: item.size,
-      color: item.variant.colorName,
-      colorHex: item.variant.colorHex,
-      quantity: item.quantity,
-      price: item.unitPrice,
-    }));
-
-    const orderId = await ctx.db.insert('orders', {
-      orderNumber,
-      customerId: userId ?? undefined,
-      customerInfo: args.customerInfo,
-      items: orderItems,
-      subtotal,
-      shippingFee,
-      total,
-      deliveryMethod: args.deliveryMethod,
-      paymentMethod: 'cod' as const,
-      status: 'pending' as const,
-      notes: args.notes,
-      createdAt: now,
-      updatedAt: now,
-    });
-
-    if (userId) {
-      const cartItems = await ctx.db
-        .query('cartItems')
-        .withIndex('by_user', (q) => q.eq('userId', userId))
-        .collect();
-      for (const ci of cartItems) {
-        const matching = args.items.find(
-          (i) =>
-            i.productId === ci.productId &&
-            i.colorVariantId === ci.colorVariantId &&
-            i.size === ci.size
-        );
-        if (matching) {
-          await ctx.db.delete(ci._id);
+      if (userId) {
+        const cartItems = await ctx.db
+          .query('cartItems')
+          .withIndex('by_user', (q) => q.eq('userId', userId))
+          .collect();
+        for (const ci of cartItems) {
+          const matching = args.items.find(
+            (i) =>
+              i.productId === ci.productId &&
+              i.colorVariantId === ci.colorVariantId &&
+              i.size === ci.size
+          );
+          if (matching) {
+            await ctx.db.delete(ci._id);
+          }
         }
       }
-    }
 
-    return { orderId, orderNumber };
+      return { orderId, orderNumber };
+    } catch (err) {
+      if (!(err instanceof ConvexError)) {
+        Sentry.captureException(err, {
+          tags: { mutation: 'orders.create', phase: 'persist' },
+          extra: {
+            customerEmail: args.customerInfo.email,
+            itemCount: validated.length,
+            deliveryMethod: args.deliveryMethod,
+          },
+        });
+      }
+      throw err;
+    }
   },
 });
 
@@ -395,6 +415,47 @@ export const updateStatus = mutation({
   },
 });
 
+export const bulkUpdateStatus = mutation({
+  args: {
+    ids: v.array(v.id('orders')),
+    status: v.union(
+      v.literal('pending'),
+      v.literal('confirmed'),
+      v.literal('processing'),
+      v.literal('shipped'),
+      v.literal('delivered'),
+      v.literal('cancelled')
+    ),
+  },
+  handler: async (ctx, args) => {
+    await requireAdmin(ctx);
+    if (args.ids.length === 0) {
+      return { updated: 0, skipped: 0 };
+    }
+    const now = Date.now();
+    let updated = 0;
+    let skipped = 0;
+    for (const id of args.ids) {
+      const order = await ctx.db.get(id);
+      if (!order) {
+        skipped += 1;
+        continue;
+      }
+      if (order.status === 'cancelled' && args.status !== 'cancelled') {
+        skipped += 1;
+        continue;
+      }
+      if (order.status === args.status) {
+        skipped += 1;
+        continue;
+      }
+      await ctx.db.patch(id, { status: args.status, updatedAt: now });
+      updated += 1;
+    }
+    return { updated, skipped };
+  },
+});
+
 export const cancel = mutation({
   args: { id: v.id('orders') },
   handler: async (ctx, args) => {
@@ -419,6 +480,15 @@ export const cancel = mutation({
     }
 
     const now = Date.now();
+    const auditEntries: Array<{
+      productId: Id<'products'>;
+      variantId: string;
+      size: string;
+      delta: number;
+      reason: 'order_cancelled';
+      actorId: Id<'users'>;
+      orderId: Id<'orders'>;
+    }> = [];
     for (const item of order.items) {
       const product = await ctx.db.get(item.productId);
       if (!product) {
@@ -429,12 +499,27 @@ export const cancel = mutation({
         colorVariants: restored.colorVariants,
         updatedAt: now,
       });
+      auditEntries.push({
+        productId: item.productId,
+        variantId: item.colorVariantId,
+        size: item.size,
+        delta: item.quantity,
+        reason: 'order_cancelled',
+        actorId: userId,
+        orderId: args.id,
+      });
     }
 
     await ctx.db.patch(args.id, {
       status: 'cancelled' as const,
       updatedAt: now,
     });
+
+    if (auditEntries.length > 0) {
+      await ctx.runMutation(internal.stockAudit.recordMany, {
+        entries: auditEntries,
+      });
+    }
     return args.id;
   },
 });
@@ -452,6 +537,16 @@ export const restore = mutation({
     }
 
     const now = Date.now();
+    const adminId = await requireAdmin(ctx);
+    const auditEntries: Array<{
+      productId: Id<'products'>;
+      variantId: string;
+      size: string;
+      delta: number;
+      reason: 'order_restored';
+      actorId: Id<'users'>;
+      orderId: Id<'orders'>;
+    }> = [];
     for (const item of order.items) {
       const product = await ctx.db.get(item.productId);
       if (!product) {
@@ -472,12 +567,27 @@ export const restore = mutation({
         colorVariants: decremented.colorVariants,
         updatedAt: now,
       });
+      auditEntries.push({
+        productId: item.productId,
+        variantId: item.colorVariantId,
+        size: item.size,
+        delta: -item.quantity,
+        reason: 'order_restored',
+        actorId: adminId._id,
+        orderId: args.id,
+      });
     }
 
     await ctx.db.patch(args.id, {
       status: 'pending' as const,
       updatedAt: now,
     });
+
+    if (auditEntries.length > 0) {
+      await ctx.runMutation(internal.stockAudit.recordMany, {
+        entries: auditEntries,
+      });
+    }
     return args.id;
   },
 });
@@ -496,6 +606,8 @@ export const adminList = query({
     ),
     customerId: v.optional(v.id('users')),
     search: v.optional(v.string()),
+    dateFrom: v.optional(v.number()),
+    dateTo: v.optional(v.number()),
     page: v.optional(v.number()),
     pageSize: v.optional(v.number()),
   },
@@ -509,6 +621,12 @@ export const adminList = query({
         return false;
       }
       if (args.status && order.status !== args.status) {
+        return false;
+      }
+      if (args.dateFrom !== undefined && order.createdAt < args.dateFrom) {
+        return false;
+      }
+      if (args.dateTo !== undefined && order.createdAt > args.dateTo) {
         return false;
       }
       if (search) {

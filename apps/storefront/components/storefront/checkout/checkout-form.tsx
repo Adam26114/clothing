@@ -49,6 +49,9 @@ export function CheckoutForm({ className }: CheckoutFormProps) {
     mode: 'onBlur',
   });
 
+  // React Hook Form's `watch()` returns a non-memoizable subscription per its
+  // public API; the alternative (useWatch with field) has the same compiler
+  // profile. RHF intentionally couples form state to its internal store.
   const deliveryMethod = watch('deliveryMethod');
 
   useEffect(() => {

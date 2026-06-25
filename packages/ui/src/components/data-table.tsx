@@ -124,6 +124,9 @@ export function useDataTable<T>({
     }
   }, [columnVisibility, storageKey]);
 
+  // TanStack Table's useReactTable returns non-memoizable functions by API contract;
+  // downstream consumers must treat `table` as opaque. This is upstream behavior,
+  // not a local anti-pattern.
   const table = useReactTable<T>({
     data,
     columns,

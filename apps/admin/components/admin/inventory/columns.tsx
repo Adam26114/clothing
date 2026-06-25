@@ -1,13 +1,15 @@
 'use client';
 
 import Link from 'next/link';
+import { ExternalLinkIcon, HistoryIcon } from 'lucide-react';
 import type { Id } from '@workspace/convex/_generated/dataModel';
 
-import { RowActions, type ColumnDef } from '@workspace/ui/components/data-table';
-import { DropdownMenuItem } from '@workspace/ui/components/dropdown-menu';
+import { type ColumnDef } from '@workspace/ui/components/data-table';
+import { Button } from '@workspace/ui/components/button';
 import { t } from '@workspace/lib/i18n';
 
 import { StockCellEditor } from './stock-cell-editor';
+import { InventoryAuditLog } from './inventory-audit-log';
 
 export interface InventoryRow {
   _id: string;
@@ -77,7 +79,7 @@ export function makeInventoryColumns(): ColumnDef<InventoryRow, unknown>[] {
     {
       id: 'actions',
       header: () => <span className="sr-only">{t('admin.inventory.columns.actions')}</span>,
-      cell: ({ row }) => <InventoryRowActions productId={row.original.productId} />,
+      cell: ({ row }) => <InventoryRowActions row={row.original} />,
       enableSorting: false,
       enableHiding: false,
     },
@@ -85,18 +87,36 @@ export function makeInventoryColumns(): ColumnDef<InventoryRow, unknown>[] {
 }
 
 interface InventoryRowActionsProps {
-  productId: Id<'products'>;
+  row: InventoryRow;
 }
 
-function InventoryRowActions({ productId }: InventoryRowActionsProps) {
+function InventoryRowActions({ row }: InventoryRowActionsProps) {
   return (
-    <RowActions>
-      <DropdownMenuItem
+    <div className="flex items-center justify-end gap-1">
+      <InventoryAuditLog
+        productId={row.productId}
+        productName={row.productName}
+        trigger={
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon-sm"
+            aria-label={t('admin.inventory.audit.title')}
+            className="cursor-pointer"
+          >
+            <HistoryIcon aria-hidden />
+          </Button>
+        }
+      />
+      <Button
+        render={<Link href={`/products/${row.productId}/edit`} />}
+        variant="ghost"
+        size="icon-sm"
+        aria-label={t('admin.inventory.viewProduct')}
         className="cursor-pointer"
-        render={<Link href={`/products/${productId}/edit`} />}
       >
-        {t('admin.inventory.viewProduct')}
-      </DropdownMenuItem>
-    </RowActions>
+        <ExternalLinkIcon aria-hidden />
+      </Button>
+    </div>
   );
 }

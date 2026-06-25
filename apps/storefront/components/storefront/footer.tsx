@@ -26,32 +26,49 @@ export function StorefrontFooter() {
           <FooterColumn
             heading={t('footer.shop')}
             links={[
-              { label: t('nav.women'), href: '/women' },
-              { label: t('nav.men'), href: '/men' },
-              { label: t('nav.new'), href: '/new' },
-              { label: t('nav.sale'), href: '/sale' },
+              { id: 'shop-women', label: t('nav.women'), href: '/women' },
+              { id: 'shop-men', label: t('nav.men'), href: '/men' },
+              { id: 'shop-new', label: t('nav.new'), href: '/new' },
+              { id: 'shop-sale', label: t('nav.sale'), href: '/sale' },
             ]}
           />
           <FooterColumn
             heading={t('footer.about')}
             links={[
-              { label: t('homepage.newsletterHeading'), href: '/#newsletter' },
-              { label: t('homepage.featuredHeading'), href: '/#featured' },
+              {
+                id: 'about-newsletter',
+                label: t('homepage.newsletterHeading'),
+                href: '/#newsletter',
+              },
+              { id: 'about-featured', label: t('homepage.featuredHeading'), href: '/#featured' },
             ]}
           />
           <FooterColumn
             heading={t('footer.help')}
             links={[
-              { label: t('header.searchPlaceholder'), href: '#' },
-              { label: t('cart.shipping'), href: '#' },
-              { label: t('order.deliveryMethodShipping'), href: '#' },
+              {
+                id: 'help-newsletter',
+                label: t('homepage.newsletterHeading'),
+                href: '/#newsletter',
+              },
+              { id: 'help-featured', label: t('homepage.featuredHeading'), href: '/#featured' },
             ]}
           />
           <FooterColumn
             heading={t('footer.contact')}
             links={[
-              { label: email, href: `mailto:${email}`, icon: <MailIcon className="size-3.5" /> },
-              { label: phone, href: phoneHref(phone), icon: <PhoneIcon className="size-3.5" /> },
+              {
+                id: 'contact-email',
+                label: email,
+                href: `mailto:${email}`,
+                icon: <MailIcon className="size-3.5" />,
+              },
+              {
+                id: 'contact-phone',
+                label: phone,
+                href: phoneHref(phone),
+                icon: <PhoneIcon className="size-3.5" />,
+              },
             ]}
           />
         </div>
@@ -124,7 +141,7 @@ function TikTokGlyph({ className }: { className?: string }) {
 
 interface FooterColumnProps {
   heading: string;
-  links: Array<{ label: string; href: string; icon?: React.ReactNode }>;
+  links: Array<{ id: string; label: string; href: string; icon?: React.ReactNode }>;
 }
 
 function FooterColumn({ heading, links }: FooterColumnProps) {
@@ -133,7 +150,7 @@ function FooterColumn({ heading, links }: FooterColumnProps) {
       <h3 className="text-foreground text-xs font-semibold tracking-widest uppercase">{heading}</h3>
       <ul className="mt-4 flex flex-col gap-2">
         {links.map((link) => (
-          <li key={`${heading}-${link.label}`}>
+          <li key={link.id}>
             <Link
               href={link.href}
               className="hover:text-foreground focus-visible:ring-ring/50 inline-flex cursor-pointer items-center gap-1.5 text-sm transition-colors focus-visible:ring-2 focus-visible:outline-none"

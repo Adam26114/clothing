@@ -1,6 +1,8 @@
 'use client';
 
-import { useQuery } from 'convex/react';
+import * as React from 'react';
+import { useMutation, useQuery } from 'convex/react';
+import { toast } from 'sonner';
 import { api } from '@workspace/convex/_generated/api';
 import type { Id } from '@workspace/convex/_generated/dataModel';
 
@@ -33,6 +35,28 @@ export function UserDetailClient({ userId }: UserDetailClientProps) {
     customerId: userId as Id<'users'>,
     pageSize: ORDER_HISTORY_PAGE_SIZE,
   });
+  const me = useQuery(api.users.getMe, {});
+  const setActive = useMutation(api.users.setActive);
+
+  const handleSuspend = React.useCallback(async () => {
+    try {
+      await setActive({ userId: userId as Id<'users'>, isActive: false });
+      toast.success(t('admin.users.suspend.successSuspended'));
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : t('admin.users.suspend.error');
+      toast.error(message);
+    }
+  }, [setActive, userId]);
+
+  const handleReactivate = React.useCallback(async () => {
+    try {
+      await setActive({ userId: userId as Id<'users'>, isActive: true });
+      toast.success(t('admin.users.suspend.successReactivated'));
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : t('admin.users.suspend.error');
+      toast.error(message);
+    }
+  }, [setActive, userId]);
 
   if (history === undefined) {
     return (
@@ -50,7 +74,13 @@ export function UserDetailClient({ userId }: UserDetailClientProps) {
 
   return (
     <div className="flex flex-col gap-6">
-      <UserDetailHeader user={history.user} stats={history.stats} />
+      <UserDetailHeader
+        user={history.user}
+        stats={history.stats}
+        currentUser={me ? { _id: me._id, role: me.role } : null}
+        onSuspend={handleSuspend}
+        onReactivate={handleReactivate}
+      />
       <UserOrderHistory orders={orders} />
     </div>
   );

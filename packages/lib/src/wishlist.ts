@@ -115,7 +115,7 @@ function subscribe(listener: Listener): () => void {
 }
 
 if (typeof globalThis !== 'undefined' && typeof globalThis.addEventListener === 'function') {
-  globalThis.addEventListener('storage', (event) => {
+  globalThis.addEventListener('storage', (event: StorageEvent) => {
     if (event.key !== null && event.key !== GUEST_WISHLIST_STORAGE_KEY) {
       return;
     }

@@ -1,5 +1,6 @@
 import { Password } from '@convex-dev/auth/providers/Password';
 import Resend from '@auth/core/providers/resend';
+import type { Value } from 'convex/values';
 import { convexAuth } from '@convex-dev/auth/server';
 
 const RESEND_FROM = process.env.RESEND_FROM_EMAIL;
@@ -12,38 +13,28 @@ const hasResend = !!RESEND_FROM;
 // `auth.errorNoResend`). Configure both envs to enable end-to-end email
 // verification and password reset. See README "Resend setup".
 
+function buildProfile(params: Record<string, Value | undefined>) {
+  const email = String(params.email ?? '');
+  const profile = {
+    email,
+    role: 'customer' as const,
+    isActive: true as const,
+    createdAt: Date.now(),
+  };
+  if (params.name !== undefined) {
+    return { ...profile, name: String(params.name) };
+  }
+  return profile;
+}
+
 const passwordConfig = hasResend
   ? {
-      profile(params: any) {
-        const email = String(params.email ?? '');
-        const profile = {
-          email,
-          role: 'customer' as const,
-          isActive: true as const,
-          createdAt: Date.now(),
-        };
-        if (params.name !== undefined) {
-          return { ...profile, name: String(params.name) };
-        }
-        return profile;
-      },
+      profile: buildProfile,
       verify: Resend({ from: RESEND_FROM! }),
       reset: Resend({ from: RESEND_FROM! }),
     }
   : {
-      profile(params: any) {
-        const email = String(params.email ?? '');
-        const profile = {
-          email,
-          role: 'customer' as const,
-          isActive: true as const,
-          createdAt: Date.now(),
-        };
-        if (params.name !== undefined) {
-          return { ...profile, name: String(params.name) };
-        }
-        return profile;
-      },
+      profile: buildProfile,
     };
 
 export const { auth, signIn, signOut, store, isAuthenticated } = convexAuth({

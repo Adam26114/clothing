@@ -1,9 +1,10 @@
 import { ConvexError, v } from 'convex/values';
 import { getAuthUserId } from '@convex-dev/auth/server';
 import type { Auth } from 'convex/server';
+import { internal } from './_generated/api';
 import { mutation, query } from './_generated/server';
 import type { Doc, Id } from './_generated/dataModel';
-import { DEFAULT_INVENTORY_PAGE_SIZE } from '@workspace/lib/constants';
+import { DEFAULT_INVENTORY_PAGE_SIZE, LOW_STOCK_THRESHOLD } from '@workspace/lib/constants';
 import { isAdminRole } from '@workspace/lib/auth';
 import { setStockForVariant } from './orders';
 
@@ -42,6 +43,7 @@ export const list = query({
     outOfStock: v.optional(v.boolean()),
     categoryId: v.optional(v.id('categories')),
     search: v.optional(v.string()),
+    threshold: v.optional(v.number()),
     page: v.optional(v.number()),
     pageSize: v.optional(v.number()),
   },
@@ -50,6 +52,7 @@ export const list = query({
     const pageSize = args.pageSize ?? DEFAULT_INVENTORY_PAGE_SIZE;
     const page = Math.max(0, args.page ?? 0);
     const search = args.search?.toLowerCase().trim();
+    const threshold = args.threshold ?? LOW_STOCK_THRESHOLD;
 
     const products = await ctx.db.query('products').collect();
 
@@ -66,10 +69,10 @@ export const list = query({
           if (args.outOfStock === false && qty === 0) {
             continue;
           }
-          if (args.lowStock === true && !(qty > 0 && qty < 5)) {
+          if (args.lowStock === true && !(qty > 0 && qty < threshold)) {
             continue;
           }
-          if (args.lowStock === false && qty > 0 && qty < 5) {
+          if (args.lowStock === false && qty > 0 && qty < threshold) {
             continue;
           }
           if (search) {
@@ -120,7 +123,7 @@ export const setStock = mutation({
     qty: v.number(),
   },
   handler: async (ctx, args) => {
-    await requireAdmin(ctx);
+    const admin = await requireAdmin(ctx);
     if (args.qty < 0) {
       throw new ConvexError('Quantity must be non-negative');
     }
@@ -135,11 +138,23 @@ export const setStock = mutation({
     if (!variant.selectedSizes.includes(args.size)) {
       throw new ConvexError(`Size ${args.size} is not available for this variant`);
     }
+    const previousQty = variant.stock[args.size] ?? 0;
+    const delta = args.qty - previousQty;
     const updated = setStockForVariant(product, args.variantId, args.size, args.qty);
     await ctx.db.patch(args.productId, {
       colorVariants: updated.colorVariants,
       updatedAt: Date.now(),
     });
+    if (delta !== 0) {
+      await ctx.runMutation(internal.stockAudit.record, {
+        productId: args.productId,
+        variantId: args.variantId,
+        size: args.size,
+        delta,
+        reason: 'manual_adjustment',
+        actorId: admin._id,
+      });
+    }
     return { productId: args.productId, variantId: args.variantId, size: args.size, qty: args.qty };
   },
 });

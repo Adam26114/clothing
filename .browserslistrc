@@ -1,0 +1,9 @@
+# Production browser support — see PRD §12
+# Generated against the Sentry error-rate widget data once available.
+last 2 Chrome versions
+last 2 Firefox versions
+last 2 Safari versions
+last 2 Edge versions
+Samsung Internet 18+
+not dead
+not IE 11

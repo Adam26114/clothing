@@ -9,6 +9,8 @@
     "format": "turbo format",
     "format:check": "turbo format:check",
     "typecheck": "turbo typecheck",
+    "test": "bun test",
+    "test:convex": "bun --filter @workspace/convex test",
     "seed": "bun run scripts/seed-convex.ts"
   },
   "devDependencies": {

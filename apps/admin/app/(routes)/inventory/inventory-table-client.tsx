@@ -5,7 +5,7 @@ import { useQuery } from 'convex/react';
 import type { Id } from '@workspace/convex/_generated/dataModel';
 import { api } from '@workspace/convex/_generated/api';
 import { useDebouncedValue } from '@workspace/lib/hooks/use-debounced-value';
-import { DEFAULT_INVENTORY_PAGE_SIZE } from '@workspace/lib/constants';
+import { DEFAULT_INVENTORY_PAGE_SIZE, LOW_STOCK_THRESHOLD } from '@workspace/lib/constants';
 
 import { DataTable, type ColumnDef } from '@workspace/ui/components/data-table';
 import { AdminPageHeader } from '@workspace/ui/components/admin/page-header';
@@ -34,11 +34,15 @@ export function InventoryTableClient() {
   const outOfStockArg = stockFilter === 'out' ? true : undefined;
   const categoryArg = category === 'all' ? undefined : category;
 
+  const settings = useQuery(api.storeSettings.get, {});
+  const lowStockThreshold = resolveLowStockThreshold(settings);
+
   const result = useQuery(api.inventory.list, {
     lowStock: lowStockArg,
     outOfStock: outOfStockArg,
     categoryId: categoryArg,
     search: trimmedSearch.length > 0 ? trimmedSearch : undefined,
+    threshold: lowStockThreshold,
     pageSize: DEFAULT_INVENTORY_PAGE_SIZE,
   });
   const categoriesResult = useQuery(api.categories.listActive, {});
@@ -72,6 +76,7 @@ export function InventoryTableClient() {
         }}
         shown={shown}
         total={total}
+        lowStockThreshold={lowStockThreshold}
       />
       {result === undefined || categoriesResult === undefined ? (
         <DataTable<InventoryRow>
@@ -99,4 +104,16 @@ export function InventoryTableClient() {
       )}
     </div>
   );
+}
+
+function resolveLowStockThreshold(
+  settings: { lowStockThreshold?: number } | null | undefined
+): number {
+  if (settings && typeof settings === 'object' && 'lowStockThreshold' in settings) {
+    const value = settings.lowStockThreshold;
+    if (typeof value === 'number' && Number.isFinite(value)) {
+      return value;
+    }
+  }
+  return LOW_STOCK_THRESHOLD;
 }

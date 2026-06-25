@@ -1,3 +1,4 @@
+import type { Metadata, Viewport } from 'next';
 import { Geist, Geist_Mono } from 'next/font/google';
 
 import '@workspace/ui/globals.css';
@@ -15,6 +16,8 @@ import { WishlistMergeOnAuth } from '@/components/storefront/wishlist-merge-on-a
 
 export const dynamic = 'force-dynamic';
 
+const SITE_URL = process.env.NEXT_PUBLIC_STOREFRONT_URL ?? 'http://localhost:3000';
+
 const fontSans = Geist({
   subsets: ['latin'],
   variable: '--font-sans',
@@ -24,6 +27,56 @@ const fontMono = Geist_Mono({
   subsets: ['latin'],
   variable: '--font-mono',
 });
+
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 5,
+  themeColor: [
+    { media: '(prefers-color-scheme: light)', color: '#ffffff' },
+    { media: '(prefers-color-scheme: dark)', color: '#0a0a0a' },
+  ],
+};
+
+export const metadata: Metadata = {
+  metadataBase: new URL(SITE_URL),
+  title: {
+    default: 'Khit — Minimal Shirts, Made in Myanmar',
+    template: '%s | Khit',
+  },
+  description:
+    'A Myanmar local brand shirt e-commerce platform. Shop minimal, editorial shirts with free in-store pickup and cash on delivery.',
+  applicationName: 'Khit',
+  keywords: ['Myanmar', 'shirts', 'local brand', 'minimal', 'editorial', 'fashion', 'Yangon'],
+  authors: [{ name: 'Khit' }],
+  creator: 'Khit',
+  publisher: 'Khit',
+  alternates: {
+    canonical: SITE_URL,
+  },
+  openGraph: {
+    type: 'website',
+    locale: 'en_US',
+    url: SITE_URL,
+    siteName: 'Khit',
+    title: 'Khit — Minimal Shirts, Made in Myanmar',
+    description: 'A Myanmar local brand shirt e-commerce platform.',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Khit — Minimal Shirts, Made in Myanmar',
+    description: 'A Myanmar local brand shirt e-commerce platform.',
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: { index: true, follow: true, 'max-image-preview': 'large' },
+  },
+  icons: {
+    icon: '/favicon.ico',
+  },
+  manifest: '/site.webmanifest',
+};
 
 export default function RootLayout({
   children,

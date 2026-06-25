@@ -5,6 +5,7 @@ import { mutation, query } from './_generated/server';
 import type { Doc, Id } from './_generated/dataModel';
 import { DEFAULT_PAGE_SIZE } from '@workspace/lib/constants';
 import { isAdminRole, type UserRole } from '@workspace/lib/auth';
+import { Sentry } from './sentry-init';
 
 type AuthedQueryCtx = {
   auth: Auth;
@@ -131,7 +132,15 @@ async function setUserRoleImpl(
   if (!target) {
     throw new ConvexError('User not found');
   }
-  await ctx.db.patch(args.userId, { role: args.role });
+  try {
+    await ctx.db.patch(args.userId, { role: args.role });
+  } catch (err) {
+    Sentry.captureException(err, {
+      tags: { mutation: 'users.setRole' },
+      extra: { targetUserId: args.userId, newRole: args.role, actorId: actor._id },
+    });
+    throw err;
+  }
   return args.userId;
 }
 
