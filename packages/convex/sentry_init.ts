@@ -1,4 +1,4 @@
-import * as Sentry from '@sentry/node';
+import * as Sentry from '@sentry/browser';
 
 const dsn = process.env.SENTRY_DSN;
 const environment = process.env.CONVEX_DEPLOY_TYPE === 'production' ? 'production' : 'development';

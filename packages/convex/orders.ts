@@ -6,7 +6,7 @@ import { mutation, query } from './_generated/server';
 import type { Doc, Id } from './_generated/dataModel';
 import { DEFAULT_PAGE_SIZE, SHIPPING_FEE, STORE_PICKUP_FEE } from '@workspace/lib/constants';
 import { isAdminRole } from '@workspace/lib/auth';
-import { Sentry } from './sentry-init';
+import { Sentry } from './sentry_init';
 
 interface OrderItemInput {
   productId: Id<'products'>;

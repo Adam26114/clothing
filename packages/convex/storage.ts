@@ -4,7 +4,7 @@ import type { Auth } from 'convex/server';
 import { mutation, query } from './_generated/server';
 import type { Doc, Id } from './_generated/dataModel';
 import { isAdminRole } from '@workspace/lib/auth';
-import { Sentry } from './sentry-init';
+import { Sentry } from './sentry_init';
 
 async function requireAdmin(ctx: {
   auth: Auth;

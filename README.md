@@ -133,8 +133,8 @@ bun install
 
 The repo uses a hosted Convex backend. Create a project (free tier is enough for development) at <https://dashboard.convex.dev> and from the **Settings** tab copy:
 
-- `CONVEX_DEPLOYMENT` — looks like `dev:ad-hoc-clothing-1`
-- `NEXT_PUBLIC_CONVEX_URL` — looks like `https://ad-hoc-clothing-1.convex.cloud`
+- `CONVEX_DEPLOYMENT` — looks like `dev:khit-clothing-<n>` (created in Phase 6)
+- `NEXT_PUBLIC_CONVEX_URL` — looks like `https://khit-clothing-<n>.convex.cloud`
 - `CONVEX_AUTH_PRIVATE_KEY` and `CONVEX_AUTH_ADAPTER_SECRET` — from **Settings → Authentication**
 
 Push the schema and functions:

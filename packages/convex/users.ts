@@ -5,7 +5,7 @@ import { mutation, query } from './_generated/server';
 import type { Doc, Id } from './_generated/dataModel';
 import { DEFAULT_PAGE_SIZE } from '@workspace/lib/constants';
 import { isAdminRole, type UserRole } from '@workspace/lib/auth';
-import { Sentry } from './sentry-init';
+import { Sentry } from './sentry_init';
 
 type AuthedQueryCtx = {
   auth: Auth;

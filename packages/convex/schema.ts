@@ -35,8 +35,8 @@ export default defineSchema({
     isActive: v.boolean(),
     createdAt: v.number(),
   })
-    .index('by_email', ['email'])
-    .index('by_phone', ['phone']),
+    .index('email', ['email'])
+    .index('phone', ['phone']),
 
   categories: defineTable({
     name: v.string(),
