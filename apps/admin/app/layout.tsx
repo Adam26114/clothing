@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from 'next/font/google';
 
 import './globals.css';
 import { ConvexProvider } from '@workspace/lib/providers/convex';
+import { getToken } from '@/lib/auth-server';
 import { ThemeProvider } from '@/components/theme-provider';
 import { Toaster } from '@workspace/ui/components/sonner';
 import { SidebarInset, SidebarProvider } from '@workspace/ui/components/sidebar';
@@ -46,11 +47,12 @@ export const metadata: Metadata = {
   },
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const token = await getToken();
   return (
     <html
       lang="en"
@@ -59,7 +61,7 @@ export default function RootLayout({
       className={cn('antialiased', fontSans.variable, fontMono.variable)}
     >
       <body>
-        <ConvexProvider>
+        <ConvexProvider initialToken={token}>
           <ThemeProvider
             attribute="class"
             defaultTheme="system"
@@ -67,11 +69,19 @@ export default function RootLayout({
             disableTransitionOnChange
           >
             <TooltipProvider>
-              <SidebarProvider>
+              <SidebarProvider
+                style={
+                  {
+                    '--sidebar-width': '18rem',
+                    '--header-height': 'calc(var(--spacing) * 12)',
+                    '--sidebar-width-icon': '3rem',
+                  } as React.CSSProperties
+                }
+              >
                 <AdminSidebar />
                 <SidebarInset>
                   <AdminHeader />
-                  <main className="flex-1 p-4 lg:p-6">{children}</main>
+                  <main className="flex-1 p-4 md:p-6 lg:p-8">{children}</main>
                 </SidebarInset>
               </SidebarProvider>
               <Toaster />

@@ -1,8 +1,8 @@
 import { v, ConvexError } from 'convex/values';
-import { createAccount } from '@convex-dev/auth/server';
 import { action } from './_generated/server';
 import { internal } from './_generated/api';
 import type { Id } from './_generated/dataModel';
+import { createAuth } from './auth';
 
 const SHIRT_SIZES = ['S', 'M', 'L', 'XL'] as const;
 
@@ -280,6 +280,92 @@ const SAMPLE_PRODUCTS: ProductSeed[] = [
   },
 ];
 
+interface SeedAdminResult {
+  created: boolean;
+  reason?: string;
+  userId?: Id<'users'>;
+  betterAuthUserId?: string;
+}
+
+interface SeedCtx {
+  runQuery: <Q extends import('convex/server').FunctionReference<'query', 'internal'>>(
+    query: Q,
+    args: Q['_args']
+  ) => Promise<unknown>;
+  runMutation: <M extends import('convex/server').FunctionReference<'mutation', 'internal'>>(
+    mutation: M,
+    args: M['_args']
+  ) => Promise<unknown>;
+}
+
+/**
+ * Create (or upsert) the seed admin/super-admin. Better Auth runs inside the
+ * Convex action via `createAuth(ctx)`; the user is signed up via
+ * `auth.api.signUpEmail` and then mirrored into our `users` table so cart /
+ * wishlist / orders have a stable foreign key.
+ */
+async function seedAdminUser(
+  ctx: SeedCtx,
+  args: {
+    email: string;
+    password: string;
+    name: string;
+    role: 'admin' | 'super-admin';
+  }
+): Promise<SeedAdminResult> {
+  const auth = createAuth(ctx as unknown as Parameters<typeof createAuth>[0]);
+
+  const existing = (await ctx.runQuery(internal.seedInternal.findUserByEmail, {
+    email: args.email,
+  })) as { _id: Id<'users'>; betterAuthUserId: string } | null;
+
+  if (existing) {
+    await ctx.runMutation(internal.seedInternal.updateUserRole, {
+      userId: existing._id,
+      role: args.role,
+    });
+    return {
+      created: false,
+      userId: existing._id,
+      betterAuthUserId: existing.betterAuthUserId,
+    };
+  }
+
+  let result: { user?: { id: string; email: string; name: string } };
+  try {
+    result = (await auth.api.signUpEmail({
+      body: {
+        email: args.email,
+        password: args.password,
+        name: args.name,
+      },
+    })) as typeof result;
+  } catch (err) {
+    return {
+      created: false,
+      reason: `Better Auth signUpEmail failed: ${err instanceof Error ? err.message : String(err)}`,
+    };
+  }
+
+  if (!result.user?.id) {
+    return { created: false, reason: 'Better Auth signUpEmail did not return a user id' };
+  }
+
+  const userId = (await ctx.runMutation(internal.users.upsertFromBetterAuth, {
+    betterAuthUserId: result.user.id,
+    email: result.user.email,
+    name: result.user.name,
+    role: args.role,
+    isActive: true,
+  })) as Id<'users'>;
+
+  return {
+    created: true,
+    userId,
+    betterAuthUserId: result.user.id,
+  };
+}
+
 export const run = action({
   args: {
     force: v.optional(v.boolean()),
@@ -293,8 +379,8 @@ export const run = action({
       categories: { created: number; skipped: number };
       products: { created: number; skipped: number };
       storeSettings: { created: boolean };
-      admin: { created: boolean; reason?: string; userId?: Id<'users'> };
-      superAdmin: { created: boolean; reason?: string; userId?: Id<'users'> };
+      admin: SeedAdminResult;
+      superAdmin: SeedAdminResult;
     } = {
       categories: { created: 0, skipped: 0 },
       products: { created: 0, skipped: 0 },
@@ -303,11 +389,14 @@ export const run = action({
       superAdmin: { created: false },
     };
 
-    const existingCategories = await ctx.runQuery(internal.seedInternal.listCategories, {});
+    const existingCategories = (await ctx.runQuery(
+      internal.seedInternal.listCategories,
+      {}
+    )) as unknown[];
     if (existingCategories.length === 0) {
       const now = Date.now();
       for (const cat of DEFAULT_CATEGORIES) {
-        const id = await ctx.runMutation(internal.seedInternal.insertCategory, {
+        const id = (await ctx.runMutation(internal.seedInternal.insertCategory, {
           name: cat.name,
           slug: cat.slug,
           description: cat.description,
@@ -315,7 +404,7 @@ export const run = action({
           isActive: true,
           createdAt: now,
           updatedAt: now,
-        });
+        })) as Id<'categories'>;
         summary.categories.created++;
         for (const child of cat.children) {
           await ctx.runMutation(internal.seedInternal.insertCategory, {
@@ -335,9 +424,15 @@ export const run = action({
       summary.categories.skipped = existingCategories.length;
     }
 
-    const existingProducts = await ctx.runQuery(internal.seedInternal.listProducts, {});
+    const existingProducts = (await ctx.runQuery(
+      internal.seedInternal.listProducts,
+      {}
+    )) as unknown[];
     if (existingProducts.length === 0) {
-      const allCategories = await ctx.runQuery(internal.seedInternal.listCategories, {});
+      const allCategories = (await ctx.runQuery(
+        internal.seedInternal.listCategories,
+        {}
+      )) as Array<{ _id: Id<'categories'>; slug: string }>;
       const bySlug = new Map(allCategories.map((c) => [c.slug, c]));
       const now = Date.now();
       for (const product of SAMPLE_PRODUCTS) {
@@ -372,7 +467,10 @@ export const run = action({
       summary.products.skipped = existingProducts.length;
     }
 
-    const existingSettings = await ctx.runQuery(internal.seedInternal.getStoreSettings, {});
+    const existingSettings = (await ctx.runQuery(
+      internal.seedInternal.getStoreSettings,
+      {}
+    )) as unknown;
     if (!existingSettings) {
       await ctx.runMutation(internal.seedInternal.insertStoreSettings, {
         heroTitle: 'New season. New shirts.',
@@ -404,33 +502,12 @@ export const run = action({
         reason: 'SEED_ADMIN_EMAIL or SEED_ADMIN_PASSWORD not set',
       };
     } else {
-      const existingAdmin = await ctx.runQuery(internal.seedInternal.findUserByEmail, {
+      summary.admin = await seedAdminUser(ctx, {
         email,
+        password,
+        name: 'Khit Admin',
+        role: 'admin',
       });
-      if (existingAdmin) {
-        await ctx.runMutation(internal.seedInternal.updateUserRole, {
-          userId: existingAdmin._id,
-          role: 'admin',
-        });
-        summary.admin = { created: false, userId: existingAdmin._id };
-      } else {
-        const result = await createAccount(ctx, {
-          provider: 'password',
-          account: { id: email, secret: password },
-          profile: {
-            email,
-            role: 'admin' as const,
-            isActive: true as const,
-            createdAt: Date.now(),
-          },
-          shouldLinkViaEmail: true,
-        });
-        await ctx.runMutation(internal.seedInternal.updateUserRole, {
-          userId: result.user._id,
-          role: 'admin',
-        });
-        summary.admin = { created: true, userId: result.user._id };
-      }
     }
 
     const superAdminEmail = process.env.SEED_SUPER_ADMIN_EMAIL;
@@ -441,33 +518,76 @@ export const run = action({
         reason: 'SEED_SUPER_ADMIN_EMAIL or SEED_SUPER_ADMIN_PASSWORD not set',
       };
     } else {
-      const existingSuperAdmin = await ctx.runQuery(internal.seedInternal.findUserByEmail, {
+      summary.superAdmin = await seedAdminUser(ctx, {
         email: superAdminEmail,
+        password: superAdminPassword,
+        name: 'Khit Super Admin',
+        role: 'super-admin',
       });
-      if (existingSuperAdmin) {
-        const userId = await ctx.runMutation(internal.seedInternal.promoteSuperAdmin, {
-          userId: existingSuperAdmin._id,
-        });
-        summary.superAdmin = { created: false, userId };
-      } else {
-        const result = await createAccount(ctx, {
-          provider: 'password',
-          account: { id: superAdminEmail, secret: superAdminPassword },
-          profile: {
-            email: superAdminEmail,
-            role: 'super-admin' as const,
-            isActive: true as const,
-            createdAt: Date.now(),
-          },
-          shouldLinkViaEmail: true,
-        });
-        await ctx.runMutation(internal.seedInternal.promoteSuperAdmin, {
-          userId: result.user._id,
-        });
-        summary.superAdmin = { created: true, userId: result.user._id };
-      }
     }
 
     return summary;
+  },
+});
+
+/**
+ * Reset the admin password. Best-effort: if a user already exists for the
+ * seeded email, the call is a no-op (the password is whatever was last set
+ * in BA). If the BA user is missing, we recreate it. We intentionally do not
+ * call `changePassword` here because Convex actions can't carry the BA
+ * session cookie across calls without extra plumbing.
+ */
+export const resetAdminPassword = action({
+  args: {},
+  handler: async (ctx) => {
+    const email = process.env.SEED_ADMIN_EMAIL;
+    const password = process.env.SEED_ADMIN_PASSWORD;
+    if (!email || !password) {
+      throw new ConvexError('SEED_ADMIN_EMAIL or SEED_ADMIN_PASSWORD not set');
+    }
+
+    const existing = (await ctx.runQuery(internal.seedInternal.findUserByEmail, {
+      email,
+    })) as {
+      _id: Id<'users'>;
+      betterAuthUserId: string;
+      role: 'customer' | 'admin' | 'super-admin';
+    } | null;
+
+    if (!existing) {
+      throw new ConvexError(
+        `No users row for ${email}. Run the full seed first to create the Better Auth user.`
+      );
+    }
+
+    const auth = createAuth(ctx as unknown as Parameters<typeof createAuth>[0]);
+
+    let signInOk = false;
+    try {
+      await auth.api.signInEmail({ body: { email, password } });
+      signInOk = true;
+    } catch {
+      signInOk = false;
+    }
+
+    if (signInOk) {
+      return {
+        userId: existing._id,
+        email,
+        passwordReset: false,
+        alreadyMatched: true,
+        orphansDeleted: [] as Id<'users'>[],
+      };
+    }
+
+    return {
+      userId: existing._id,
+      email,
+      passwordReset: false,
+      alreadyMatched: false,
+      message:
+        'Existing BA user has a different password. To rotate it, sign in via the app and use the forgot-password flow, or clear the BA user record manually.',
+      orphansDeleted: [] as Id<'users'>[],
+    };
   },
 });

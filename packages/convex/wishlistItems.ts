@@ -1,34 +1,12 @@
 import { ConvexError, v } from 'convex/values';
-import { getAuthUserId } from '@convex-dev/auth/server';
-import type { Auth } from 'convex/server';
 import { mutation, query } from './_generated/server';
 import type { Doc, Id } from './_generated/dataModel';
-
-type AuthedCtx = { auth: Auth };
-
-async function requireUserId(ctx: AuthedCtx): Promise<Id<'users'>> {
-  const userId = await getAuthUserId(ctx);
-  if (!userId) {
-    throw new ConvexError('Not authenticated');
-  }
-  return userId;
-}
-
-async function requireUser(
-  ctx: AuthedCtx & { db: { get: (id: Id<'users'>) => Promise<Doc<'users'> | null> } }
-): Promise<Doc<'users'>> {
-  const userId = await requireUserId(ctx);
-  const user = await ctx.db.get(userId);
-  if (!user) {
-    throw new ConvexError('User not found');
-  }
-  return user;
-}
+import { getInternalUserId, requireUser, requireUserId } from './authHelpers';
 
 export const list = query({
   args: {},
   handler: async (ctx) => {
-    const userId = await getAuthUserId(ctx);
+    const userId = await getInternalUserId(ctx);
     if (!userId) {
       return { items: [], total: 0 };
     }
@@ -74,7 +52,7 @@ export const list = query({
 export const count = query({
   args: {},
   handler: async (ctx) => {
-    const userId = await getAuthUserId(ctx);
+    const userId = await getInternalUserId(ctx);
     if (!userId) {
       return { count: 0 };
     }

@@ -58,7 +58,7 @@ The `api.seed.run` action (`packages/convex/seed.ts:283`) does the following, in
 2. **Categories** — inserts the default tree (Men, Women, New, Sale + sub-categories) if the `categories` table is empty (`packages/convex/seed.ts:306`).
 3. **Products** — inserts the eight sample products from `SAMPLE_PRODUCTS` with embedded variants and stock (`packages/convex/seed.ts:338`) if the `products` table is empty.
 4. **Store settings** — inserts the singleton `storeSettings` row with default hero, sale banner, contact, and pickup info (`packages/convex/seed.ts:375`).
-5. **Admin** — if `SEED_ADMIN_EMAIL` and `SEED_ADMIN_PASSWORD` are set, promotes the matching user to `role: 'admin'`, creating the account via `createAccount` if it does not exist (`packages/convex/seed.ts:399`).
+5. **Admin** — if `SEED_ADMIN_EMAIL` and `SEED_ADMIN_PASSWORD` are set, promotes the matching user to `role: 'admin'`, signing the user up via Better Auth's `auth.api.signUpEmail` and mirroring the BA user into our `users` table via `users.upsertFromBetterAuth` if it does not exist (`packages/convex/seed.ts:399`).
 6. **Super-admin** — same as admin, but with `role: 'super-admin'` (`packages/convex/seed.ts:436`).
 
 Each step is a no-op if the relevant table/row already exists.
@@ -80,8 +80,8 @@ There is no Convex action to reset an admin password. The flow today:
 
 1. **Convex Dashboard → Data → `users`** — find the admin row and copy `_id`.
 2. **Convex Dashboard → Functions → `auth:signIn`** — cannot reset a password directly.
-3. **Manual reset path** — use the Convex dashboard's "Run mutation" tool to call the underlying `account` table update. The table is `authAccounts` (Convex Auth internal) and stores a hashed secret. There is no exposed mutation; the only reliable path is:
-   - Delete the `authAccounts` row for the admin email.
+3. **Manual reset path** — use the Convex dashboard's "Run mutation" tool to call the underlying `account` table update. The table is `account` (Better Auth's internal credential table, owned by the BA component) and stores the hashed credential. There is no exposed mutation; the only reliable path is:
+   - Delete the `account` row for the admin email.
    - Have the admin sign in via the **forgot password** flow (`/auth/forgot-password` on the storefront). Resend sends a code; the admin sets a new password.
 4. Confirm the role is still `admin` on the `users` row (the sign-in flow sets role to `customer` on creation; only the seed or the admin user-edit action can promote).
 
@@ -114,3 +114,15 @@ A follow-up Phase 5 task is to add a `users.delete` mutation that nulls out `cus
 - `packages/convex/auth.ts`
 - `.env.example`
 - PRD §15 #6
+
+## Better Auth signup flow (Convex-side)
+
+The seed creates the admin through Better Auth's hosted sign-up API rather than a direct Convex Auth `createAccount` call. The end-to-end flow is:
+
+1. **`createAuth(ctx)`** — instantiate Better Auth inside the Convex action. The function lives in `packages/convex/auth.ts:68` and is built from `createAuthOptions(ctx)` (the same options consumed by the BA HTTP routes in `packages/convex/http.ts`). The `ctx` is the action's context, which BA's component client uses to read/write the BA-owned tables (`user`, `session`, `account`, `verification`, etc.) via `authComponent.adapter(ctx)`.
+2. **`auth.api.signUpEmail({ body: { email, password, name } })`** — call the BA sign-up API. The `body` is the standard BA `signUpEmail` shape; no `headers` is required because the action runs in the Convex runtime, not a browser. BA writes a row to its `user` table and a hashed credential to its `account` table.
+3. **`users.upsertFromBetterAuth({ betterAuthUserId, email, name, role, isActive })`** — internal Convex mutation that mirrors the BA user into the parent app's `users` table, storing `betterAuthUserId` as the join key. This is what cart / wishlist / order foreign keys point at; without it, `requireUserId` will return `null` for the freshly-signed-up admin.
+
+The full implementation is in `packages/convex/seed.ts:301-369` (`seedAdminUser`). If the `users` row already exists for the email, the function skips `signUpEmail` and only updates the role via `seedInternal.updateUserRole`. If the row is missing, both BA and `users` are created in the same action; if `signUpEmail` fails (e.g. BA rate-limits the seed), the action returns `{ created: false, reason }` and the operator can re-run after a short wait.
+
+Re-running `bun run seed --force` against a deployment that already has a seeded admin is safe: the `findUserByEmail` short-circuit in `seed.ts:320-322` means the role is updated in place and the `users.betterAuthUserId` is preserved.

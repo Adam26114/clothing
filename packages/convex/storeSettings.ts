@@ -1,35 +1,12 @@
-import { ConvexError, v } from 'convex/values';
-import { getAuthUserId } from '@convex-dev/auth/server';
-import type { Auth } from 'convex/server';
+import { v } from 'convex/values';
 import { mutation, query } from './_generated/server';
-import type { Doc, Id } from './_generated/dataModel';
-import { isAdminRole } from '@workspace/lib/auth';
-
-async function requireAdmin(ctx: {
-  auth: Auth;
-  db: { get: (id: Id<'users'>) => Promise<Doc<'users'> | null> };
-}): Promise<void> {
-  const userId = await getAuthUserId(ctx);
-  if (!userId) {
-    throw new ConvexError('Not authenticated');
-  }
-  const user = await ctx.db.get(userId);
-  if (!user || !isAdminRole(user.role)) {
-    throw new ConvexError('Forbidden: admin role required');
-  }
-}
-
-const SETTINGS_SINGLETON_ID = 'storeSettings:singleton' as Id<'storeSettings'>;
+import type { Doc } from './_generated/dataModel';
+import { requireAdmin } from './authHelpers';
 
 export const get = query({
   args: {},
   handler: async (ctx) => {
-    const existing = await ctx.db.get(SETTINGS_SINGLETON_ID);
-    if (existing) {
-      return existing;
-    }
-    const first = await ctx.db.query('storeSettings').first();
-    return first ?? null;
+    return await ctx.db.query('storeSettings').first();
   },
 });
 
@@ -58,8 +35,7 @@ export const update = mutation({
   handler: async (ctx, args) => {
     await requireAdmin(ctx);
     const now = Date.now();
-    const existing =
-      (await ctx.db.get(SETTINGS_SINGLETON_ID)) ?? (await ctx.db.query('storeSettings').first());
+    const existing = await ctx.db.query('storeSettings').first();
 
     const patch: Partial<Doc<'storeSettings'>> = {
       updatedAt: now,

@@ -46,7 +46,7 @@
 - Project init: `bunx --bun shadcn@latest init --preset b2BVC6P2m --base base --template next --monorepo --rtl --pointer`
 - Admin template: `dashboard-01` (`bunx shadcn@latest add dashboard-01`)
 - Backend: Convex with embedded-variant pattern
-- Auth: Convex Auth (`@convex-dev/auth`) with `customer` and `admin` roles
+- Auth: Convex + Better Auth (`@convex-dev/better-auth` + `better-auth`) with `customer`, `admin`, and `super-admin` roles
 - Monitoring: Sentry (`@sentry/nextjs`)
 - Icons: Lucide React only
 - Styling: Tailwind CSS + `prettier-plugin-tailwindcss`
@@ -96,7 +96,7 @@
 6. Never hardcode hex values, oklch values, or font stacks in JSX - use the design tokens from @DESIGN.md
 7. Never use `any` in TypeScript - use `unknown` + type guards
 8. Never bypass the admin auth guard on `/admin/*` routes
-9. Never store PII (passwords, card numbers) in Convex - Convex Auth owns identity
+9. Never store PII (passwords, card numbers) in Convex - Better Auth owns identity
 10. Never use decorative animations - 150ms ease transitions only
 11. Never add a dependency without explaining why in the PR body
 12. Never merge without CodeRabbit passing (no critical-severity issues)

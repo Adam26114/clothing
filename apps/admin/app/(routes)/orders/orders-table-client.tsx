@@ -4,9 +4,8 @@ import * as React from 'react';
 import { useQuery } from 'convex/react';
 import { api } from '@workspace/convex/_generated/api';
 import type { Doc } from '@workspace/convex/_generated/dataModel';
+import { useStoredRowOrder } from '@workspace/lib/hooks/use-stored-row-order';
 
-import { AdminPageHeader } from '@workspace/ui/components/admin/page-header';
-import { Button } from '@workspace/ui/components/button';
 import { DataTable, type ColumnDef } from '@workspace/ui/components/data-table';
 import { t } from '@workspace/lib/i18n';
 
@@ -15,10 +14,7 @@ import {
   orderSearchableText,
   type OrderRow,
 } from '@/components/admin/orders/columns';
-import {
-  OrdersTableToolbar,
-  type OrderStatusFilter,
-} from '@/components/admin/orders/orders-table-toolbar';
+import { OrdersFilters, type OrderStatusFilter } from '@/components/admin/orders/orders-filters';
 import {
   dateRangeToBounds,
   type DateRangeValue,
@@ -30,6 +26,7 @@ import {
 } from '@/components/admin/orders/orders-table-bulk';
 
 const DEFAULT_PAGE_SIZE = 20;
+const TABLE_ID = 'admin-orders';
 
 function toOrderRow(order: Doc<'orders'>): OrderRow {
   return {
@@ -43,20 +40,19 @@ function toOrderRow(order: Doc<'orders'>): OrderRow {
   };
 }
 
-export function OrdersTableClient() {
-  const [search, setSearch] = React.useState('');
+interface OrdersTableClientProps {
+  hideHeader?: boolean;
+}
+
+export function OrdersTableClient({ hideHeader = false }: OrdersTableClientProps = {}) {
   const [status, setStatus] = React.useState<OrderStatusFilter>('all');
   const [dateRange, setDateRange] = React.useState<DateRangeValue>({ preset: 'all' });
 
-  const debouncedSearch = useDebouncedSearch(search, 300);
-
   const statusArg = status === 'all' ? undefined : status;
-  const searchArg = debouncedSearch.trim() === '' ? undefined : debouncedSearch.trim();
   const { dateFrom, dateTo } = React.useMemo(() => dateRangeToBounds(dateRange), [dateRange]);
 
   const result = useQuery(api.orders.adminList, {
     status: statusArg,
-    search: searchArg,
     dateFrom,
     dateTo,
     pageSize: DEFAULT_PAGE_SIZE,
@@ -69,99 +65,44 @@ export function OrdersTableClient() {
     [result]
   );
 
+  const { ordered, reorder } = useStoredRowOrder<OrderRow>(TABLE_ID, rows, (row) => row._id);
+
   const total = result?.total ?? 0;
-  const shown = rows.length;
-
-  const hasActiveFilter = search.length > 0 || status !== 'all' || dateRange.preset !== 'all';
-
-  const handleClear = React.useCallback(() => {
-    setSearch('');
-    setStatus('all');
-    setDateRange({ preset: 'all' });
-  }, []);
 
   return (
-    <div className="flex flex-col gap-6">
-      <AdminPageHeader title={t('admin.orders.title')} />
-      <OrdersTableToolbar
-        search={search}
-        onSearchChange={setSearch}
-        status={status}
-        onStatusChange={setStatus}
-        dateRange={dateRange}
-        onDateRangeChange={setDateRange}
-        onClear={handleClear}
-        shown={shown}
-        total={total}
-      />
-      {result === undefined ? (
-        <DataTable<OrderRow>
-          tableId="admin-orders"
-          columns={columns}
-          data={[]}
-          isLoading
-          defaultPageSize={DEFAULT_PAGE_SIZE}
-          globalSearchPlaceholder={t('admin.orders.searchPlaceholder')}
-          getSearchableText={orderSearchableText}
-          getRowId={(row) => row._id}
+    <DataTable<OrderRow>
+      tableId={TABLE_ID}
+      columns={columns}
+      data={ordered}
+      isLoading={result === undefined}
+      defaultPageSize={DEFAULT_PAGE_SIZE}
+      globalSearchPlaceholder={t('admin.orders.searchPlaceholder')}
+      getSearchableText={orderSearchableText}
+      getRowId={(row) => row._id}
+      toolbarTitle={hideHeader ? undefined : t('admin.orders.title')}
+      hideToolbarHeader={hideHeader}
+      toolbarFilters={
+        <OrdersFilters
+          status={status}
+          onStatusChange={setStatus}
+          dateRange={dateRange}
+          onDateRangeChange={setDateRange}
         />
-      ) : rows.length === 0 ? (
-        <div className="flex flex-col gap-4">
-          {hasActiveFilter ? (
-            <DataTable<OrderRow>
-              tableId="admin-orders"
-              columns={columns}
-              data={rows}
-              defaultPageSize={DEFAULT_PAGE_SIZE}
-              globalSearchPlaceholder={t('admin.orders.searchPlaceholder')}
-              getSearchableText={orderSearchableText}
-              getRowId={(row) => row._id}
-              emptyTitle={t('admin.orders.noResults')}
-              emptyDescription={t('admin.orders.noResultsDescription')}
-            />
-          ) : (
-            <EmptyOrders />
-          )}
-        </div>
-      ) : (
-        <DataTable<OrderRow>
-          tableId="admin-orders"
-          columns={columns}
-          data={rows}
-          defaultPageSize={DEFAULT_PAGE_SIZE}
-          globalSearchPlaceholder={t('admin.orders.searchPlaceholder')}
-          getSearchableText={orderSearchableText}
-          getRowId={(row) => row._id}
-          emptyTitle={t('admin.orders.noResults')}
-          emptyDescription={t('admin.orders.noResultsDescription')}
-          emptyAction={
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={handleClear}
-              className="cursor-pointer"
-            >
-              {t('admin.orders.clearFilters')}
-            </Button>
-          }
-          bulkActions={(selected) => (
-            <>
-              <OrdersTableBulkStatus selectedRows={selected} />
-              <OrdersTableBulkExport selectedRows={selected} />
-            </>
-          )}
-        />
+      }
+      toolbarSummary={
+        <span className="text-muted-foreground text-xs tabular-nums">
+          {t('admin.orders.showingOf', 'en', { shown: ordered.length, total })}
+        </span>
+      }
+      emptyState={<EmptyOrders />}
+      bulkActions={(selected) => (
+        <>
+          <OrdersTableBulkStatus selectedRows={selected} />
+          <OrdersTableBulkExport selectedRows={selected} />
+        </>
       )}
-    </div>
+      enableRowReorder
+      onReorder={reorder}
+    />
   );
-}
-
-function useDebouncedSearch(value: string, delayMs: number): string {
-  const [debounced, setDebounced] = React.useState(value);
-  React.useEffect(() => {
-    const handle = setTimeout(() => setDebounced(value), delayMs);
-    return () => clearTimeout(handle);
-  }, [value, delayMs]);
-  return debounced;
 }

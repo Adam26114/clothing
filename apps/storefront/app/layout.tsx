@@ -7,6 +7,7 @@ import { CartUIProvider } from '@workspace/lib/hooks/use-cart-ui';
 import { ThemeProvider } from '@/components/theme-provider';
 import { Toaster } from '@workspace/ui/components/sonner';
 import { cn } from '@workspace/lib/cn';
+import { getToken } from '@/lib/auth-server';
 
 import { StorefrontHeader } from '@/components/storefront/header';
 import { StorefrontFooter } from '@/components/storefront/footer';
@@ -78,11 +79,12 @@ export const metadata: Metadata = {
   manifest: '/site.webmanifest',
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const token = await getToken();
   return (
     <html
       lang="en"
@@ -91,7 +93,7 @@ export default function RootLayout({
       className={cn('antialiased', fontSans.variable, fontMono.variable)}
     >
       <body className="bg-background text-foreground min-h-svh">
-        <ConvexProvider>
+        <ConvexProvider initialToken={token}>
           <ThemeProvider
             attribute="class"
             defaultTheme="light"

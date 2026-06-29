@@ -1,4 +1,3 @@
-import { authTables } from '@convex-dev/auth/server';
 import { defineSchema, defineTable } from 'convex/server';
 import { v } from 'convex/values';
 
@@ -21,20 +20,17 @@ const colorVariantSchema = v.object({
 });
 
 export default defineSchema({
-  ...authTables,
-
   users: defineTable({
+    betterAuthUserId: v.string(),
     name: v.optional(v.string()),
     email: v.optional(v.string()),
     phone: v.optional(v.string()),
     image: v.optional(v.string()),
-    emailVerificationTime: v.optional(v.number()),
-    phoneVerificationTime: v.optional(v.number()),
-    isAnonymous: v.optional(v.boolean()),
     role: v.union(v.literal('customer'), v.literal('admin'), v.literal('super-admin')),
     isActive: v.boolean(),
     createdAt: v.number(),
   })
+    .index('betterAuthUserId', ['betterAuthUserId'])
     .index('email', ['email'])
     .index('phone', ['phone']),
 

@@ -1,39 +1,36 @@
 'use client';
 
-import { useAuthActions } from '@convex-dev/auth/react';
+import { authClient } from './client';
 
 export type AuthFlowResult = { ok: true } | { ok: false; error: string };
-
 export type SignUpInput = { email: string; password: string; name: string };
 export type SignInInput = { email: string; password: string };
 export type RequestPasswordResetInput = { email: string };
-export type ConfirmPasswordResetInput = { email: string; code: string; newPassword: string };
-export type VerifyEmailInput = { email: string; code: string };
+export type ConfirmPasswordResetInput = { token: string; newPassword: string };
+export type VerifyEmailInput = { token: string };
 
 export function useAuthFlows() {
-  const { signIn, signOut } = useAuthActions();
-
   const signUp = async (input: SignUpInput): Promise<AuthFlowResult> => {
     try {
-      await signIn('password', { flow: 'signUp', ...input });
-      return { ok: true };
+      const { error } = await authClient.signUp.email({ ...input, callbackURL: '/account' });
+      return error ? { ok: false, error: humanizeError(error) } : { ok: true };
     } catch (e) {
       return { ok: false, error: humanizeError(e) };
     }
   };
 
-  const signInWithPassword = async (input: SignInInput): Promise<AuthFlowResult> => {
+  const signIn = async (input: SignInInput): Promise<AuthFlowResult> => {
     try {
-      await signIn('password', { flow: 'signIn', ...input });
-      return { ok: true };
+      const { error } = await authClient.signIn.email({ ...input, callbackURL: '/account' });
+      return error ? { ok: false, error: humanizeError(error) } : { ok: true };
     } catch (e) {
       return { ok: false, error: humanizeError(e) };
     }
   };
 
-  const signOutCurrent = async (): Promise<AuthFlowResult> => {
+  const signOut = async (): Promise<AuthFlowResult> => {
     try {
-      await signOut();
+      await authClient.signOut();
       return { ok: true };
     } catch (e) {
       return { ok: false, error: humanizeError(e) };
@@ -44,8 +41,11 @@ export function useAuthFlows() {
     input: RequestPasswordResetInput
   ): Promise<AuthFlowResult> => {
     try {
-      await signIn('password', { flow: 'reset', ...input });
-      return { ok: true };
+      const { error } = await authClient.requestPasswordReset({
+        email: input.email,
+        redirectTo: '/auth/reset-password',
+      });
+      return error ? { ok: false, error: humanizeError(error) } : { ok: true };
     } catch (e) {
       return { ok: false, error: humanizeError(e) };
     }
@@ -55,8 +55,11 @@ export function useAuthFlows() {
     input: ConfirmPasswordResetInput
   ): Promise<AuthFlowResult> => {
     try {
-      await signIn('password', { flow: 'reset-verification', ...input });
-      return { ok: true };
+      const { error } = await authClient.resetPassword({
+        newPassword: input.newPassword,
+        token: input.token,
+      });
+      return error ? { ok: false, error: humanizeError(error) } : { ok: true };
     } catch (e) {
       return { ok: false, error: humanizeError(e) };
     }
@@ -64,32 +67,46 @@ export function useAuthFlows() {
 
   const verifyEmail = async (input: VerifyEmailInput): Promise<AuthFlowResult> => {
     try {
-      await signIn('password', { flow: 'email-verification', ...input });
-      return { ok: true };
+      const { error } = await authClient.verifyEmail({ query: { token: input.token } });
+      return error ? { ok: false, error: humanizeError(error) } : { ok: true };
     } catch (e) {
       return { ok: false, error: humanizeError(e) };
     }
   };
 
-  return {
-    signUp,
-    signIn: signInWithPassword,
-    signOut: signOutCurrent,
-    requestPasswordReset,
-    confirmPasswordReset,
-    verifyEmail,
-  };
+  return { signUp, signIn, signOut, requestPasswordReset, confirmPasswordReset, verifyEmail };
 }
 
-function humanizeError(e: unknown): string {
-  if (e instanceof Error) {
-    const msg = e.message.toLowerCase();
-    if (msg.includes('invalid')) return 'auth.errorInvalidCredentials';
-    if (msg.includes('exists')) return 'auth.errorUserExists';
-    if (msg.includes('verify')) return 'auth.errorEmailNotVerified';
-    if (msg.includes('weak') || msg.includes('password')) return 'auth.errorWeakPassword';
-    if (msg.includes('code')) return 'auth.errorInvalidCode';
-    return 'auth.errorGeneric';
+export function humanizeError(e: unknown): string {
+  if (typeof e === 'object' && e !== null) {
+    const code = (e as { code?: string }).code;
+    if (code) {
+      switch (code) {
+        case 'USER_ALREADY_EXISTS':
+          return 'auth.errorUserExists';
+        case 'INVALID_EMAIL_OR_PASSWORD':
+        case 'INVALID_EMAIL':
+          return 'auth.errorInvalidCredentials';
+        case 'EMAIL_NOT_VERIFIED':
+          return 'auth.errorEmailNotVerified';
+        case 'PASSWORD_TOO_SHORT':
+        case 'PASSWORD_TOO_LONG':
+          return 'auth.errorWeakPassword';
+        case 'INVALID_TOKEN':
+          return 'auth.errorInvalidCode';
+        case 'RATE_LIMITED':
+          return 'auth.errorRateLimited';
+        default:
+          break;
+      }
+    }
+    if ('message' in e && typeof e.message === 'string') {
+      const msg = e.message.toLowerCase();
+      if (msg.includes('invalid')) return 'auth.errorInvalidCredentials';
+      if (msg.includes('exists')) return 'auth.errorUserExists';
+      if (msg.includes('verify')) return 'auth.errorEmailNotVerified';
+      if (msg.includes('weak') || msg.includes('password')) return 'auth.errorWeakPassword';
+    }
   }
   return 'auth.errorGeneric';
 }

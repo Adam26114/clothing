@@ -4,11 +4,9 @@ import * as React from 'react';
 import { useQuery } from 'convex/react';
 import type { Doc } from '@workspace/convex/_generated/dataModel';
 import { api } from '@workspace/convex/_generated/api';
-import { useDebouncedValue } from '@workspace/lib/hooks/use-debounced-value';
 import { useAuth } from '@workspace/lib/auth/use-auth';
+import { useStoredRowOrder } from '@workspace/lib/hooks/use-stored-row-order';
 
-import { AdminPageHeader } from '@workspace/ui/components/admin/page-header';
-import { Button } from '@workspace/ui/components/button';
 import { DataTable, type ColumnDef } from '@workspace/ui/components/data-table';
 import { t } from '@workspace/lib/i18n';
 
@@ -17,13 +15,11 @@ import {
   userSearchableText,
   type UserRow,
 } from '@/components/admin/users/columns';
-import {
-  UsersTableToolbar,
-  type UserRoleFilter,
-} from '@/components/admin/users/users-table-toolbar';
+import { UsersFilters, type UserRoleFilter } from '@/components/admin/users/users-filters';
 import { EmptyUsers } from '@/components/admin/users/empty-users';
 
 const DEFAULT_PAGE_SIZE = 20;
+const TABLE_ID = 'admin-users';
 
 function toUserRow(user: Doc<'users'>): UserRow {
   return {
@@ -40,18 +36,12 @@ function toUserRow(user: Doc<'users'>): UserRow {
 
 export function UsersTableClient() {
   const { user: currentUser, isLoading: authLoading } = useAuth();
-  const [search, setSearch] = React.useState('');
   const [role, setRole] = React.useState<UserRoleFilter>('all');
 
-  const debouncedSearch = useDebouncedValue(search, 300);
-  const trimmedSearch = debouncedSearch.trim();
-
   const roleArg = role === 'all' ? undefined : role;
-  const searchArg = trimmedSearch.length > 0 ? trimmedSearch : undefined;
 
   const result = useQuery(api.users.list, {
     role: roleArg,
-    search: searchArg,
     pageSize: DEFAULT_PAGE_SIZE,
   });
 
@@ -69,82 +59,30 @@ export function UsersTableClient() {
     [result]
   );
 
-  const total = result?.total ?? 0;
-  const shown = rows.length;
+  const { ordered, reorder } = useStoredRowOrder<UserRow>(TABLE_ID, rows, (row) => row._id);
 
-  const hasActiveFilter = search.length > 0 || role !== 'all';
+  const total = result?.total ?? 0;
 
   return (
-    <div className="flex flex-col gap-6">
-      <AdminPageHeader title={t('admin.users.title')} />
-      <UsersTableToolbar
-        search={search}
-        onSearchChange={setSearch}
-        role={role}
-        onRoleChange={setRole}
-        onClear={() => {
-          setSearch('');
-          setRole('all');
-        }}
-        shown={shown}
-        total={total}
-      />
-      {result === undefined || authLoading ? (
-        <DataTable<UserRow>
-          tableId="admin-users"
-          columns={columns}
-          data={[]}
-          isLoading
-          defaultPageSize={DEFAULT_PAGE_SIZE}
-          globalSearchPlaceholder={t('admin.users.searchPlaceholder')}
-          getSearchableText={userSearchableText}
-          getRowId={(row) => row._id}
-        />
-      ) : rows.length === 0 ? (
-        <div className="flex flex-col gap-4">
-          {hasActiveFilter ? (
-            <DataTable<UserRow>
-              tableId="admin-users"
-              columns={columns}
-              data={rows}
-              defaultPageSize={DEFAULT_PAGE_SIZE}
-              globalSearchPlaceholder={t('admin.users.searchPlaceholder')}
-              getSearchableText={userSearchableText}
-              getRowId={(row) => row._id}
-              emptyTitle={t('admin.users.noResults')}
-              emptyDescription={t('admin.users.noResultsDescription')}
-            />
-          ) : (
-            <EmptyUsers />
-          )}
-        </div>
-      ) : (
-        <DataTable<UserRow>
-          tableId="admin-users"
-          columns={columns}
-          data={rows}
-          defaultPageSize={DEFAULT_PAGE_SIZE}
-          globalSearchPlaceholder={t('admin.users.searchPlaceholder')}
-          getSearchableText={userSearchableText}
-          getRowId={(row) => row._id}
-          emptyTitle={t('admin.users.noResults')}
-          emptyDescription={t('admin.users.noResultsDescription')}
-          emptyAction={
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={() => {
-                setSearch('');
-                setRole('all');
-              }}
-              className="cursor-pointer"
-            >
-              {t('admin.users.clearFilters')}
-            </Button>
-          }
-        />
-      )}
-    </div>
+    <DataTable<UserRow>
+      tableId={TABLE_ID}
+      columns={columns}
+      data={ordered}
+      isLoading={result === undefined || authLoading}
+      defaultPageSize={DEFAULT_PAGE_SIZE}
+      globalSearchPlaceholder={t('admin.users.searchPlaceholder')}
+      getSearchableText={userSearchableText}
+      getRowId={(row) => row._id}
+      toolbarTitle={t('admin.users.title')}
+      toolbarFilters={<UsersFilters role={role} onRoleChange={setRole} />}
+      toolbarSummary={
+        <span className="text-muted-foreground text-xs tabular-nums">
+          {t('admin.users.showingOf', 'en', { shown: ordered.length, total })}
+        </span>
+      }
+      emptyState={<EmptyUsers />}
+      enableRowReorder
+      onReorder={reorder}
+    />
   );
 }

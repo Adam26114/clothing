@@ -137,7 +137,15 @@ const chartConfig = {
   },
 } satisfies ChartConfig;
 
-export function ChartAreaInteractive() {
+export interface ChartAreaInteractiveProps {
+  title?: string;
+  description?: string;
+}
+
+export function ChartAreaInteractive({
+  title = 'Total Visitors',
+  description,
+}: ChartAreaInteractiveProps = {}) {
   const isMobile = useIsMobile();
   const [timeRange, setTimeRange] = React.useState('90d');
   const [prevIsMobile, setPrevIsMobile] = React.useState(isMobile);
@@ -166,10 +174,14 @@ export function ChartAreaInteractive() {
   return (
     <Card className="@container/card">
       <CardHeader>
-        <CardTitle>Total Visitors</CardTitle>
+        <CardTitle>{title}</CardTitle>
         <CardDescription>
-          <span className="hidden @[540px]/card:block">Total for the last 3 months</span>
-          <span className="@[540px]/card:hidden">Last 3 months</span>
+          {description ?? (
+            <>
+              <span className="hidden @[540px]/card:block">Total for the last 3 months</span>
+              <span className="@[540px]/card:hidden">Last 3 months</span>
+            </>
+          )}
         </CardDescription>
         <CardAction>
           <ToggleGroup

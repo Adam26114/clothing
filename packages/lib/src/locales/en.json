@@ -255,11 +255,14 @@
     "backToSignIn": "Back to sign in",
     "checkEmailTitle": "Check your email",
     "checkEmailDescription": "We sent a code to {email}. Enter it on the next screen to continue.",
+    "checkEmailInterstitial": "Check your inbox to finish signing up",
+    "checkEmailInterstitialHint": "We've sent a verification link to your email. Click the link in the message to verify your account and continue.",
     "errorInvalidCredentials": "Email or password is incorrect.",
     "errorUserExists": "An account with that email already exists.",
     "errorEmailNotVerified": "Please verify your email before signing in.",
     "errorWeakPassword": "Password must be at least 8 characters.",
     "errorInvalidCode": "The code is invalid or has expired.",
+    "errorRateLimited": "Too many attempts. Please try again later.",
     "errorGeneric": "Something went wrong. Please try again.",
     "errorNoResend": "Email delivery is not configured. Please contact support."
   },
@@ -320,6 +323,7 @@
       "noResults": "No results",
       "searchPlaceholder": "Search…",
       "clearFilters": "Clear filters",
+      "dragToReorder": "Drag to reorder",
       "actions": {
         "delete": "Delete",
         "edit": "Edit",
@@ -328,8 +332,57 @@
         "confirm": "Confirm"
       }
     },
+    "sidebar": {
+      "quickCreate": "Quick Create",
+      "quickCreateProduct": "New product",
+      "documents": {
+        "dataLibrary": "Data Library",
+        "reports": "Reports",
+        "wordAssistant": "Word Assistant"
+      },
+      "secondary": {
+        "help": "Get help",
+        "search": "Search"
+      },
+      "inbox": "Inbox",
+      "navUserFallback": "Admin"
+    },
+    "header": {
+      "title": {
+        "dashboard": "Dashboard",
+        "orders": "Orders",
+        "products": "Products",
+        "inventory": "Inventory",
+        "users": "Users",
+        "settings": "Settings"
+      },
+      "theme": {
+        "toggle": "Toggle theme",
+        "light": "Light",
+        "dark": "Dark"
+      },
+      "githubLink": "GitHub"
+    },
     "dashboard": {
       "title": "Dashboard",
+      "tabOverview": "Overview",
+      "tabVisitors": "Visitors",
+      "tabOrders": "Orders",
+      "tabInventory": "Inventory",
+      "tabOrdersHint": "Manage order status, fulfilment, and fulfilment exports.",
+      "tabInventoryHint": "Stock levels, low-stock alerts, and variant detail.",
+      "visitorsChartTitle": "Total visitors",
+      "ordersToday": "Orders today",
+      "ordersTodayGmv": "GMV {amount}",
+      "activeProducts": "Active products",
+      "lowStockColumn": {
+        "product": "Product",
+        "variant": "Variant",
+        "size": "Size",
+        "stock": "Stock",
+        "actions": "Actions"
+      },
+      "restock": "Restock",
       "totalRevenue": "Total Revenue",
       "newCustomers": "New Customers",
       "activeAccounts": "Active Accounts",

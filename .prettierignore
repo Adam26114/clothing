@@ -5,3 +5,4 @@ build
 convex/_generated
 bun.lockb
 next-env.d.ts
+*.sh

@@ -1,11 +1,11 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { useConvexAuth } from '@convex-dev/auth/react';
 
 import { AuthForm } from '@/components/storefront/auth/auth-form';
 import { VerifyEmailForm } from '@/components/storefront/auth/verify-email-form';
+import { useAuth } from '@workspace/lib/auth/use-auth';
 import { t } from '@workspace/lib/i18n';
 
 export const dynamic = 'force-dynamic';
@@ -13,33 +13,64 @@ export const dynamic = 'force-dynamic';
 export function VerifyEmailFlow() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { isAuthenticated, isLoading } = useConvexAuth();
-  const email = searchParams.get('email') ?? '';
+  const { verifyEmail, isAuthenticated, isLoading } = useAuth();
+  const token = searchParams.get('token') ?? '';
+  const next = searchParams.get('next') ?? '/account';
+  const [error, setError] = useState<string | null>(null);
+  const [verifying, setVerifying] = useState(false);
 
   useEffect(() => {
     if (isLoading) {
       return;
     }
     if (isAuthenticated) {
-      const next = searchParams.get('next') || '/account';
       router.replace(next);
+      return;
     }
-  }, [isAuthenticated, isLoading, router, searchParams]);
+    if (!token || verifying) {
+      return;
+    }
+    let cancelled = false;
+    setVerifying(true);
+    void (async () => {
+      const result = await verifyEmail({ token });
+      if (cancelled) {
+        return;
+      }
+      setVerifying(false);
+      if (!result.ok) {
+        setError(result.error);
+        return;
+      }
+      router.replace(next);
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [token, isLoading, isAuthenticated, next, router, verifyEmail, verifying]);
 
-  if (!email) {
+  if (!token) {
     return (
       <AuthForm
         title={t('auth.verifyEmailTitle')}
-        description={t('auth.checkEmailDescription', 'en', { email: 'your email' })}
+        description={t('auth.checkEmailInterstitialHint')}
       >
-        <p className="text-muted-foreground text-sm">{t('auth.errorInvalidCode')}</p>
+        <p className="text-muted-foreground text-sm">{t('auth.checkEmailInterstitial')}</p>
+      </AuthForm>
+    );
+  }
+
+  if (error) {
+    return (
+      <AuthForm title={t('auth.verifyEmailTitle')} description={t('auth.verifyEmailDescription')}>
+        <p className="text-destructive text-sm">{t(error)}</p>
       </AuthForm>
     );
   }
 
   return (
     <AuthForm title={t('auth.verifyEmailTitle')} description={t('auth.verifyEmailDescription')}>
-      <VerifyEmailForm email={email} />
+      <VerifyEmailForm />
     </AuthForm>
   );
 }

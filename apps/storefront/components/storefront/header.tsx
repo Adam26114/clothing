@@ -15,6 +15,7 @@ import { Button } from '@workspace/ui/components/button';
 import {
   DropdownMenu,
   DropdownMenuContent,
+  DropdownMenuGroup,
   DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuSeparator,
@@ -140,42 +141,48 @@ export function StorefrontHeader() {
                 <UserIcon className="size-5" aria-hidden />
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" sideOffset={8} className="min-w-56">
-                <DropdownMenuLabel className="font-normal">
-                  <div className="flex flex-col gap-0.5">
-                    <span className="text-sm font-medium">{user?.name ?? t('nav.account')}</span>
-                    {user?.email ? (
-                      <span className="text-muted-foreground truncate text-xs">{user.email}</span>
-                    ) : null}
-                  </div>
-                </DropdownMenuLabel>
+                <DropdownMenuGroup>
+                  <DropdownMenuLabel className="font-normal">
+                    <div className="flex flex-col gap-0.5">
+                      <span className="text-sm font-medium">{user?.name ?? t('nav.account')}</span>
+                      {user?.email ? (
+                        <span className="text-muted-foreground truncate text-xs">{user.email}</span>
+                      ) : null}
+                    </div>
+                  </DropdownMenuLabel>
+                </DropdownMenuGroup>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem render={<Link href="/account" />} className="cursor-pointer">
-                  <UserIcon className="size-4" aria-hidden />
-                  {t('account.profileHeading')}
-                </DropdownMenuItem>
-                <DropdownMenuItem
-                  render={<Link href="/account/orders" />}
-                  className="cursor-pointer"
-                >
-                  <PackageIcon className="size-4" aria-hidden />
-                  {t('account.ordersHeading')}
-                </DropdownMenuItem>
-                <DropdownMenuItem
-                  render={<Link href="/account/wishlist" />}
-                  className="cursor-pointer"
-                >
-                  <HeartIcon className="size-4" aria-hidden />
-                  {t('account.wishlistHeading')}
-                </DropdownMenuItem>
+                <DropdownMenuGroup>
+                  <DropdownMenuItem render={<Link href="/account" />} className="cursor-pointer">
+                    <UserIcon className="size-4" aria-hidden />
+                    {t('account.profileHeading')}
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    render={<Link href="/account/orders" />}
+                    className="cursor-pointer"
+                  >
+                    <ShoppingBagIcon className="size-4" aria-hidden />
+                    {t('account.ordersHeading')}
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    render={<Link href="/account/wishlist" />}
+                    className="cursor-pointer"
+                  >
+                    <HeartIcon className="size-4" aria-hidden />
+                    {t('account.wishlistHeading')}
+                  </DropdownMenuItem>
+                </DropdownMenuGroup>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem
-                  onClick={handleSignOut}
-                  disabled={signingOut}
-                  className="text-muted-foreground cursor-pointer"
-                >
-                  <LogOutIcon className="size-4" aria-hidden />
-                  {t('account.signOutButton')}
-                </DropdownMenuItem>
+                <DropdownMenuGroup>
+                  <DropdownMenuItem
+                    onClick={signOut}
+                    variant="destructive"
+                    className="cursor-pointer"
+                  >
+                    <LogOutIcon className="size-4" aria-hidden />
+                    {t('nav.signOut')}
+                  </DropdownMenuItem>
+                </DropdownMenuGroup>
               </DropdownMenuContent>
             </DropdownMenu>
           ) : (

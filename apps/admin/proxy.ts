@@ -1,30 +1,21 @@
 import { NextResponse } from 'next/server';
-import { convexAuthNextjsMiddleware } from '@convex-dev/auth/nextjs/server';
-
+import { getToken, getUserRoleFromToken } from '@/lib/auth-server';
 import { isAdminRole } from '@workspace/lib/auth';
-import { getUserRoleFromToken } from '@workspace/lib/auth/server';
 
-const CONVEX_URL = process.env.NEXT_PUBLIC_CONVEX_URL;
 const STOREFRONT_URL = process.env.NEXT_PUBLIC_STOREFRONT_URL ?? 'http://localhost:3000';
 
 function redirectToStorefrontLogin(): NextResponse {
-  return NextResponse.redirect(new URL('/auth/login', STOREFRONT_URL));
+  const res = NextResponse.redirect(new URL('/auth/login', STOREFRONT_URL));
+  res.cookies.delete('__convexAuth');
+  return res;
 }
 
-export default convexAuthNextjsMiddleware(async (_request, { convexAuth }) => {
-  const token = await convexAuth.getToken();
+export async function proxy() {
+  const token = await getToken();
+  if (!token) return redirectToStorefrontLogin();
+  const role = await getUserRoleFromToken(token);
+  if (!isAdminRole(role)) return redirectToStorefrontLogin();
+  return NextResponse.next();
+}
 
-  if (!token || !CONVEX_URL) {
-    return redirectToStorefrontLogin();
-  }
-
-  const role = await getUserRoleFromToken(token, CONVEX_URL);
-
-  if (!isAdminRole(role)) {
-    return redirectToStorefrontLogin();
-  }
-});
-
-export const config = {
-  matcher: ['/((?!_next/static|_next/image|favicon.ico|api).*)'],
-};
+export const config = { matcher: ['/((?!_next/static|_next/image|favicon.ico|api).*)'] };

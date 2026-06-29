@@ -15,8 +15,10 @@ for (const relativePath of modulePaths) {
 
 async function setup() {
   const t = convexTest(schema, modules);
+  const adminBaId = `test-ba-admin-${Math.random().toString(36).slice(2, 10)}`;
   const adminId = await t.run(async (ctx) => {
     return await ctx.db.insert('users', {
+      betterAuthUserId: adminBaId,
       name: 'Test Admin',
       email: 'admin@convex-test.local',
       role: 'admin',
@@ -24,6 +26,7 @@ async function setup() {
       createdAt: Date.now(),
     });
   });
+  (t as { __adminBaId?: string }).__adminBaId = adminBaId;
   return { t, adminId };
 }
 
@@ -60,7 +63,9 @@ async function seedOrder(
 }
 
 function asUser(t: ReturnType<typeof convexTest>, userId: Id<'users'>) {
-  return t.withIdentity({ subject: `${userId}|test-session` });
+  return t.withIdentity({
+    subject: (t as { __adminBaId?: string }).__adminBaId ?? 'test-ba-admin',
+  });
 }
 
 describe('orders.adminList date range filter', () => {

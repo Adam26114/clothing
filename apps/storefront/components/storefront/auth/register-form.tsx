@@ -13,7 +13,6 @@ import { Input } from '@workspace/ui/components/input';
 import { Label } from '@workspace/ui/components/label';
 import { useAuth } from '@workspace/lib/auth/use-auth';
 import { t } from '@workspace/lib/i18n';
-import { useConvexAuth } from '@workspace/lib/auth/client';
 
 import { PasswordInput } from './password-input';
 
@@ -46,8 +45,7 @@ export function RegisterForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const nextPath = searchParams.get('next') || '/account';
-  const { signUp } = useAuth();
-  const { isAuthenticated } = useConvexAuth();
+  const { signUp, isAuthenticated } = useAuth();
   const [serverError, setServerError] = useState<string | null>(null);
 
   const {

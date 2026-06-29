@@ -4,11 +4,10 @@ import * as React from 'react';
 import { useQuery } from 'convex/react';
 import type { Id } from '@workspace/convex/_generated/dataModel';
 import { api } from '@workspace/convex/_generated/api';
-import { useDebouncedValue } from '@workspace/lib/hooks/use-debounced-value';
+import { useStoredRowOrder } from '@workspace/lib/hooks/use-stored-row-order';
 import { DEFAULT_INVENTORY_PAGE_SIZE, LOW_STOCK_THRESHOLD } from '@workspace/lib/constants';
 
 import { DataTable, type ColumnDef } from '@workspace/ui/components/data-table';
-import { AdminPageHeader } from '@workspace/ui/components/admin/page-header';
 import { t } from '@workspace/lib/i18n';
 
 import {
@@ -16,19 +15,18 @@ import {
   makeInventoryColumns,
   type InventoryRow,
 } from '@/components/admin/inventory/columns';
-import {
-  InventoryTableToolbar,
-  type StockFilter,
-} from '@/components/admin/inventory/inventory-table-toolbar';
+import { InventoryFilters, type StockFilter } from '@/components/admin/inventory/inventory-filters';
 import { EmptyInventory } from '@/components/admin/inventory/empty-inventory';
 
-export function InventoryTableClient() {
-  const [search, setSearch] = React.useState('');
+const TABLE_ID = 'admin-inventory';
+
+interface InventoryTableClientProps {
+  hideHeader?: boolean;
+}
+
+export function InventoryTableClient({ hideHeader = false }: InventoryTableClientProps = {}) {
   const [category, setCategory] = React.useState<Id<'categories'> | 'all'>('all');
   const [stockFilter, setStockFilter] = React.useState<StockFilter>('none');
-
-  const debouncedSearch = useDebouncedValue(search, 300);
-  const trimmedSearch = debouncedSearch.trim();
 
   const lowStockArg = stockFilter === 'low' ? true : undefined;
   const outOfStockArg = stockFilter === 'out' ? true : undefined;
@@ -41,7 +39,6 @@ export function InventoryTableClient() {
     lowStock: lowStockArg,
     outOfStock: outOfStockArg,
     categoryId: categoryArg,
-    search: trimmedSearch.length > 0 ? trimmedSearch : undefined,
     threshold: lowStockThreshold,
     pageSize: DEFAULT_INVENTORY_PAGE_SIZE,
   });
@@ -53,56 +50,41 @@ export function InventoryTableClient() {
   );
 
   const rows = React.useMemo<InventoryRow[]>(() => result?.items ?? [], [result]);
-  const total = result?.total ?? 0;
-  const shown = rows.length;
 
-  const hasActiveFilter = search.length > 0 || category !== 'all' || stockFilter !== 'none';
+  const { ordered, reorder } = useStoredRowOrder<InventoryRow>(TABLE_ID, rows, (row) => row._id);
+
+  const total = result?.total ?? 0;
+  const hasActiveFilter = category !== 'all' || stockFilter !== 'none';
 
   return (
-    <div className="flex flex-col gap-6">
-      <AdminPageHeader title={t('admin.inventory.title')} />
-      <InventoryTableToolbar
-        search={search}
-        onSearchChange={setSearch}
-        category={category}
-        onCategoryChange={setCategory}
-        stockFilter={stockFilter}
-        onStockFilterChange={setStockFilter}
-        categories={categoriesResult ?? []}
-        onClear={() => {
-          setSearch('');
-          setCategory('all');
-          setStockFilter('none');
-        }}
-        shown={shown}
-        total={total}
-        lowStockThreshold={lowStockThreshold}
-      />
-      {result === undefined || categoriesResult === undefined ? (
-        <DataTable<InventoryRow>
-          tableId="admin-inventory"
-          columns={columns}
-          data={[]}
-          isLoading
-          defaultPageSize={DEFAULT_INVENTORY_PAGE_SIZE}
-          getSearchableText={getInventorySearchableText}
-          getRowId={(row) => row._id}
+    <DataTable<InventoryRow>
+      tableId={TABLE_ID}
+      columns={columns}
+      data={ordered}
+      isLoading={result === undefined || categoriesResult === undefined}
+      defaultPageSize={DEFAULT_INVENTORY_PAGE_SIZE}
+      getSearchableText={getInventorySearchableText}
+      getRowId={(row) => row._id}
+      toolbarTitle={hideHeader ? undefined : t('admin.inventory.title')}
+      hideToolbarHeader={hideHeader}
+      toolbarFilters={
+        <InventoryFilters
+          category={category}
+          onCategoryChange={setCategory}
+          stockFilter={stockFilter}
+          onStockFilterChange={setStockFilter}
+          categories={categoriesResult ?? []}
         />
-      ) : rows.length === 0 ? (
-        <EmptyInventory hasFilters={hasActiveFilter} />
-      ) : (
-        <DataTable<InventoryRow>
-          tableId="admin-inventory"
-          columns={columns}
-          data={rows}
-          defaultPageSize={DEFAULT_INVENTORY_PAGE_SIZE}
-          getSearchableText={getInventorySearchableText}
-          getRowId={(row) => row._id}
-          emptyTitle={t('admin.inventory.noResults')}
-          emptyDescription={t('admin.inventory.noResultsDescription')}
-        />
-      )}
-    </div>
+      }
+      toolbarSummary={
+        <span className="text-muted-foreground text-xs tabular-nums">
+          {t('admin.inventory.showingOf', 'en', { shown: ordered.length, total })}
+        </span>
+      }
+      emptyState={<EmptyInventory hasFilters={hasActiveFilter} />}
+      enableRowReorder
+      onReorder={reorder}
+    />
   );
 }
 

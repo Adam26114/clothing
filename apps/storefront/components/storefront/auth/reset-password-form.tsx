@@ -8,7 +8,6 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { toast } from 'sonner';
 
 import { Button } from '@workspace/ui/components/button';
-import { Input } from '@workspace/ui/components/input';
 import { Label } from '@workspace/ui/components/label';
 import { useAuth } from '@workspace/lib/auth/use-auth';
 import { t } from '@workspace/lib/i18n';
@@ -17,10 +16,6 @@ import { PasswordInput } from './password-input';
 
 const resetSchema = z
   .object({
-    code: z
-      .string({ message: 'Please enter the verification code' })
-      .trim()
-      .min(4, 'Please enter the verification code'),
     newPassword: z
       .string({ message: 'Please enter a new password' })
       .min(8, 'Password must be at least 8 characters'),
@@ -35,13 +30,13 @@ const resetSchema = z
 
 export type ResetPasswordFormValues = z.infer<typeof resetSchema>;
 
-const defaults: ResetPasswordFormValues = { code: '', newPassword: '', confirmPassword: '' };
+const defaults: ResetPasswordFormValues = { newPassword: '', confirmPassword: '' };
 
 export function ResetPasswordForm() {
   const id = useId();
   const router = useRouter();
   const searchParams = useSearchParams();
-  const prefilledEmail = searchParams.get('email') ?? '';
+  const token = searchParams.get('token') ?? '';
   const { confirmPasswordReset } = useAuth();
   const [serverError, setServerError] = useState<string | null>(null);
 
@@ -57,13 +52,12 @@ export function ResetPasswordForm() {
 
   const onSubmit = handleSubmit(async (values) => {
     setServerError(null);
-    if (!prefilledEmail) {
+    if (!token) {
       setServerError(t('auth.errorInvalidCode'));
       return;
     }
     const result = await confirmPasswordReset({
-      email: prefilledEmail,
-      code: values.code.trim(),
+      token,
       newPassword: values.newPassword,
     });
     if (!result.ok) {
@@ -86,24 +80,6 @@ export function ResetPasswordForm() {
           {serverError}
         </div>
       ) : null}
-
-      <div className="flex flex-col gap-1.5">
-        <Label htmlFor={`${id}-code`}>{t('auth.codeLabel')}</Label>
-        <Input
-          id={`${id}-code`}
-          type="text"
-          inputMode="numeric"
-          autoComplete="one-time-code"
-          aria-invalid={errors.code ? 'true' : 'false'}
-          aria-describedby={errors.code ? `${id}-code-error` : undefined}
-          {...register('code')}
-        />
-        {errors.code ? (
-          <p id={`${id}-code-error`} className="text-destructive text-xs">
-            {errors.code.message}
-          </p>
-        ) : null}
-      </div>
 
       <div className="flex flex-col gap-1.5">
         <Label htmlFor={`${id}-new`}>{t('auth.newPasswordLabel')}</Label>

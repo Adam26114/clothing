@@ -1,6 +1,6 @@
-import { getAuthUserId } from '@convex-dev/auth/server';
 import { action } from './_generated/server';
 import { api } from './_generated/api';
+import {} from './authHelpers';
 
 const SENTRY_API_BASE = 'https://sentry.io/api/0';
 
@@ -26,12 +26,11 @@ interface SentryStatsResponse {
 export const sentryStats = action({
   args: {},
   handler: async (ctx): Promise<SentryStats> => {
-    const userId = await getAuthUserId(ctx);
-    if (!userId) {
+    const user = await ctx.runQuery(api.users.getMe, {});
+    if (!user) {
       throw new Error('Not authenticated');
     }
-    const user = await ctx.runQuery(api.users.getMe, {});
-    if (!user || (user.role !== 'admin' && user.role !== 'super-admin')) {
+    if (user.role !== 'admin' && user.role !== 'super-admin') {
       throw new Error('Forbidden: admin role required');
     }
 

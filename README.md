@@ -135,7 +135,7 @@ The repo uses a hosted Convex backend. Create a project (free tier is enough for
 
 - `CONVEX_DEPLOYMENT` — looks like `dev:khit-clothing-<n>` (created in Phase 6)
 - `NEXT_PUBLIC_CONVEX_URL` — looks like `https://khit-clothing-<n>.convex.cloud`
-- `CONVEX_AUTH_PRIVATE_KEY` and `CONVEX_AUTH_ADAPTER_SECRET` — from **Settings → Authentication**
+- `CONVEX_DEPLOYMENT` and `NEXT_PUBLIC_CONVEX_URL` (above). For Better Auth, also set on the deployment: `BETTER_AUTH_SECRET` (generate with `openssl rand -base64 32`), `SITE_URL` (e.g. `http://localhost:3000`), and optionally `RESEND_API_KEY` + `RESEND_FROM_EMAIL` for email verification.
 
 Push the schema and functions:
 
@@ -156,8 +156,8 @@ Fill in the required Convex values plus an admin password:
 ```bash
 CONVEX_DEPLOYMENT=dev:ad-hoc-clothing-1
 NEXT_PUBLIC_CONVEX_URL=https://ad-hoc-clothing-1.convex.cloud
-CONVEX_AUTH_PRIVATE_KEY=<from the Convex dashboard>
-CONVEX_AUTH_ADAPTER_SECRET=<from the Convex dashboard>
+CONVEX_AUTH_PRIVATE_KEY=<legacy — remove>
+CONVEX_AUTH_ADAPTER_SECRET=<legacy — remove>
 
 SEED_ADMIN_EMAIL=zweaungnaing.info@gmail.com
 SEED_ADMIN_PASSWORD=<choose something secure>

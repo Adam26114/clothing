@@ -17,6 +17,7 @@ async function setup() {
   const t = convexTest(schema, modules);
   const adminId = await t.run(async (ctx) => {
     return await ctx.db.insert('users', {
+      betterAuthUserId: 'test-ba-admin',
       name: 'Test Admin',
       email: 'admin@convex-test.local',
       role: 'admin',
@@ -56,8 +57,12 @@ async function seedOrder(
   });
 }
 
-function asUser(t: ReturnType<typeof convexTest>, userId: Id<'users'>) {
-  return t.withIdentity({ subject: `${userId}|test-session` });
+function asUser(
+  t: ReturnType<typeof convexTest>,
+  userId: Id<'users'>,
+  role: 'admin' | 'customer' = 'admin'
+) {
+  return t.withIdentity({ subject: role === 'admin' ? 'test-ba-admin' : 'test-ba-customer' });
 }
 
 describe('orders.bulkUpdateStatus', () => {
@@ -120,8 +125,10 @@ describe('orders.bulkUpdateStatus', () => {
 
   test('rejects callers without an admin role', async () => {
     const { t } = await setup();
+    const customerBaId = `test-ba-customer-${Math.random().toString(36).slice(2, 10)}`;
     const customerId = await t.run(async (ctx) => {
       return await ctx.db.insert('users', {
+        betterAuthUserId: customerBaId,
         name: 'Test Customer',
         email: 'customer@convex-test.local',
         role: 'customer',
@@ -132,7 +139,7 @@ describe('orders.bulkUpdateStatus', () => {
     const orderId = await seedOrder(t, 'pending');
 
     await expect(
-      asUser(t, customerId).mutation(api.orders.bulkUpdateStatus, {
+      t.withIdentity({ subject: customerBaId }).mutation(api.orders.bulkUpdateStatus, {
         ids: [orderId],
         status: 'shipped',
       })

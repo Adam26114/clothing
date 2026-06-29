@@ -9,8 +9,11 @@
  */
 
 import type * as auth from "../auth.js";
+import type * as authHelpers from "../authHelpers.js";
+import type * as authResend from "../authResend.js";
 import type * as cart from "../cart.js";
 import type * as categories from "../categories.js";
+import type * as http from "../http.js";
 import type * as inventory from "../inventory.js";
 import type * as orders from "../orders.js";
 import type * as products from "../products.js";
@@ -32,8 +35,11 @@ import type {
 
 declare const fullApi: ApiFromModules<{
   auth: typeof auth;
+  authHelpers: typeof authHelpers;
+  authResend: typeof authResend;
   cart: typeof cart;
   categories: typeof categories;
+  http: typeof http;
   inventory: typeof inventory;
   orders: typeof orders;
   products: typeof products;
@@ -74,4 +80,6 @@ export declare const internal: FilterApi<
   FunctionReference<any, "internal">
 >;
 
-export declare const components: {};
+export declare const components: {
+  betterAuth: import("@convex-dev/better-auth/_generated/component.js").ComponentApi<"betterAuth">;
+};

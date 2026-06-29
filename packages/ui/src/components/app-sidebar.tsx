@@ -1,6 +1,7 @@
 'use client';
 
 import * as React from 'react';
+import Link from 'next/link';
 
 import { NavDocuments } from '@workspace/ui/components/nav-documents';
 import { NavMain } from '@workspace/ui/components/nav-main';
@@ -15,140 +16,56 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from '@workspace/ui/components/sidebar';
-import {
-  LayoutDashboardIcon,
-  ListIcon,
-  ChartBarIcon,
-  FolderIcon,
-  UsersIcon,
-  CameraIcon,
-  FileTextIcon,
-  Settings2Icon,
-  CircleHelpIcon,
-  SearchIcon,
-  DatabaseIcon,
-  FileChartColumnIcon,
-  FileIcon,
-  CommandIcon,
-} from 'lucide-react';
 
-const data = {
-  user: {
-    name: 'shadcn',
-    email: 'm@example.com',
-    avatar: '/avatars/shadcn.jpg',
-  },
-  navMain: [
-    {
-      title: 'Dashboard',
-      url: '#',
-      icon: <LayoutDashboardIcon />,
-    },
-    {
-      title: 'Lifecycle',
-      url: '#',
-      icon: <ListIcon />,
-    },
-    {
-      title: 'Analytics',
-      url: '#',
-      icon: <ChartBarIcon />,
-    },
-    {
-      title: 'Projects',
-      url: '#',
-      icon: <FolderIcon />,
-    },
-    {
-      title: 'Team',
-      url: '#',
-      icon: <UsersIcon />,
-    },
-  ],
-  navClouds: [
-    {
-      title: 'Capture',
-      icon: <CameraIcon />,
-      isActive: true,
-      url: '#',
-      items: [
-        {
-          title: 'Active Proposals',
-          url: '#',
-        },
-        {
-          title: 'Archived',
-          url: '#',
-        },
-      ],
-    },
-    {
-      title: 'Proposal',
-      icon: <FileTextIcon />,
-      url: '#',
-      items: [
-        {
-          title: 'Active Proposals',
-          url: '#',
-        },
-        {
-          title: 'Archived',
-          url: '#',
-        },
-      ],
-    },
-    {
-      title: 'Prompts',
-      icon: <FileTextIcon />,
-      url: '#',
-      items: [
-        {
-          title: 'Active Proposals',
-          url: '#',
-        },
-        {
-          title: 'Archived',
-          url: '#',
-        },
-      ],
-    },
-  ],
-  navSecondary: [
-    {
-      title: 'Settings',
-      url: '#',
-      icon: <Settings2Icon />,
-    },
-    {
-      title: 'Get Help',
-      url: '#',
-      icon: <CircleHelpIcon />,
-    },
-    {
-      title: 'Search',
-      url: '#',
-      icon: <SearchIcon />,
-    },
-  ],
-  documents: [
-    {
-      name: 'Data Library',
-      url: '#',
-      icon: <DatabaseIcon />,
-    },
-    {
-      name: 'Reports',
-      url: '#',
-      icon: <FileChartColumnIcon />,
-    },
-    {
-      name: 'Word Assistant',
-      url: '#',
-      icon: <FileIcon />,
-    },
-  ],
+export type AppSidebarNavItem = {
+  title: string;
+  url: string;
+  icon: React.ReactNode;
+  isActive?: boolean;
 };
-export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+
+export type AppSidebarDocument = {
+  name: string;
+  url: string;
+  icon: React.ReactNode;
+};
+
+export type AppSidebarUser = {
+  name: string;
+  email: string;
+  avatar?: string | null;
+};
+
+export type AppSidebarBrand = {
+  name: string;
+  href: string;
+  icon?: React.ReactNode;
+};
+
+export type AppSidebarData = {
+  brand: AppSidebarBrand;
+  user: AppSidebarUser;
+  navMain: AppSidebarNavItem[];
+  documents: AppSidebarDocument[];
+  navSecondary: AppSidebarNavItem[];
+};
+
+type AppSidebarProps = {
+  data: AppSidebarData;
+  quickCreateMenu?: React.ReactNode;
+  quickCreateLabel?: string;
+  onSignOut?: () => void;
+  signOutLabel?: string;
+} & React.ComponentProps<typeof Sidebar>;
+
+export function AppSidebar({
+  data,
+  quickCreateMenu,
+  quickCreateLabel,
+  onSignOut,
+  signOutLabel,
+  ...props
+}: AppSidebarProps) {
   return (
     <Sidebar collapsible="offcanvas" {...props}>
       <SidebarHeader>
@@ -156,21 +73,25 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           <SidebarMenuItem>
             <SidebarMenuButton
               className="data-[slot=sidebar-menu-button]:p-1.5!"
-              render={<a href="#" />}
+              render={<Link href={data.brand.href} />}
             >
-              <CommandIcon className="size-5!" />
-              <span className="text-base font-semibold">Acme Inc.</span>
+              {data.brand.icon}
+              <span className="text-base font-semibold">{data.brand.name}</span>
             </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>
       </SidebarHeader>
       <SidebarContent>
-        <NavMain items={data.navMain} />
+        <NavMain
+          items={data.navMain}
+          quickCreateLabel={quickCreateLabel}
+          quickCreateMenu={quickCreateMenu}
+        />
         <NavDocuments items={data.documents} />
         <NavSecondary items={data.navSecondary} className="mt-auto" />
       </SidebarContent>
       <SidebarFooter>
-        <NavUser user={data.user} />
+        <NavUser user={data.user} onSignOut={onSignOut} signOutLabel={signOutLabel} />
       </SidebarFooter>
     </Sidebar>
   );

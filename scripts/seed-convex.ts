@@ -42,23 +42,27 @@ loadEnvFile(join(repoRoot, 'packages', 'convex', '.env.local'));
 
 const convexUrl = process.env.NEXT_PUBLIC_CONVEX_URL ?? process.env.CONVEX_URL;
 if (!convexUrl) {
-  console.error(
-    'Missing NEXT_PUBLIC_CONVEX_URL (or CONVEX_URL). Set it in .env or .env.local.'
-  );
+  console.error('Missing NEXT_PUBLIC_CONVEX_URL (or CONVEX_URL). Set it in .env or .env.local.');
   process.exit(1);
 }
 
 if (!process.env.SEED_ADMIN_EMAIL || !process.env.SEED_ADMIN_PASSWORD) {
-  console.warn(
-    'SEED_ADMIN_EMAIL or SEED_ADMIN_PASSWORD not set — admin seed will be skipped.'
-  );
+  console.warn('SEED_ADMIN_EMAIL or SEED_ADMIN_PASSWORD not set — admin seed will be skipped.');
 }
 
 const force = process.argv.includes('--force');
+const resetPassword = process.argv.includes('--reset-password');
 
 const client = new ConvexHttpClient(convexUrl);
 
 try {
+  if (resetPassword) {
+    const result = await client.action(api.seed.resetAdminPassword, {});
+    console.log('Password reset:');
+    console.log(JSON.stringify(result, null, 2));
+    process.exit(0);
+  }
+
   const result = await client.action(api.seed.run, { force });
   console.log('Seed complete:');
   console.log(JSON.stringify(result, null, 2));
