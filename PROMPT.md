@@ -19,7 +19,7 @@ Out of scope for v1: payment gateway integration, multi-vendor/marketplace, live
 - Init: `bunx --bun shadcn@latest init --preset b2BVC6P2m --base base --template next --monorepo --rtl --pointer`
 - Admin template: `dashboard-01` via `bunx shadcn@latest add dashboard-01`
 - Backend: Convex with embedded-variant pattern (NO normalized variant tables)
-- Auth: Convex Auth (`@convex-dev/auth`) with `customer` and `admin` roles, server-guarded `/admin/*` routes
+- Auth: Convex + Better Auth (`@convex-dev/better-auth` + `better-auth`) with `customer`, `admin`, and `super-admin` roles, server-guarded `/admin/*` routes
 - Monitoring: Sentry (`@sentry/nextjs`) on both client and server
 - Icons: Lucide React only
 - Fonts: Geist Sans (UI), Geist Mono (technical/code)

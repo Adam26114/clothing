@@ -17,6 +17,7 @@ import {
 } from '@tanstack/react-table';
 
 export type { ColumnDef, Row, Table } from '@tanstack/react-table';
+
 import {
   ArrowDownIcon,
   ArrowUpIcon,
@@ -26,9 +27,33 @@ import {
   ChevronRightIcon,
   Columns3Icon,
   EllipsisVerticalIcon,
+  GripVerticalIcon,
   SearchIcon,
   XIcon,
 } from 'lucide-react';
+
+import {
+  DndContext,
+  KeyboardSensor,
+  MouseSensor,
+  TouchSensor,
+  closestCenter,
+  useSensor,
+  useSensors,
+  type DragEndEvent,
+  type DraggableAttributes,
+  type DraggableSyntheticListeners,
+  type UniqueIdentifier,
+} from '@dnd-kit/core';
+import { restrictToVerticalAxis } from '@dnd-kit/modifiers';
+import {
+  SortableContext,
+  arrayMove,
+  sortableKeyboardCoordinates,
+  useSortable,
+  verticalListSortingStrategy,
+} from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
 
 import { Badge } from '@workspace/ui/components/badge';
 import { Button } from '@workspace/ui/components/button';
@@ -37,6 +62,7 @@ import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
   DropdownMenuContent,
+  DropdownMenuGroup,
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
@@ -58,13 +84,32 @@ import {
   TableHeader,
   TableRow,
 } from '@workspace/ui/components/table';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@workspace/ui/components/tabs';
 
 import { DataTableSkeleton } from '@workspace/ui/components/admin/data-table-skeleton';
 import { EmptyState } from '@workspace/ui/components/empty-state';
+import { cn } from '@workspace/ui/lib/utils';
+
+import { t } from '@workspace/lib/i18n';
 
 const STORAGE_KEY_PREFIX = 'khit:datatable:cols:';
 
 const PAGE_SIZE_OPTIONS = [10, 20, 50, 100] as const;
+
+const DRAG_COLUMN_ID = '__drag_handle__';
+
+const DRAG_LABEL_KEY = 'admin.common.dragToReorder';
+
+interface SortableItemContextValue {
+  attributes: DraggableAttributes;
+  listeners: DraggableSyntheticListeners | undefined;
+}
+
+const SortableItemContext = React.createContext<SortableItemContextValue | null>(null);
+
+function useSortableItemContext(): SortableItemContextValue | null {
+  return React.useContext(SortableItemContext);
+}
 
 interface UseDataTableOptions<T> {
   data: T[];
@@ -124,9 +169,6 @@ export function useDataTable<T>({
     }
   }, [columnVisibility, storageKey]);
 
-  // TanStack Table's useReactTable returns non-memoizable functions by API contract;
-  // downstream consumers must treat `table` as opaque. This is upstream behavior,
-  // not a local anti-pattern.
   const table = useReactTable<T>({
     data,
     columns,
@@ -153,6 +195,13 @@ export function useDataTable<T>({
   return { table };
 }
 
+export interface DataTableTab {
+  value: string;
+  label: string;
+  icon?: React.ComponentType<{ className?: string }>;
+  content: React.ReactNode;
+}
+
 export interface DataTableProps<T> {
   columns: ColumnDef<T, unknown>[];
   data: T[];
@@ -160,12 +209,22 @@ export interface DataTableProps<T> {
   emptyTitle?: string;
   emptyDescription?: string;
   emptyAction?: React.ReactNode;
+  emptyState?: React.ReactNode;
   bulkActions?: (selected: T[]) => React.ReactNode;
   defaultPageSize?: number;
   tableId: string;
   globalSearchPlaceholder?: string;
   getSearchableText?: (row: T) => string;
   getRowId?: (row: T, index: number) => string;
+  toolbarTitle?: string;
+  toolbarDescription?: string;
+  toolbarActions?: React.ReactNode;
+  toolbarFilters?: React.ReactNode;
+  toolbarSummary?: React.ReactNode;
+  tabs?: DataTableTab[];
+  enableRowReorder?: boolean;
+  onReorder?: (oldIndex: number, newIndex: number, rows: T[]) => void;
+  hideToolbarHeader?: boolean;
 }
 
 export function DataTable<T>({
@@ -175,16 +234,56 @@ export function DataTable<T>({
   emptyTitle,
   emptyDescription,
   emptyAction,
+  emptyState,
   bulkActions,
   defaultPageSize = 20,
   tableId,
   globalSearchPlaceholder,
   getSearchableText,
   getRowId,
+  toolbarTitle,
+  toolbarDescription,
+  toolbarActions,
+  toolbarFilters,
+  toolbarSummary,
+  tabs,
+  enableRowReorder = false,
+  onReorder,
+  hideToolbarHeader = false,
 }: DataTableProps<T>): React.JSX.Element {
+  const [tableData, setTableData] = React.useState<T[]>(data);
+  const prevDataRef = React.useRef<T[]>(data);
+
+  React.useEffect(() => {
+    if (prevDataRef.current !== data) {
+      prevDataRef.current = data;
+      setTableData(data);
+    }
+  }, [data]);
+
+  const idOf = React.useCallback(
+    (item: T, index: number): string => (getRowId ? getRowId(item, index) : String(index)),
+    [getRowId]
+  );
+
+  const effectiveColumns = React.useMemo<ColumnDef<T, unknown>[]>(() => {
+    if (!enableRowReorder) {
+      return columns;
+    }
+    const dragColumn: ColumnDef<T, unknown> = {
+      id: DRAG_COLUMN_ID,
+      header: () => <span className="sr-only">{t(DRAG_LABEL_KEY)}</span>,
+      cell: ({ row }) => <DragHandle id={row.id} />,
+      size: 36,
+      enableSorting: false,
+      enableHiding: false,
+    };
+    return [dragColumn, ...columns];
+  }, [columns, enableRowReorder]);
+
   const { table } = useDataTable<T>({
-    data,
-    columns,
+    data: tableData,
+    columns: effectiveColumns,
     defaultPageSize,
     tableId,
     getRowId,
@@ -200,10 +299,10 @@ export function DataTable<T>({
 
   const filteredData = React.useMemo(() => {
     if (!debouncedSearch) {
-      return data;
+      return tableData;
     }
     const needle = debouncedSearch.toLowerCase();
-    return data.filter((row) => {
+    return tableData.filter((row) => {
       if (getSearchableText) {
         return getSearchableText(row).toLowerCase().includes(needle);
       }
@@ -213,26 +312,118 @@ export function DataTable<T>({
         return false;
       }
     });
-  }, [data, debouncedSearch, getSearchableText]);
+  }, [tableData, debouncedSearch, getSearchableText]);
 
-  const selectedRows = table
-    .getFilteredSelectedRowModel()
-    .rows.map((row: Row<T>) => row.original);
-  const hasSelection = selectedRows.length > 0;
-  const activeColumnFilters = table.getState().columnFilters;
+  const idIndexMap = React.useMemo(() => {
+    const map = new Map<string, number>();
+    tableData.forEach((item, index) => {
+      map.set(idOf(item, index), index);
+    });
+    return map;
+  }, [tableData, idOf]);
 
-  if (isLoading) {
+  const handleDragEnd = React.useCallback(
+    (event: DragEndEvent) => {
+      const { active, over } = event;
+      if (!over || active.id === over.id) {
+        return;
+      }
+      const oldIndex = idIndexMap.get(String(active.id));
+      const newIndex = idIndexMap.get(String(over.id));
+      if (oldIndex === undefined || newIndex === undefined) {
+        return;
+      }
+      // Compute the new order from the closure's `tableData` and call
+      // `onReorder` *outside* the `setTableData` updater. React invokes the
+      // updater during reconciliation; calling a parent setState (via
+      // `onReorder` → `useStoredRowOrder.reorder` → `setSavedIds`) from
+      // inside the updater triggers "Cannot update a component
+      // (`ProductsTableClient`) while rendering a different component
+      // (`DataTable`)".
+      const next = arrayMove(tableData, oldIndex, newIndex);
+      onReorder?.(oldIndex, newIndex, next);
+      setTableData(next);
+    },
+    [idIndexMap, onReorder, tableData]
+  );
+
+  const sortableItems = React.useMemo<UniqueIdentifier[]>(() => {
+    return table.getRowModel().rows.map((row) => row.id);
+  }, [table]);
+
+  const sensors = useSensors(
+    useSensor(MouseSensor, { activationConstraint: { distance: 5 } }),
+    useSensor(TouchSensor, { activationConstraint: { delay: 150, tolerance: 5 } }),
+    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
+  );
+
+  if (tabs && tabs.length > 0) {
+    const firstTab = tabs[0];
+    if (!firstTab) {
+      return <></>;
+    }
     return (
-      <DataTableSkeleton
-        columnCount={columns.length}
-        rowCount={defaultPageSize}
-      />
+      <div className="flex flex-col gap-4">
+        {!hideToolbarHeader && toolbarTitle ? (
+          <DataTableHeader
+            title={toolbarTitle}
+            description={toolbarDescription}
+            actions={toolbarActions}
+          />
+        ) : null}
+        {globalSearchPlaceholder || toolbarFilters ? (
+          <DataTableToolbar>
+            {globalSearchPlaceholder ? (
+              <SearchInput
+                value={globalSearch}
+                onChange={setGlobalSearch}
+                placeholder={globalSearchPlaceholder}
+              />
+            ) : null}
+            {toolbarFilters}
+            <ColumnVisibilityMenu table={table} />
+          </DataTableToolbar>
+        ) : null}
+        {toolbarSummary ? (
+          <div className="text-muted-foreground text-sm tabular-nums">{toolbarSummary}</div>
+        ) : null}
+        <Tabs defaultValue={firstTab.value} className="gap-3">
+          <TabsList>
+            {tabs.map((tab) => (
+              <TabsTrigger key={tab.value} value={tab.value} className="cursor-pointer">
+                {tab.icon ? <tab.icon className="size-4" /> : null}
+                {tab.label}
+              </TabsTrigger>
+            ))}
+          </TabsList>
+          {tabs.map((tab) => (
+            <TabsContent key={tab.value} value={tab.value} className="flex flex-col gap-4">
+              {tab.content}
+            </TabsContent>
+          ))}
+        </Tabs>
+      </div>
     );
   }
+
+  if (isLoading) {
+    return <DataTableSkeleton columnCount={effectiveColumns.length} rowCount={defaultPageSize} />;
+  }
+
+  const selectedRows = table.getFilteredSelectedRowModel().rows.map((row: Row<T>) => row.original);
+  const hasSelection = selectedRows.length > 0;
+  const activeColumnFilters = table.getState().columnFilters;
 
   if (filteredData.length === 0) {
     return (
       <div className="flex flex-col gap-4">
+        {!hideToolbarHeader && toolbarTitle ? (
+          <DataTableHeader
+            title={toolbarTitle}
+            description={toolbarDescription}
+            actions={toolbarActions}
+          />
+        ) : null}
         <DataTableToolbar>
           {globalSearchPlaceholder ? (
             <SearchInput
@@ -241,13 +432,19 @@ export function DataTable<T>({
               placeholder={globalSearchPlaceholder}
             />
           ) : null}
+          {toolbarFilters}
           <ColumnVisibilityMenu table={table} />
         </DataTableToolbar>
-        <EmptyState
-          title={emptyTitle ?? 'No results'}
-          description={emptyDescription}
-          action={emptyAction}
-        />
+        {toolbarSummary ? (
+          <div className="text-muted-foreground text-sm tabular-nums">{toolbarSummary}</div>
+        ) : null}
+        {emptyState ?? (
+          <EmptyState
+            title={emptyTitle ?? 'No results'}
+            description={emptyDescription}
+            action={emptyAction}
+          />
+        )}
         {activeColumnFilters.length > 0 ? (
           <div className="flex justify-center">
             <Button
@@ -268,6 +465,14 @@ export function DataTable<T>({
 
   return (
     <div className="flex flex-col gap-4">
+      {!hideToolbarHeader && toolbarTitle ? (
+        <DataTableHeader
+          title={toolbarTitle}
+          description={toolbarDescription}
+          actions={toolbarActions}
+        />
+      ) : null}
+
       <DataTableToolbar>
         {globalSearchPlaceholder ? (
           <SearchInput
@@ -276,6 +481,7 @@ export function DataTable<T>({
             placeholder={globalSearchPlaceholder}
           />
         ) : null}
+        {toolbarFilters}
         {hasSelection && bulkActions ? (
           <div className="flex flex-wrap items-center gap-2">
             <span className="text-muted-foreground text-sm tabular-nums">
@@ -286,6 +492,10 @@ export function DataTable<T>({
         ) : null}
         <ColumnVisibilityMenu table={table} />
       </DataTableToolbar>
+
+      {toolbarSummary ? (
+        <div className="text-muted-foreground text-sm tabular-nums">{toolbarSummary}</div>
+      ) : null}
 
       {activeColumnFilters.length > 0 ? (
         <div className="flex flex-wrap items-center gap-2">
@@ -324,40 +534,150 @@ export function DataTable<T>({
       ) : null}
 
       <div className="border-border overflow-hidden rounded-lg border">
-        <UITable>
-          <TableHeader className="bg-muted sticky top-0 z-10">
-            {table.getHeaderGroups().map((headerGroup) => (
-              <TableRow key={headerGroup.id}>
-                {headerGroup.headers.map((header) => {
-                  return (
-                    <TableHead key={header.id} colSpan={header.colSpan}>
-                      {header.isPlaceholder
-                        ? null
-                        : flexRender(header.column.columnDef.header, header.getContext())}
-                    </TableHead>
-                  );
-                })}
-              </TableRow>
-            ))}
-          </TableHeader>
-          <TableBody>
-            {table.getRowModel().rows.map((row) => (
-              <TableRow
-                key={row.id}
-                data-state={row.getIsSelected() ? 'selected' : undefined}
-              >
-                {row.getVisibleCells().map((cell) => (
-                  <TableCell key={cell.id}>
-                    {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                  </TableCell>
-                ))}
-              </TableRow>
-            ))}
-          </TableBody>
-        </UITable>
+        {enableRowReorder ? (
+          <DndContext
+            sensors={sensors}
+            collisionDetection={closestCenter}
+            modifiers={[restrictToVerticalAxis]}
+            onDragEnd={handleDragEnd}
+          >
+            <SortableContext items={sortableItems} strategy={verticalListSortingStrategy}>
+              <UITable>
+                <TableHeader className="bg-muted sticky top-0 z-10">
+                  {table.getHeaderGroups().map((headerGroup) => (
+                    <TableRow key={headerGroup.id}>
+                      {headerGroup.headers.map((header) => {
+                        return (
+                          <TableHead key={header.id} colSpan={header.colSpan}>
+                            {header.isPlaceholder
+                              ? null
+                              : flexRender(header.column.columnDef.header, header.getContext())}
+                          </TableHead>
+                        );
+                      })}
+                    </TableRow>
+                  ))}
+                </TableHeader>
+                <TableBody>
+                  {table.getRowModel().rows.map((row) => (
+                    <DraggableRow key={row.id} row={row}>
+                      {row.getVisibleCells().map((cell) => (
+                        <TableCell key={cell.id}>
+                          {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                        </TableCell>
+                      ))}
+                    </DraggableRow>
+                  ))}
+                </TableBody>
+              </UITable>
+            </SortableContext>
+          </DndContext>
+        ) : (
+          <UITable>
+            <TableHeader className="bg-muted sticky top-0 z-10">
+              {table.getHeaderGroups().map((headerGroup) => (
+                <TableRow key={headerGroup.id}>
+                  {headerGroup.headers.map((header) => {
+                    return (
+                      <TableHead key={header.id} colSpan={header.colSpan}>
+                        {header.isPlaceholder
+                          ? null
+                          : flexRender(header.column.columnDef.header, header.getContext())}
+                      </TableHead>
+                    );
+                  })}
+                </TableRow>
+              ))}
+            </TableHeader>
+            <TableBody>
+              {table.getRowModel().rows.map((row) => (
+                <TableRow key={row.id} data-state={row.getIsSelected() ? 'selected' : undefined}>
+                  {row.getVisibleCells().map((cell) => (
+                    <TableCell key={cell.id}>
+                      {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                    </TableCell>
+                  ))}
+                </TableRow>
+              ))}
+            </TableBody>
+          </UITable>
+        )}
       </div>
 
-      <DataTablePagination table={table} />
+      <DataTablePagination table={table} hideCount={toolbarSummary !== undefined} />
+    </div>
+  );
+}
+
+export function DragHandle<T extends string | number>({ id }: { id: T }): React.JSX.Element {
+  const ctx = useSortableItemContext();
+  const ariaLabel = t(DRAG_LABEL_KEY);
+  return (
+    <Button
+      type="button"
+      variant="ghost"
+      size="icon-sm"
+      data-drag-id={String(id)}
+      aria-label={ariaLabel}
+      className="text-muted-foreground hover:bg-muted size-7 cursor-grab active:cursor-grabbing"
+      {...(ctx?.attributes ?? {})}
+      {...(ctx?.listeners ?? {})}
+    >
+      <GripVerticalIcon className="size-4" aria-hidden />
+      <span className="sr-only">{ariaLabel}</span>
+    </Button>
+  );
+}
+
+export function DraggableRow<T>({
+  row,
+  children,
+}: {
+  row: Row<T>;
+  children: React.ReactNode;
+}): React.JSX.Element {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
+    id: row.id,
+  });
+  const style: React.CSSProperties = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+  };
+  return (
+    <SortableItemContext.Provider value={{ attributes, listeners }}>
+      <tr
+        ref={setNodeRef as unknown as React.Ref<HTMLTableRowElement>}
+        data-slot="table-row"
+        style={style}
+        data-dragging={isDragging || undefined}
+        data-state={row.getIsSelected() ? 'selected' : undefined}
+        className={cn(
+          'hover:bg-muted/50 has-aria-expanded:bg-muted/50 data-[state=selected]:bg-muted border-b transition-colors',
+          isDragging && 'z-10 opacity-80'
+        )}
+      >
+        {children}
+      </tr>
+    </SortableItemContext.Provider>
+  );
+}
+
+function DataTableHeader({
+  title,
+  description,
+  actions,
+}: {
+  title: string;
+  description?: string;
+  actions?: React.ReactNode;
+}) {
+  return (
+    <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+      <div className="flex flex-col gap-1">
+        <h2 className="text-lg font-semibold tracking-tight">{title}</h2>
+        {description ? <p className="text-muted-foreground text-sm">{description}</p> : null}
+      </div>
+      {actions ? <div className="flex flex-wrap items-center gap-2">{actions}</div> : null}
     </div>
   );
 }
@@ -413,12 +733,7 @@ function ColumnVisibilityMenu<T>({ table }: { table: Table<T> }) {
     <DropdownMenu>
       <DropdownMenuTrigger
         render={
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            className="ms-auto cursor-pointer"
-          />
+          <Button type="button" variant="outline" size="sm" className="ms-auto cursor-pointer" />
         }
       >
         <Columns3Icon aria-hidden />
@@ -446,7 +761,7 @@ function ColumnVisibilityMenu<T>({ table }: { table: Table<T> }) {
   );
 }
 
-function DataTablePagination<T>({ table }: { table: Table<T> }) {
+function DataTablePagination<T>({ table, hideCount }: { table: Table<T>; hideCount?: boolean }) {
   const pageCount = table.getPageCount();
   const pageIndex = table.getState().pagination.pageIndex;
   const pageSize = table.getState().pagination.pageSize;
@@ -457,12 +772,14 @@ function DataTablePagination<T>({ table }: { table: Table<T> }) {
 
   return (
     <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-      <div className="text-muted-foreground text-sm tabular-nums">
-        {selectedCount > 0
-          ? `${selectedCount} of ${totalRows} row(s) selected.`
-          : `${totalRows} row(s).`}
-      </div>
-      <div className="flex flex-wrap items-center gap-4">
+      {hideCount ? null : (
+        <div className="text-muted-foreground text-sm tabular-nums">
+          {selectedCount > 0
+            ? `${selectedCount} of ${totalRows} row(s) selected.`
+            : `${totalRows} row(s).`}
+        </div>
+      )}
+      <div className={cn('flex flex-wrap items-center gap-4', hideCount && 'sm:ms-auto')}>
         <div className="hidden items-center gap-2 sm:flex">
           <Label htmlFor="rows-per-page" className="text-sm font-medium">
             Rows per page

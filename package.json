@@ -4,14 +4,17 @@
   "private": true,
   "scripts": {
     "build": "turbo build",
+    "predev": "bash scripts/kill-stale-dev.sh",
     "dev": "turbo dev",
+    "convex:dev": "bun --filter @workspace/convex dev",
     "lint": "turbo lint",
     "format": "turbo format",
     "format:check": "turbo format:check",
     "typecheck": "turbo typecheck",
     "test": "bun test",
     "test:convex": "bun --filter @workspace/convex test",
-    "seed": "bun run scripts/seed-convex.ts"
+    "seed": "bun run scripts/seed-convex.ts",
+    "seed:reset-password": "bun run scripts/seed-convex.ts --reset-password"
   },
   "devDependencies": {
     "@workspace/eslint-config": "workspace:*",
@@ -32,8 +35,8 @@
     "packages/config/*"
   ],
   "dependencies": {
-    "@auth/core": "^0.41.1",
-    "@convex-dev/auth": "^0.0.94",
+    "@convex-dev/better-auth": "^0.12.5",
+    "better-auth": "^1.6.22",
     "convex": "^1.41.0",
     "embla-carousel-react": "^8.6.0"
   }

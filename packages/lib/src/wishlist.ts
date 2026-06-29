@@ -4,7 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore
 import { useMutation, useQuery } from 'convex/react';
 import { api } from '@workspace/convex/_generated/api';
 import type { Id } from '@workspace/convex/_generated/dataModel';
-import { useConvexAuth } from '@workspace/lib/auth/client';
+import { useAuth } from '@workspace/lib/auth/use-auth';
 import { GUEST_WISHLIST_STORAGE_KEY, GUEST_WISHLIST_VERSION } from './constants';
 
 export interface GuestWishlistItem {
@@ -195,7 +195,7 @@ export function useWishlist(): {
   clear: () => Promise<unknown> | void;
   isInWishlist: (args: WishlistMutatorArgs) => boolean;
 } {
-  const { isAuthenticated, isLoading: authLoading } = useConvexAuth();
+  const { isAuthenticated, isLoading: authLoading } = useAuth();
   const guest = useGuestWishlist();
   const authedItems = useQuery(api.wishlistItems.list, isAuthenticated ? {} : 'skip');
   const addAuthed = useMutation(api.wishlistItems.add);
@@ -285,7 +285,7 @@ export interface UseWishlistMergeOnAuthOptions {
 }
 
 export function useWishlistMergeOnAuth(options?: UseWishlistMergeOnAuthOptions): void {
-  const { isAuthenticated, isLoading } = useConvexAuth();
+  const { isAuthenticated, isLoading } = useAuth();
   const addAuthed = useMutation(api.wishlistItems.add);
   const inFlight = useRef(false);
 

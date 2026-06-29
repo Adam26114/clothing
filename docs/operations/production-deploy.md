@@ -110,8 +110,10 @@ This file is on the operator's machine, not in Vercel. The `CONVEX_DEPLOY_TYPE=p
 CONVEX_DEPLOY_TYPE=production
 NEXT_PUBLIC_CONVEX_URL=https://prod.khit.convex.cloud
 CONVEX_DEPLOYMENT=prod:khit
-CONVEX_AUTH_PRIVATE_KEY=<from Convex dashboard, prod>
-CONVEX_AUTH_ADAPTER_SECRET=<from Convex dashboard, prod>
+BETTER_AUTH_SECRET=<from 1Password, prod — generated via `openssl rand -base64 32`>
+SITE_URL=https://shop.khit.example
+RESEND_API_KEY=<from 1Password, prod>
+RESEND_FROM_EMAIL=Khit <hello@khit.example>
 
 # Initial admin (rotated after first sign-in)
 SEED_ADMIN_EMAIL=ops@khit.example

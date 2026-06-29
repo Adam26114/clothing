@@ -51,7 +51,7 @@ Any deviation requires a formal change request and re-review. See `AGENTS.md` §
 | Data Tables | shadcn DataTable | One shared component in `packages/ui` |
 | Backend | Convex | Real-time, serverless functions, reactive queries |
 | Schema Pattern | **Embedded variants** | Products contain `colorVariants[]` as nested arrays — NO normalized variant tables |
-| Authentication | Convex Auth (`@convex-dev/auth`) | Customer, admin, super-admin roles |
+| Authentication | Convex + Better Auth (`@convex-dev/better-auth` + `better-auth`) | Customer, admin, super-admin roles |
 | Error Monitoring | Sentry (`@sentry/nextjs`) | Frontend + backend, source maps on deploy |
 | Icons | Lucide React | `lucide-react` package, single icon set everywhere |
 | Typography (both apps) | Geist Sans + Geist Mono | Loaded via `next/font` from Mira-style preset |

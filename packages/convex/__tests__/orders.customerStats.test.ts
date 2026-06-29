@@ -13,11 +13,14 @@ for (const relativePath of modulePaths) {
   modules[relativePath] = () => import(absolutePath);
 }
 
-const t = convexTest(schema, modules);
+function freshT() {
+  return convexTest(schema, modules);
+}
 
-async function seedAdmin(): Promise<Id<'users'>> {
+async function seedAdmin(t: ReturnType<typeof convexTest>, baId: string): Promise<Id<'users'>> {
   return await t.run(async (ctx) => {
     return await ctx.db.insert('users', {
+      betterAuthUserId: baId,
       name: 'Test Admin',
       email: 'admin@convex-test.local',
       role: 'admin',
@@ -27,9 +30,10 @@ async function seedAdmin(): Promise<Id<'users'>> {
   });
 }
 
-async function seedCustomer(): Promise<Id<'users'>> {
+async function seedCustomer(t: ReturnType<typeof convexTest>, baId: string): Promise<Id<'users'>> {
   return await t.run(async (ctx) => {
     return await ctx.db.insert('users', {
+      betterAuthUserId: baId,
       name: 'Test Customer',
       email: 'customer@convex-test.local',
       role: 'customer',
@@ -40,6 +44,7 @@ async function seedCustomer(): Promise<Id<'users'>> {
 }
 
 async function seedOrder(
+  t: ReturnType<typeof convexTest>,
   customerId: Id<'users'>,
   overrides: Partial<{
     status: 'pending' | 'confirmed' | 'processing' | 'shipped' | 'delivered' | 'cancelled';
@@ -74,40 +79,55 @@ async function seedOrder(
   });
 }
 
-function asUser(userId: Id<'users'>) {
-  return t.withIdentity({ subject: `${userId}|test-session` });
+function asUser(
+  t: ReturnType<typeof convexTest>,
+  userId: Id<'users'>,
+  role: 'admin' | 'customer' = 'admin'
+) {
+  return t.withIdentity({ subject: role === 'admin' ? 'test-ba-admin' : 'test-ba-customer' });
 }
 
 describe('orders.customerStats', () => {
   test('returns zero counts for a customer with no orders', async () => {
-    const adminId = await seedAdmin();
-    const customerId = await seedCustomer();
+    const t = freshT();
+    const adminBaId = `test-ba-admin-${Math.random().toString(36).slice(2, 10)}`;
+    const customerBaId = `test-ba-customer-${Math.random().toString(36).slice(2, 10)}`;
+    const adminId = await seedAdmin(t, adminBaId);
+    const customerId = await seedCustomer(t, customerBaId);
 
-    const stats = await asUser(adminId).query(api.orders.customerStats, { customerId });
+    const stats = await t
+      .withIdentity({ subject: adminBaId })
+      .query(api.orders.customerStats, { customerId });
 
     expect(stats).toEqual({ totalOrders: 0, totalSpent: 0, ltvMonths: 0 });
   });
 
   test('counts non-cancelled orders and excludes cancelled ones from totalSpent', async () => {
-    const adminId = await seedAdmin();
-    const customerId = await seedCustomer();
+    const t = freshT();
+    const adminBaId = `test-ba-admin-${Math.random().toString(36).slice(2, 10)}`;
+    const customerBaId = `test-ba-customer-${Math.random().toString(36).slice(2, 10)}`;
+    const adminId = await seedAdmin(t, adminBaId);
+    const customerId = await seedCustomer(t, customerBaId);
 
-    await seedOrder(customerId, { status: 'delivered', total: 40_000 });
-    await seedOrder(customerId, { status: 'shipped', total: 60_000 });
-    await seedOrder(customerId, { status: 'cancelled', total: 99_999 });
+    await seedOrder(t, customerId, { status: 'delivered', total: 40_000 });
+    await seedOrder(t, customerId, { status: 'shipped', total: 60_000 });
+    await seedOrder(t, customerId, { status: 'cancelled', total: 99_999 });
 
-    const stats = await asUser(adminId).query(api.orders.customerStats, { customerId });
+    const stats = await t
+      .withIdentity({ subject: adminBaId })
+      .query(api.orders.customerStats, { customerId });
 
     expect(stats.totalOrders).toBe(3);
     expect(stats.totalSpent).toBe(100_000);
   });
 
   test('rejects callers without an admin role', async () => {
-    const customerId = await seedCustomer();
+    const t = freshT();
+    const customerBaId = `test-ba-customer-${Math.random().toString(36).slice(2, 10)}`;
+    const customerId = await seedCustomer(t, customerBaId);
 
-    const asSelf = asUser(customerId);
-    await expect(asSelf.query(api.orders.customerStats, { customerId })).rejects.toThrow(
-      /admin role required/
-    );
+    await expect(
+      t.withIdentity({ subject: customerBaId }).query(api.orders.customerStats, { customerId })
+    ).rejects.toThrow(/admin role required/);
   });
 });

@@ -9,14 +9,18 @@
  */
 
 import type * as auth from "../auth.js";
+import type * as authHelpers from "../authHelpers.js";
+import type * as authResend from "../authResend.js";
 import type * as cart from "../cart.js";
 import type * as categories from "../categories.js";
+import type * as http from "../http.js";
 import type * as inventory from "../inventory.js";
 import type * as orders from "../orders.js";
 import type * as products from "../products.js";
 import type * as seed from "../seed.js";
 import type * as seedInternal from "../seedInternal.js";
 import type * as sentry from "../sentry.js";
+import type * as sentry_init from "../sentry_init.js";
 import type * as stockAudit from "../stockAudit.js";
 import type * as storage from "../storage.js";
 import type * as storeSettings from "../storeSettings.js";
@@ -31,14 +35,18 @@ import type {
 
 declare const fullApi: ApiFromModules<{
   auth: typeof auth;
+  authHelpers: typeof authHelpers;
+  authResend: typeof authResend;
   cart: typeof cart;
   categories: typeof categories;
+  http: typeof http;
   inventory: typeof inventory;
   orders: typeof orders;
   products: typeof products;
   seed: typeof seed;
   seedInternal: typeof seedInternal;
   sentry: typeof sentry;
+  sentry_init: typeof sentry_init;
   stockAudit: typeof stockAudit;
   storage: typeof storage;
   storeSettings: typeof storeSettings;
@@ -72,4 +80,6 @@ export declare const internal: FilterApi<
   FunctionReference<any, "internal">
 >;
 
-export declare const components: {};
+export declare const components: {
+  betterAuth: import("@convex-dev/better-auth/_generated/component.js").ComponentApi<"betterAuth">;
+};

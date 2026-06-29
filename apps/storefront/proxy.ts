@@ -1,34 +1,28 @@
-import { NextResponse } from 'next/server';
-import { convexAuthNextjsMiddleware } from '@convex-dev/auth/nextjs/server';
+import { NextResponse, type NextRequest } from 'next/server';
+import { getToken } from '@/lib/auth-server';
 
 function safeNextPath(value: string | null | undefined): string | null {
-  if (!value) {
-    return null;
-  }
-  if (!value.startsWith('/') || value.startsWith('//')) {
-    return null;
-  }
-  if (value.startsWith('/auth/')) {
-    return null;
-  }
+  if (!value) return null;
+  if (!value.startsWith('/') || value.startsWith('//')) return null;
+  if (value.startsWith('/auth/')) return null;
   return value;
 }
 
-export default convexAuthNextjsMiddleware(async (request, { convexAuth }) => {
-  const isAuthenticated = await convexAuth.isAuthenticated();
-
-  if (isAuthenticated) {
-    return;
-  }
-
-  const next = safeNextPath(request.nextUrl.searchParams.get('next'));
+function redirectToLogin(request: NextRequest): NextResponse {
   const loginUrl = new URL('/auth/login', request.url);
-  if (next) {
-    loginUrl.searchParams.set('next', next);
-  }
-  return NextResponse.redirect(loginUrl);
-});
+  const next = safeNextPath(request.nextUrl.searchParams.get('next'));
+  if (next) loginUrl.searchParams.set('next', next);
+  const res = NextResponse.redirect(loginUrl);
+  // ponytail: clear the legacy Convex Auth cookie so signed-out users with
+  // stale cookies don't see flicker on the first request after deploy.
+  res.cookies.delete('__convexAuth');
+  return res;
+}
 
-export const config = {
-  matcher: ['/account/:path*'],
-};
+export async function proxy(request: NextRequest) {
+  const token = await getToken();
+  if (token) return NextResponse.next();
+  return redirectToLogin(request);
+}
+
+export const config = { matcher: ['/account/:path*'] };

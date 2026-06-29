@@ -1,33 +1,17 @@
 import { ConvexError, v } from 'convex/values';
-import { getAuthUserId } from '@convex-dev/auth/server';
-import type { Auth } from 'convex/server';
 import { internal } from './_generated/api';
 import { mutation, query } from './_generated/server';
 import type { Doc, Id } from './_generated/dataModel';
 import { DEFAULT_PAGE_SIZE, SHIPPING_FEE, STORE_PICKUP_FEE } from '@workspace/lib/constants';
 import { isAdminRole } from '@workspace/lib/auth';
-import { Sentry } from './sentry-init';
+import { Sentry } from './sentry_init';
+import { getInternalUserId, requireAdmin, requireUserId } from './authHelpers';
 
 interface OrderItemInput {
   productId: Id<'products'>;
   colorVariantId: string;
   size: string;
   quantity: number;
-}
-
-async function requireAdmin(ctx: {
-  auth: Auth;
-  db: { get: (id: Id<'users'>) => Promise<Doc<'users'> | null> };
-}): Promise<Doc<'users'>> {
-  const userId = await getAuthUserId(ctx);
-  if (!userId) {
-    throw new ConvexError('Not authenticated');
-  }
-  const user = await ctx.db.get(userId);
-  if (!user || !isAdminRole(user.role)) {
-    throw new ConvexError('Forbidden: admin role required');
-  }
-  return user;
 }
 
 async function nextOrderNumber(ctx: {
@@ -182,10 +166,7 @@ export const list = query({
     pageSize: v.optional(v.number()),
   },
   handler: async (ctx, args) => {
-    const userId = await getAuthUserId(ctx);
-    if (!userId) {
-      throw new ConvexError('Not authenticated');
-    }
+    const userId = await requireUserId(ctx);
     const user = await ctx.db.get(userId);
     if (!user) {
       throw new ConvexError('User not found');
@@ -228,10 +209,7 @@ export const list = query({
 export const getById = query({
   args: { id: v.id('orders') },
   handler: async (ctx, args) => {
-    const userId = await getAuthUserId(ctx);
-    if (!userId) {
-      throw new ConvexError('Not authenticated');
-    }
+    const userId = await requireUserId(ctx);
     const order = await ctx.db.get(args.id);
     if (!order) {
       return null;
@@ -268,7 +246,7 @@ export const create = mutation({
     if (args.items.length === 0) {
       throw new ConvexError('Order must contain at least one item');
     }
-    const userId = await getAuthUserId(ctx);
+    const userId = await getInternalUserId(ctx);
 
     const productIds = [...new Set(args.items.map((i) => i.productId))];
     const productResults = await Promise.all(productIds.map((id) => ctx.db.get(id)));
@@ -459,10 +437,7 @@ export const bulkUpdateStatus = mutation({
 export const cancel = mutation({
   args: { id: v.id('orders') },
   handler: async (ctx, args) => {
-    const userId = await getAuthUserId(ctx);
-    if (!userId) {
-      throw new ConvexError('Not authenticated');
-    }
+    const userId = await requireUserId(ctx);
     const order = await ctx.db.get(args.id);
     if (!order) {
       throw new ConvexError('Order not found');
@@ -527,7 +502,7 @@ export const cancel = mutation({
 export const restore = mutation({
   args: { id: v.id('orders') },
   handler: async (ctx, args) => {
-    await requireAdmin(ctx);
+    const admin = await requireAdmin(ctx);
     const order = await ctx.db.get(args.id);
     if (!order) {
       throw new ConvexError('Order not found');
@@ -537,7 +512,6 @@ export const restore = mutation({
     }
 
     const now = Date.now();
-    const adminId = await requireAdmin(ctx);
     const auditEntries: Array<{
       productId: Id<'products'>;
       variantId: string;
@@ -573,7 +547,7 @@ export const restore = mutation({
         size: item.size,
         delta: -item.quantity,
         reason: 'order_restored',
-        actorId: adminId._id,
+        actorId: admin._id,
         orderId: args.id,
       });
     }

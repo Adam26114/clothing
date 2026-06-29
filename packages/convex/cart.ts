@@ -1,26 +1,12 @@
 import { ConvexError, v } from 'convex/values';
-import { getAuthUserId } from '@convex-dev/auth/server';
-import type { Auth } from 'convex/server';
 import { mutation, query } from './_generated/server';
 import type { Doc, Id } from './_generated/dataModel';
-
-type AuthedCtx = { auth: Auth };
-
-async function requireUserId(ctx: AuthedCtx): Promise<Id<'users'>> {
-  const userId = await getAuthUserId(ctx);
-  if (!userId) {
-    throw new ConvexError('Not authenticated');
-  }
-  return userId;
-}
+import { requireUserId } from './authHelpers';
 
 export const list = query({
   args: {},
   handler: async (ctx) => {
-    const userId = await getAuthUserId(ctx);
-    if (!userId) {
-      return [];
-    }
+    const userId = await requireUserId(ctx);
     const items = await ctx.db
       .query('cartItems')
       .withIndex('by_user', (q) => q.eq('userId', userId))

@@ -28,6 +28,12 @@ jobs:
         run: bun run typecheck
 
       - name: Build
+        env:
+          # Placeholders for build-time module import. The auth handler module
+          # asserts these at import; actual auth calls are never made during
+          # the build. Real values are injected by Vercel at deploy time.
+          NEXT_PUBLIC_CONVEX_URL: https://ci-placeholder.convex.cloud
+          NEXT_PUBLIC_CONVEX_SITE_URL: https://ci-placeholder.convex.site
         run: bun run build
 
       - name: Format check

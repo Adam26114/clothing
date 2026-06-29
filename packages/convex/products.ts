@@ -1,10 +1,8 @@
 import { ConvexError, v } from 'convex/values';
-import { getAuthUserId } from '@convex-dev/auth/server';
-import type { Auth } from 'convex/server';
 import { mutation, query } from './_generated/server';
 import type { Doc, Id } from './_generated/dataModel';
 import { DEFAULT_PAGE_SIZE, LOW_STOCK_THRESHOLD } from '@workspace/lib/constants';
-import { isAdminRole } from '@workspace/lib/auth';
+import { requireAdmin } from './authHelpers';
 
 function newVariantId(): string {
   const random = Math.random().toString(36).slice(2, 8);
@@ -39,21 +37,6 @@ const colorVariantSchema = v.object({
   stock: v.record(v.string(), v.number()),
   measurements: v.optional(v.record(v.string(), measurementSchema)),
 });
-
-async function requireAdmin(ctx: {
-  auth: Auth;
-  db: { get: (id: Id<'users'>) => Promise<Doc<'users'> | null> };
-}): Promise<Doc<'users'>> {
-  const userId = await getAuthUserId(ctx);
-  if (!userId) {
-    throw new ConvexError('Not authenticated');
-  }
-  const user = await ctx.db.get(userId);
-  if (!user || !isAdminRole(user.role)) {
-    throw new ConvexError('Forbidden: admin role required');
-  }
-  return user;
-}
 
 export interface ProductListItem {
   _id: Id<'products'>;

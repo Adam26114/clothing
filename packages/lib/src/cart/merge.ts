@@ -5,7 +5,7 @@ import { ConvexError } from 'convex/values';
 import { useMutation, useQuery } from 'convex/react';
 import { api } from '@workspace/convex/_generated/api.js';
 import type { Id } from '@workspace/convex/_generated/dataModel';
-import { useConvexAuth } from '@workspace/lib/auth/client';
+import { useAuth } from '@workspace/lib/auth/use-auth';
 import { clearGuestCart, readGuestCart, useGuestCart } from './guest';
 import type { GuestCartItem } from './guest';
 
@@ -68,7 +68,7 @@ export interface UseCartMergeOnAuthOptions {
 }
 
 export function useCartMergeOnAuth(options?: UseCartMergeOnAuthOptions): void {
-  const { isAuthenticated, isLoading } = useConvexAuth();
+  const { isAuthenticated, isLoading } = useAuth();
   const mergeGuest = useMutation(api.cart.mergeGuest);
   const inFlight = useRef(false);
 
@@ -117,7 +117,7 @@ export function useCartItems(): {
   updateQty: (args: CartMutatorArgs) => Promise<unknown> | void;
   remove: (args: CartMutatorArgs) => Promise<unknown> | void;
 } {
-  const { isAuthenticated, isLoading: authLoading } = useConvexAuth();
+  const { isAuthenticated, isLoading: authLoading } = useAuth();
   const guest = useGuestCart();
   const authedItems = useQuery(api.cart.list, isAuthenticated ? {} : 'skip');
   const addAuthed = useMutation(api.cart.add);

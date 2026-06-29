@@ -23,12 +23,12 @@ The full Convex schema lives in `packages/convex/schema.ts`. Every table is in s
 | `orders`        | `schema.ts:95`  | Snapshot items; the most important table to back up.                                                                                                                  |
 | `storeSettings` | `schema.ts:138` | Singleton; only one row.                                                                                                                                              |
 | `stockAudit`    | `schema.ts:161` | Audit log; not critical to restore.                                                                                                                                   |
-| `authTables`    | `schema.ts:24`  | Convex Auth's `authAccounts`, `authSessions`, `authVerifiers`, `authRefreshTokens`, `authOtpVerifications` — not dumped manually; rely on Convex Auth's own recovery. |
+| BA `user`, `session`, `account`, `verification`, `twoFactor`, `jwks`, `rateLimit` | BA component | Better Auth's internal tables, owned by the `@convex-dev/better-auth` component. **Not defined in `packages/convex/schema.ts`** — they live in the BA component's own schema and are not dumped manually. The parent app's `users` table carries `betterAuthUserId` as the join key to BA's `user` table; restore the parent app first, then re-issue sessions from the BA side. |
 
 ## What's NOT backed up
 
 - **`_storage` files** (product images, hero image) — these are stored in Convex's managed file storage and are not part of the table dump. Convex's managed backup tier (paid plan) covers storage with the same RPO/RTO as the database.
-- **Convex Auth internal tables** — see note above.
+- **Convex Auth internal tables** — see note above. (Legacy reference; the project now uses Better Auth. See the Better Auth row above.)
 - **Vercel build artifacts and CDN cache** — Vercel manages these; the deploy is reproducible from the git SHA pinned in the release.
 
 The RPO (recovery point objective) and RTO (recovery time objective) for the **managed Convex backup** (paid plan) are:
@@ -219,7 +219,7 @@ Schedule the test for the first Monday of each quarter; block 1 hour. Log result
 - Implement the `dump` and `restore` actions.
 - Add the `DUMP_TOKEN` env var to `.env.example` (and to the Vercel env list).
 - Wire an S3 client (or equivalent) for the weekly push.
-- Decide on the `authTables` policy (likely "do not restore; rely on Convex Auth recovery").
+- Decide on the Better Auth tables policy. The BA `user`, `session`, `account`, `verification`, `twoFactor`, `jwks`, and `rateLimit` tables live in the BA component and are not directly queryable from the parent app. Recommended policy: **do not restore; rely on Better Auth's own password-reset flow to re-issue sessions after a restore**. The parent app's `users` table (with `betterAuthUserId`) is restored; the BA `user` row is created on first sign-in if missing.
 
 ## Related
 

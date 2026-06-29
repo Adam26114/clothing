@@ -1,27 +1,10 @@
 import { ConvexError, v } from 'convex/values';
-import { getAuthUserId } from '@convex-dev/auth/server';
-import type { Auth } from 'convex/server';
 import { internal } from './_generated/api';
 import { mutation, query } from './_generated/server';
 import type { Doc, Id } from './_generated/dataModel';
 import { DEFAULT_INVENTORY_PAGE_SIZE, LOW_STOCK_THRESHOLD } from '@workspace/lib/constants';
-import { isAdminRole } from '@workspace/lib/auth';
+import { requireAdmin } from './authHelpers';
 import { setStockForVariant } from './orders';
-
-async function requireAdmin(ctx: {
-  auth: Auth;
-  db: { get: (id: Id<'users'>) => Promise<Doc<'users'> | null> };
-}): Promise<Doc<'users'>> {
-  const userId = await getAuthUserId(ctx);
-  if (!userId) {
-    throw new ConvexError('Not authenticated');
-  }
-  const user = await ctx.db.get(userId);
-  if (!user || !isAdminRole(user.role)) {
-    throw new ConvexError('Forbidden: admin role required');
-  }
-  return user;
-}
 
 export interface InventoryRow {
   _id: string;

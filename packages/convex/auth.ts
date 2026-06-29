@@ -1,42 +1,68 @@
-import { Password } from '@convex-dev/auth/providers/Password';
-import Resend from '@auth/core/providers/resend';
-import type { Value } from 'convex/values';
-import { convexAuth } from '@convex-dev/auth/server';
+/**
+ * Better Auth setup for the parent Convex app.
+ *
+ * This file follows the canonical Convex + Better Auth pattern from
+ * https://labs.convex.dev/better-auth/framework-guides/next — the BA component
+ * is registered directly from the package (no local-install / custom schema),
+ * and `createAuth` is exposed for use inside Convex functions.
+ *
+ * Env vars:
+ *   - `SITE_URL` (set on the deployment via `bunx convex env set`) — base URL
+ *     for the BA issuer / callbacks.
+ *   - `BETTER_AUTH_SECRET` (set on the deployment) — secret for signing JWTs.
+ *   - `RESEND_API_KEY` / `RESEND_FROM_EMAIL` (set on the deployment) — used
+ *     by the custom `sendVerificationEmail` / `sendResetPassword` hooks in
+ *     `authResend.ts`.
+ */
+import { createClient, type GenericCtx } from '@convex-dev/better-auth';
+import { convex } from '@convex-dev/better-auth/plugins';
+import { betterAuth } from 'better-auth';
+import type { BetterAuthOptions } from 'better-auth';
+import { components } from './_generated/api';
+import type { DataModel } from './_generated/dataModel';
+import authConfig from './auth.config';
+import { resetPasswordHtml, sendResendEmail, verifyEmailHtml } from './authResend';
 
-const RESEND_FROM = process.env.RESEND_FROM_EMAIL;
-const hasResend = !!RESEND_FROM;
+const APP_NAME = 'Khit';
+const siteUrl = process.env.SITE_URL ?? 'http://localhost:3000';
+const secret = process.env.BETTER_AUTH_SECRET ?? 'dev-secret-replace-in-production';
 
-// `hasResend` guards the dev server so it still boots when `RESEND_FROM_EMAIL`
-// (and the matching `RESEND_API_KEY`) are not set. With the guard off, sign-up
-// and sign-in still work — but `verify` and `reset` are no-ops, so the auth
-// pages should show a "Resend not configured" banner (see
-// `auth.errorNoResend`). Configure both envs to enable end-to-end email
-// verification and password reset. See README "Resend setup".
+export const authComponent = createClient<DataModel>(components.betterAuth);
 
-function buildProfile(params: Record<string, Value | undefined>) {
-  const email = String(params.email ?? '');
-  const profile = {
-    email,
-    role: 'customer' as const,
-    isActive: true as const,
-    createdAt: Date.now(),
-  };
-  if (params.name !== undefined) {
-    return { ...profile, name: String(params.name) };
-  }
-  return profile;
-}
-
-const passwordConfig = hasResend
-  ? {
-      profile: buildProfile,
-      verify: Resend({ from: RESEND_FROM! }),
-      reset: Resend({ from: RESEND_FROM! }),
-    }
-  : {
-      profile: buildProfile,
-    };
-
-export const { auth, signIn, signOut, store, isAuthenticated } = convexAuth({
-  providers: [Password(passwordConfig)],
+export const createAuthOptions = (ctx: GenericCtx<DataModel>): BetterAuthOptions => ({
+  appName: APP_NAME,
+  baseURL: siteUrl,
+  secret,
+  database: authComponent.adapter(ctx),
+  emailAndPassword: {
+    enabled: true,
+    requireEmailVerification: true,
+    minPasswordLength: 8,
+    sendResetPassword: async ({ user, url }) => {
+      await sendResendEmail({
+        to: user.email,
+        subject: 'Reset your Khit password',
+        html: resetPasswordHtml(url),
+      });
+    },
+  },
+  emailVerification: {
+    sendOnSignUp: true,
+    autoSignInAfterVerification: true,
+    sendVerificationEmail: async ({ user, url }) => {
+      await sendResendEmail({
+        to: user.email,
+        subject: 'Verify your Khit email',
+        html: verifyEmailHtml(url),
+      });
+    },
+  },
+  trustedOrigins: [
+    process.env.SITE_URL,
+    process.env.NEXT_PUBLIC_STOREFRONT_URL,
+    process.env.NEXT_PUBLIC_ADMIN_URL,
+  ].filter((u): u is string => Boolean(u)),
+  plugins: [convex({ authConfig })],
 });
+
+export const createAuth = (ctx: GenericCtx<DataModel>) => betterAuth(createAuthOptions(ctx));

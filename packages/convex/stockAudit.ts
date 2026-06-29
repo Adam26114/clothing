@@ -1,28 +1,7 @@
 import { v } from 'convex/values';
-import { getAuthUserId } from '@convex-dev/auth/server';
-import type { Auth } from 'convex/server';
 import { internalMutation, query } from './_generated/server';
-import type { Doc, Id } from './_generated/dataModel';
-import { isAdminRole } from '@workspace/lib/auth';
-
-type AuthedCtx = {
-  auth: Auth;
-  db: {
-    get: (id: Id<'users'>) => Promise<Doc<'users'> | null>;
-  };
-};
-
-async function requireAdmin(ctx: AuthedCtx): Promise<Doc<'users'>> {
-  const userId = await getAuthUserId(ctx);
-  if (!userId) {
-    throw new Error('Not authenticated');
-  }
-  const user = await ctx.db.get(userId);
-  if (!user || !isAdminRole(user.role)) {
-    throw new Error('Forbidden: admin role required');
-  }
-  return user;
-}
+import type { Id } from './_generated/dataModel';
+import { requireAdmin } from './authHelpers';
 
 interface AuditEntry {
   productId: Id<'products'>;

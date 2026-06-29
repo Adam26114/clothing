@@ -1,25 +1,7 @@
 import { ConvexError, v } from 'convex/values';
-import { getAuthUserId } from '@convex-dev/auth/server';
-import type { Auth } from 'convex/server';
 import { mutation, query } from './_generated/server';
-import type { Doc, Id } from './_generated/dataModel';
-import { isAdminRole } from '@workspace/lib/auth';
-import { Sentry } from './sentry-init';
-
-async function requireAdmin(ctx: {
-  auth: Auth;
-  db: { get: (id: Id<'users'>) => Promise<Doc<'users'> | null> };
-}): Promise<Doc<'users'>> {
-  const userId = await getAuthUserId(ctx);
-  if (!userId) {
-    throw new ConvexError('Not authenticated');
-  }
-  const user = await ctx.db.get(userId);
-  if (!user || !isAdminRole(user.role)) {
-    throw new ConvexError('Forbidden: admin role required');
-  }
-  return user;
-}
+import { requireAdmin } from './authHelpers';
+import { Sentry } from './sentry_init';
 
 export const generateUploadUrl = mutation({
   args: {},
