@@ -172,11 +172,7 @@ describe('DataTable drag reorder', () => {
 
     const allCalls = [...errorSpy.mock.calls, ...warnSpy.mock.calls];
     const groupErrors = allCalls.filter((args) =>
-      args.some(
-        (a) =>
-          typeof a === 'string' &&
-          a.toLowerCase().includes('menugroupcontext')
-      )
+      args.some((a) => typeof a === 'string' && a.toLowerCase().includes('menugroupcontext'))
     );
     console.log('group errors captured:', groupErrors.length);
     console.log('all error calls:', errorSpy.mock.calls.slice(0, 5));

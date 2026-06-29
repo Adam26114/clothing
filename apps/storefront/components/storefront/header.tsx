@@ -4,7 +4,15 @@ import { useEffect, useState } from 'react';
 
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { HeartIcon, LogOutIcon, MenuIcon, PackageIcon, SearchIcon, UserIcon } from 'lucide-react';
+import {
+  HeartIcon,
+  LogOutIcon,
+  MenuIcon,
+  PackageIcon,
+  SearchIcon,
+  ShoppingBagIcon,
+  UserIcon,
+} from 'lucide-react';
 import { toast } from 'sonner';
 
 import { t } from '@workspace/lib/i18n';
