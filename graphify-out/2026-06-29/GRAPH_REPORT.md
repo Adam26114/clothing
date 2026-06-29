@@ -1,16 +1,16 @@
-# Graph Report - clothing  (2026-06-28)
+# Graph Report - clothing  (2026-06-29)
 
 ## Corpus Check
-- 375 files · ~137,479 words
+- 378 files · ~138,373 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 2546 nodes · 4315 edges · 231 communities (191 shown, 40 thin omitted)
-- Extraction: 93% EXTRACTED · 7% INFERRED · 0% AMBIGUOUS · INFERRED: 284 edges (avg confidence: 0.8)
+- 2548 nodes · 4356 edges · 234 communities (202 shown, 32 thin omitted)
+- Extraction: 94% EXTRACTED · 6% INFERRED · 0% AMBIGUOUS · INFERRED: 278 edges (avg confidence: 0.8)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `993fefcb`
+- Built from commit: `9223c2c4`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -159,6 +159,8 @@
 - [[_COMMUNITY_Community 157|Community 157]]
 - [[_COMMUNITY_Community 158|Community 158]]
 - [[_COMMUNITY_Community 159|Community 159]]
+- [[_COMMUNITY_Community 161|Community 161]]
+- [[_COMMUNITY_Community 163|Community 163]]
 - [[_COMMUNITY_Community 165|Community 165]]
 - [[_COMMUNITY_Community 167|Community 167]]
 - [[_COMMUNITY_Community 168|Community 168]]
@@ -198,12 +200,11 @@
 - [[_COMMUNITY_Community 207|Community 207]]
 - [[_COMMUNITY_Community 209|Community 209]]
 - [[_COMMUNITY_Community 210|Community 210]]
+- [[_COMMUNITY_Community 211|Community 211]]
 - [[_COMMUNITY_Community 212|Community 212]]
 - [[_COMMUNITY_Community 213|Community 213]]
-- [[_COMMUNITY_Community 214|Community 214]]
 - [[_COMMUNITY_Community 215|Community 215]]
 - [[_COMMUNITY_Community 216|Community 216]]
-- [[_COMMUNITY_Community 217|Community 217]]
 - [[_COMMUNITY_Community 218|Community 218]]
 - [[_COMMUNITY_Community 219|Community 219]]
 - [[_COMMUNITY_Community 220|Community 220]]
@@ -214,30 +215,31 @@
 - [[_COMMUNITY_Community 226|Community 226]]
 - [[_COMMUNITY_Community 227|Community 227]]
 - [[_COMMUNITY_Community 228|Community 228]]
+- [[_COMMUNITY_Community 231|Community 231]]
 
 ## God Nodes (most connected - your core abstractions)
 1. `cn()` - 243 edges
-2. `t()` - 162 edges
+2. `t()` - 161 edges
 3. `Button()` - 66 edges
 4. `Input()` - 27 edges
 5. `Card()` - 25 edges
 6. `Label()` - 24 edges
 7. `CardContent()` - 22 edges
 8. `useAuth()` - 21 edges
-9. `Badge()` - 18 edges
-10. `Phase 0 Implementation Plan — Khit E-Commerce` - 18 edges
+9. `PRD — Myanmar Local Brand Shirt E-Commerce Platform` - 18 edges
+10. `Badge()` - 18 edges
 
 ## Surprising Connections (you probably didn't know these)
+- `Guest wishlist merge` --implements--> `Data Flow`  [INFERRED]
+  README.md → PROMPT.md
 - `Page()` --calls--> `t()`  [INFERRED]
   apps/admin/app/(routes)/inventory/page.tsx → packages/lib/src/i18n.ts
 - `Page()` --calls--> `t()`  [INFERRED]
-  apps/admin/app/(routes)/orders/page.tsx → packages/lib/src/i18n.ts
-- `Page()` --calls--> `t()`  [INFERRED]
   apps/admin/app/(routes)/products/page.tsx → packages/lib/src/i18n.ts
 - `Page()` --calls--> `t()`  [INFERRED]
-  apps/admin/app/(routes)/settings/page.tsx → packages/lib/src/i18n.ts
-- `UserDetailError()` --calls--> `t()`  [INFERRED]
-  apps/admin/app/(routes)/users/[id]/user-detail-client.tsx → packages/lib/src/i18n.ts
+  apps/admin/app/(routes)/users/page.tsx → packages/lib/src/i18n.ts
+- `RootLayout()` --calls--> `cn()`  [INFERRED]
+  apps/admin/app/layout.tsx → packages/ui/src/lib/utils.ts
 
 ## Import Cycles
 - None detected.
@@ -251,11 +253,11 @@
 - **CI Pipeline steps (checkout, Bun setup, install frozen lockfile, lint, build, format check)** — github_workflows_ci_ci_workflow, github_workflows_ci_bun_setup, github_workflows_ci_lint_build_format_job [EXTRACTED 1.00]
 - **Docker Compose dev stack (storefront + admin services sharing Dockerfile.dev)** — docker_compose_docker_compose, docker_compose_storefront_service, docker_compose_admin_service [EXTRACTED 1.00]
 
-## Communities (231 total, 40 thin omitted)
+## Communities (234 total, 32 thin omitted)
 
 ### Community 0 - "Storefront auth forms & login flow"
-Cohesion: 0.21
-Nodes (10): ContactFieldsProps, DeliveryAddressFieldsProps, DeliveryMethodRadio(), DeliveryMethodRadioProps, checkoutFormDefaults, checkoutFormSchema, CheckoutFormValues, deliveryMethodSchema (+2 more)
+Cohesion: 0.13
+Nodes (20): CheckoutFormProps, handleOrderError(), isConvexStringError(), ContactFields(), ContactFieldsProps, DeliveryAddressFields(), DeliveryAddressFieldsProps, DeliveryMethodRadio() (+12 more)
 
 ### Community 1 - "Convex backend deps (auth, convex, @auth/core)"
 Cohesion: 0.17
@@ -266,16 +268,16 @@ Cohesion: 0.07
 Nodes (44): Admin Panel (apps/admin, port 3001, dashboard-01 style), AI Project Planner (initial brainstorm), Better Auth (originally proposed, later replaced), Cash on Delivery (COD) — only payment method at launch, Embedded Color Variants Pattern (rationale: keeps related data together; cart/wishlist/orders use string keys, not foreign keys; orders snapshot product data at purchase time), Khit E-Commerce Platform (Myanmar shirt brand), MMK Currency (Myanmar Kyat / Ks), Turborepo Monorepo Structure (apps/* + packages/{ui,convex,lib,config}) (+36 more)
 
 ### Community 3 - "Storefront UI utilities (color/size selectors, accordion)"
-Cohesion: 0.12
-Nodes (17): Accordion(), AccordionContent(), AccordionItem(), AccordionTrigger(), ColorSelector(), ColorSelectorProps, ColorSwatch, FreePickupBadge() (+9 more)
+Cohesion: 0.14
+Nodes (15): Accordion(), AccordionContent(), AccordionItem(), AccordionTrigger(), ColorSelector(), ColorSelectorProps, ColorSwatch, FreePickupBadge() (+7 more)
 
 ### Community 4 - "Guest cart state (localStorage + merge)"
-Cohesion: 0.11
-Nodes (17): clearGuestCart(), EMPTY, GuestCartItem, GuestCartPayload, hasStorage(), isPayload(), Listener, listeners (+9 more)
+Cohesion: 0.07
+Nodes (27): clearGuestCart(), EMPTY, GuestCartItem, GuestCartPayload, hasStorage(), isPayload(), Listener, listeners (+19 more)
 
 ### Community 5 - "Storefront root layout, fonts, providers"
 Cohesion: 0.11
-Nodes (17): clearGuestWishlist(), EMPTY, GuestWishlistItem, GuestWishlistPayload, hasStorage(), isPayload(), Listener, listeners (+9 more)
+Nodes (18): clearGuestWishlist(), EMPTY, GuestWishlistItem, GuestWishlistPayload, hasStorage(), isPayload(), Listener, listeners (+10 more)
 
 ### Community 6 - "Storefront app dependencies (lucide, next, rhf)"
 Cohesion: 0.06
@@ -286,8 +288,8 @@ Cohesion: 0.05
 Nodes (39): dependencies, better-auth, convex, @convex-dev/better-auth, @dnd-kit/sortable, react, react-dom, @sentry/nextjs (+31 more)
 
 ### Community 8 - "UI primitives — pagination, popover, toggle"
-Cohesion: 0.08
-Nodes (34): DeliveryAddressFields(), AlertDialogMedia(), AlertDialogOverlay(), CalendarDayButton(), InputGroup(), InputGroupAddon(), inputGroupAddonVariants, InputGroupButton() (+26 more)
+Cohesion: 0.10
+Nodes (32): Avatar(), AvatarBadge(), AvatarFallback(), AvatarGroup(), AvatarGroupCount(), AvatarImage(), Breadcrumb(), BreadcrumbEllipsis() (+24 more)
 
 ### Community 9 - "Admin app dependencies"
 Cohesion: 0.05
@@ -299,15 +301,15 @@ Nodes (33): dependencies, better-auth, convex, @convex-dev/better-auth, @sentry/
 
 ### Community 11 - "Data table, drawer, tabs primitives"
 Cohesion: 0.12
-Nodes (23): DataTableSkeletonProps, Table(), TableBody(), TableCaption(), TableCell(), TableFooter(), TableHead(), TableHeader() (+15 more)
+Nodes (21): Table(), TableBody(), TableCaption(), TableCell(), TableFooter(), TableHead(), TableHeader(), TableRow() (+13 more)
 
 ### Community 12 - "Dropdown menu, cart icon, header"
-Cohesion: 0.06
-Nodes (43): NavDocuments(), NavUser(), navConfig, AppSidebarBrand, AppSidebarData, AppSidebarDocument, AppSidebarNavItem, AppSidebarProps (+35 more)
+Cohesion: 0.12
+Nodes (23): NavUser(), DropdownMenu(), DropdownMenuCheckboxItem(), DropdownMenuContent(), DropdownMenuItem(), DropdownMenuRadioItem(), DropdownMenuSeparator(), DropdownMenuShortcut() (+15 more)
 
 ### Community 13 - "Sidebar, tooltip, layout primitives"
-Cohesion: 0.09
-Nodes (27): fontMono, fontSans, metadata, RootLayout(), viewport, AdminHeader(), resolveTitle(), titleRoutes (+19 more)
+Cohesion: 0.08
+Nodes (30): fontMono, fontSans, metadata, RootLayout(), viewport, AdminHeader(), resolveTitle(), titleRoutes (+22 more)
 
 ### Community 14 - "UI base deps (base-ui, cva, clsx)"
 Cohesion: 0.08
@@ -322,16 +324,16 @@ Cohesion: 0.09
 Nodes (22): devDependencies, eslint, eslint-config-prettier, @eslint/js, eslint-plugin-only-warn, eslint-plugin-react, eslint-plugin-react-hooks, eslint-plugin-turbo (+14 more)
 
 ### Community 17 - "Account sidebar & order detail components"
-Cohesion: 0.16
-Nodes (27): NAV_ITEMS, NavItem, OrderDetailCardProps, AlertDialog(), AlertDialogAction(), AlertDialogCancel(), AlertDialogContent(), AlertDialogDescription() (+19 more)
+Cohesion: 0.17
+Nodes (21): NAV_ITEMS, NavItem, OrderDetailCardProps, AlertDialog(), AlertDialogAction(), AlertDialogCancel(), AlertDialogContent(), AlertDialogDescription() (+13 more)
 
 ### Community 18 - "shadcn config (root UI)"
 Cohesion: 0.10
 Nodes (19): aliases, components, hooks, lib, ui, utils, iconLibrary, menuAccent (+11 more)
 
 ### Community 19 - "Category navigation & pills"
-Cohesion: 0.17
-Nodes (14): defaultLabel(), OrderStatus, StatusBadge(), StatusBadgeProps, RecentOrder, RecentOrderRow, RecentOrdersTable(), RecentOrdersTableProps (+6 more)
+Cohesion: 0.12
+Nodes (19): defaultLabel(), OrderStatus, StatusBadge(), StatusBadgeProps, RowCheckbox(), SelectionCheckbox(), RecentOrder, RecentOrderRow (+11 more)
 
 ### Community 20 - "shadcn config (storefront)"
 Cohesion: 0.10
@@ -342,24 +344,24 @@ Cohesion: 0.10
 Nodes (19): aliases, components, hooks, lib, ui, utils, iconLibrary, menuAccent (+11 more)
 
 ### Community 22 - "Agent critical rules & never-do list"
-Cohesion: 0.38
-Nodes (7): Critical Rules for Coding Agents, NEVER DO, Unified Design System Specification, MMK Currency (formatMMK), Myanmar Local Brand Shirt E-Commerce PRD, RTL Support Strategy, Myanmar E-Commerce Project Plan
+Cohesion: 0.13
+Nodes (12): OrdersList(), OrdersListProps, statusLabel(), Page(), defaults, ProfileForm(), ProfileFormProps, ProfileFormValues (+4 more)
 
 ### Community 23 - "Sheet / side-panel primitives"
-Cohesion: 0.14
-Nodes (13): Sheet(), SheetContent(), SheetDescription(), SheetFooter(), SheetHeader(), SheetOverlay(), SheetTitle(), DisplayLine (+5 more)
+Cohesion: 0.12
+Nodes (15): ScrollArea(), ScrollBar(), Sheet(), SheetContent(), SheetDescription(), SheetFooter(), SheetHeader(), SheetOverlay() (+7 more)
 
 ### Community 24 - "Convex products module"
-Cohesion: 0.42
-Nodes (6): ProductListItem, FeaturedProductsProps, ProductCard(), ProductCardProps, QuickAdd(), QuickAddProps
+Cohesion: 0.36
+Nodes (7): ProductListItem, FeaturedProductsProps, PdpShellProps, ProductCard(), ProductCardProps, QuickAdd(), QuickAddProps
 
 ### Community 25 - "Account layout & header"
-Cohesion: 0.19
+Cohesion: 0.18
 Nodes (12): authClient, useIsAuthenticated(), useSession(), AuthFlowResult, ConfirmPasswordResetInput, RequestPasswordResetInput, SignInInput, SignUpInput (+4 more)
 
 ### Community 26 - "Admin sidebar"
-Cohesion: 0.09
-Nodes (15): SortableHeader(), makeUserColumns(), MakeUserColumnsOptions, UserNameCellProps, UserRow, UserRowActions(), UserRowActionsProps, userSearchableText (+7 more)
+Cohesion: 0.12
+Nodes (9): SortableHeader(), makeUserColumns(), MakeUserColumnsOptions, UserNameCellProps, UserRowActions(), UserRowActionsProps, userSearchableText, EmptyUsers() (+1 more)
 
 ### Community 27 - "Convex API & server bootstrap"
 Cohesion: 0.11
@@ -370,60 +372,60 @@ Cohesion: 0.11
 Nodes (17): compilerOptions, declaration, declarationMap, esModuleInterop, incremental, isolatedModules, lib, module (+9 more)
 
 ### Community 29 - "Cart item row & confirm dialog"
-Cohesion: 0.22
-Nodes (7): EmptyWishlist(), WishlistGrid(), EmptyState(), EmptyStateProps, EmptySettings(), EmptyUsers(), Page()
+Cohesion: 0.24
+Nodes (6): EmptyWishlist(), DataTableSkeletonProps, EmptyState(), EmptyStateProps, Skeleton(), EmptyInventoryProps
 
 ### Community 30 - "Wishlist icons & account summary"
-Cohesion: 0.43
-Nodes (5): loadProductData(), generateMetadata(), ProductPage(), ProductPageProps, RelatedProducts()
+Cohesion: 0.17
+Nodes (14): HomePage(), CategoryDoc, CategoryPageData, getClient(), HomepageData, loadCategoryChildren(), loadHomepageData(), loadProductData() (+6 more)
 
 ### Community 31 - "Hero, search overlay, mobile nav"
-Cohesion: 0.16
-Nodes (13): DataTableSkeleton(), AdminPageHeader(), AdminPageHeaderProps, Page(), PlaceholderPage(), PlaceholderPageProps, InventorySkeleton(), Page() (+5 more)
+Cohesion: 0.15
+Nodes (12): DataTableSkeleton(), AdminPageHeader(), AdminPageHeaderProps, PlaceholderPage(), PlaceholderPageProps, InventorySkeleton(), Page(), OrdersSkeleton() (+4 more)
 
 ### Community 32 - "Checkout flow (form, place-order, summary)"
-Cohesion: 0.15
-Nodes (10): AuthForm(), AuthFormProps, LoginForm(), RegisterForm(), ResetPasswordForm(), VerifyEmailForm(), Page(), Page() (+2 more)
+Cohesion: 0.11
+Nodes (15): AuthForm(), AuthFormProps, defaults, LoginForm(), LoginFormProps, LoginFormValues, loginSchema, defaults (+7 more)
 
 ### Community 33 - "Footer & sale banner"
-Cohesion: 0.17
-Nodes (12): CategoryPillItem, CategoryPills(), CategoryPillsProps, GalleryColorVariant, ImageGallery(), ImageGalleryProps, ASPECT_CLASS, buildGradient() (+4 more)
+Cohesion: 0.24
+Nodes (9): GalleryColorVariant, ImageGallery(), ImageGalleryProps, ASPECT_CLASS, buildGradient(), darken(), PlaceholderAspectRatio, PlaceholderImage() (+1 more)
 
 ### Community 34 - "PDP shell & image gallery"
-Cohesion: 0.28
-Nodes (5): CheckEmailCard(), CheckEmailCardProps, ForgotPasswordCard(), ForgotPasswordCardProps, ForgotPasswordFlow()
+Cohesion: 0.16
+Nodes (10): CheckEmailCard(), CheckEmailCardProps, ForgotPasswordCard(), ForgotPasswordCardProps, ForgotPasswordFlow(), defaults, ForgotFormValues, ForgotPasswordForm() (+2 more)
 
 ### Community 35 - "PDP-related: stock indicator, size selector"
-Cohesion: 0.10
-Nodes (20): SelectContent(), SelectItem(), SelectTrigger(), SelectValue(), InventoryFiltersProps, STATUS_OPTIONS, EXPORT_COLUMNS, EXPORT_DATE_FORMAT (+12 more)
+Cohesion: 0.09
+Nodes (25): SelectContent(), SelectGroup(), SelectItem(), SelectLabel(), SelectScrollDownButton(), SelectScrollUpButton(), SelectSeparator(), SelectTrigger() (+17 more)
 
 ### Community 36 - "Storefront account pages (profile, orders, wishlist)"
-Cohesion: 0.12
-Nodes (24): buildLineKey(), CartItemRow(), CartItemRowProps, Command(), CommandDialog(), CommandEmpty(), CommandGroup(), CommandInput() (+16 more)
+Cohesion: 0.13
+Nodes (23): CartItemRowProps, Command(), CommandDialog(), CommandEmpty(), CommandGroup(), CommandInput(), CommandItem(), CommandList() (+15 more)
 
 ### Community 37 - "PDP product card, quick-add, filters"
 Cohesion: 0.08
-Nodes (16): InventoryRow, list, setStock, adminList, bulkUpdateStatus, cancel, create, customerStats (+8 more)
+Nodes (17): InventoryRow, list, setStock, adminList, bulkUpdateStatus, cancel, create, customerStats (+9 more)
 
 ### Community 38 - "PLP grid, sort, load-more, related products"
-Cohesion: 0.29
-Nodes (9): Breadcrumb(), BreadcrumbEllipsis(), BreadcrumbItem(), BreadcrumbLink(), BreadcrumbList(), BreadcrumbPage(), BreadcrumbSeparator(), BreadcrumbEntry (+1 more)
+Cohesion: 0.13
+Nodes (12): navConfig, AppSidebarBrand, AppSidebarData, AppSidebarDocument, AppSidebarNavItem, AppSidebarProps, AppSidebarUser, NavDocuments() (+4 more)
 
 ### Community 39 - "PDP CTA: wishlist button, free pickup badge"
 Cohesion: 0.05
 Nodes (38): 10. Sub-agent parallelization, 11. Verification (Definition of Done), 12. Risks & mitigations, 13. What this phase ships, 1. Scope, 2.1 The shared `DataTable` already exists, 2.2 Per-page tables (the consumers), 2.3 Current dashboard (the thing to replace) (+30 more)
 
 ### Community 40 - "Account orders list & order confirmation client"
-Cohesion: 0.25
-Nodes (6): OrderConfirmationPageProps, ConfirmationCard(), formatDate(), ConfirmationClient(), ConfirmationClientProps, OrderItemsTable()
+Cohesion: 0.33
+Nodes (4): OrderConfirmationPageProps, ConfirmationClient(), ConfirmationClientProps, OrderItemsTable()
 
 ### Community 41 - "Product filters, category header"
-Cohesion: 0.17
-Nodes (8): CartUIState, emit(), Listener, listeners, SERVER_STATE, setState(), useCartUIStore(), PdpShell()
+Cohesion: 0.20
+Nodes (6): CartUIState, emit(), Listener, listeners, SERVER_STATE, setState()
 
 ### Community 42 - "Empty states & placeholder image"
-Cohesion: 0.25
-Nodes (7): ConvexBetterAuthNextJs, getCurrentUser(), getCurrentUserRole(), {
+Cohesion: 0.26
+Nodes (8): ConvexBetterAuthNextJs, getCurrentUser(), getCurrentUserRole(), {
   handler,
   isAuthenticated,
   getToken,
@@ -431,27 +433,27 @@ Nodes (7): ConvexBetterAuthNextJs, getCurrentUser(), getCurrentUserRole(), {
   fetchAuthMutation,
   fetchAuthAction,
   preloadAuthQuery,
-}, isAuthenticatedUserAdmin(), CurrentUser, UserRole
+}, isAuthenticatedUserAdmin(), CurrentUser, isAdminRole(), UserRole
 
 ### Community 43 - "Auth forms — register, forgot, reset, verify"
-Cohesion: 0.15
-Nodes (12): deleteOrphanUsers, findCategoryBySlug, findUserByBetterAuthId, findUserByEmail, getStoreSettings, insertCategory, insertProduct, insertStoreSettings (+4 more)
+Cohesion: 0.14
+Nodes (13): deleteOrphanUsers, findCategoryBySlug, findUserByBetterAuthId, findUserByEmail, getStoreSettings, insertCategory, insertProduct, insertStoreSettings (+5 more)
 
 ### Community 44 - "PDP checkout/order summary (cart-drawer)"
 Cohesion: 0.13
 Nodes (13): adminListStats, CurrentUserView, getById, getCustomerHistory, getMe, list, setActive, setRole (+5 more)
 
 ### Community 45 - "PDP storefront breadcrumb + featured products"
-Cohesion: 0.12
-Nodes (27): CheckoutFormProps, handleOrderError(), isConvexStringError(), OrderSummaryProps, PaymentCallout(), PaymentCalloutProps, PickupInfoCard(), PickupInfoCardProps (+19 more)
+Cohesion: 0.22
+Nodes (13): OrderSummaryProps, PaymentCalloutProps, PickupInfoCardProps, Card(), CardAction(), CardContent(), CardFooter(), CardHeader() (+5 more)
 
 ### Community 46 - "Cart drawer + cart icon + sheet primitives"
 Cohesion: 0.08
 Nodes (25): 10. Out of scope (explicitly), 1. Scope, 2. Locked decisions (from this planning pass), 3. Architecture & data flow, 4.1 Backend (`packages/convex`, `packages/lib`), 4.2 Storefront components, 4. New code needed, 5. i18n key list (to be added to `en.json` in one batch) (+17 more)
 
 ### Community 47 - "Form primitives (form, label, input, select)"
-Cohesion: 0.23
-Nodes (11): PaginationLoadMore(), applyColorFilter(), applyPriceFilter(), applySizeFilter(), collectDistinctColors(), parseListParam(), parseNumberParam(), ProductGrid() (+3 more)
+Cohesion: 0.15
+Nodes (15): PaginationLoadMore(), PaginationLoadMoreProps, parseListParam(), ProductFilters(), ProductFiltersProps, applyColorFilter(), applyPriceFilter(), applySizeFilter() (+7 more)
 
 ### Community 48 - "Data table primitives (sortable, paginated)"
 Cohesion: 0.13
@@ -466,16 +468,16 @@ Cohesion: 0.18
 Nodes (10): compilerOptions, allowJs, jsx, module, moduleResolution, noEmit, plugins, display (+2 more)
 
 ### Community 51 - "PDP header & cart merge on auth"
-Cohesion: 0.18
-Nodes (11): devDependencies, eslint, tailwindcss, @tailwindcss/postcss, @turbo/gen, @types/node, @types/react, @types/react-dom (+3 more)
+Cohesion: 0.11
+Nodes (18): devDependencies, eslint, jsdom, tailwindcss, @tailwindcss/postcss, @testing-library/dom, @testing-library/jest-dom, @testing-library/react (+10 more)
 
 ### Community 52 - "admin · tsconfig_json"
 Cohesion: 0.20
 Nodes (9): compilerOptions, paths, plugins, exclude, extends, include, @/*, @workspace/convex/* (+1 more)
 
 ### Community 53 - "storefront · verify_email_form_tsx, page_tsx, verify_email_flow_tsx"
-Cohesion: 0.40
-Nodes (5): computeCartSummary(), formatMMK(), roundToNearestHundred(), CartDrawer(), PriceBlock()
+Cohesion: 0.17
+Nodes (12): ChartAreaInteractiveProps, ChartConfig, ChartContainer(), ChartContext, ChartContextProps, ChartLegendContent(), ChartTooltipContent(), INITIAL_DIMENSION (+4 more)
 
 ### Community 54 - "lib · tsconfig_json"
 Cohesion: 0.18
@@ -486,52 +488,52 @@ Cohesion: 0.20
 Nodes (9): compilerOptions, paths, plugins, exclude, extends, include, @/*, @workspace/convex/* (+1 more)
 
 ### Community 56 - "convex · cart_ts"
-Cohesion: 0.29
-Nodes (6): add, clear, list, mergeGuest, remove, updateQty
+Cohesion: 0.14
+Nodes (12): add, clear, list, mergeGuest, remove, updateQty, deleteAt, generateUploadUrl (+4 more)
 
 ### Community 57 - "config · eslint_config_js, base_js, next_js"
 Cohesion: 0.36
 Nodes (3): config, nextJsConfig, config
 
 ### Community 58 - "convex · seed_ts, api_js, server_js"
-Cohesion: 0.12
-Nodes (18): authComponent, createAuth(), createAuthOptions(), resetPasswordHtml(), SendArgs, sendResendEmail(), verifyEmailHtml(), http (+10 more)
+Cohesion: 0.11
+Nodes (19): authComponent, createAuth(), createAuthOptions(), resetPasswordHtml(), SendArgs, sendResendEmail(), verifyEmailHtml(), http (+11 more)
 
 ### Community 59 - "convex · wishlistitems_ts"
-Cohesion: 0.19
-Nodes (13): Ctx, getCurrentUser(), getInternalUserId(), requireAdmin(), requireUser(), requireUserId(), get, update (+5 more)
+Cohesion: 0.24
+Nodes (11): Ctx, getCurrentUser(), getInternalUserId(), requireAdmin(), requireUser(), requireUserId(), add, clear (+3 more)
 
 ### Community 60 - "ui · package_json"
-Cohesion: 0.22
-Nodes (8): name, private, scripts, format, lint, typecheck, type, version
+Cohesion: 0.40
+Nodes (4): name, private, type, version
 
 ### Community 61 - "storefront · profile_form_tsx, page_tsx"
 Cohesion: 0.09
-Nodes (23): OrdersList(), OrdersListProps, statusLabel(), Page(), ProfileForm(), WishlistSummary(), OrderDetailPageProps, Page() (+15 more)
+Nodes (28): WishlistGrid(), OrderDetailPageProps, useCartItems(), computeCartSummary(), CheckoutForm(), CheckoutPageContent(), CheckoutPageContentProps, OrderSummary() (+20 more)
 
 ### Community 62 - "ui · avatar_tsx, nav_user_tsx"
 Cohesion: 0.08
 Nodes (24): Accessibility, Admin (`apps/admin`), Apps use a single layout language, Badges, Buttons, Cards, Chart Palette (teal/emerald family), Charts (+16 more)
 
 ### Community 63 - "convex · datamodel_d_ts, schema_ts"
-Cohesion: 0.06
-Nodes (15): colorVariantSchema, measurementSchema, DataModel, Doc, Id, TableNames, glob, modulePaths (+7 more)
+Cohesion: 0.13
+Nodes (9): colorVariantSchema, measurementSchema, DataModel, Doc, Id, TableNames, glob, modulePaths (+1 more)
 
 ### Community 64 - "config · package_json"
 Cohesion: 0.25
 Nodes (7): exports, ./config, ./styles, name, private, type, version
 
 ### Community 65 - "convex · categories_ts, server_js"
-Cohesion: 0.20
-Nodes (7): AuditEntry, listByProduct, record, recordMany, deleteAt, generateUploadUrl, getUrl
+Cohesion: 0.29
+Nodes (6): AuditEntry, listByProduct, record, recordMany, internalMutation, query
 
 ### Community 66 - "convex · storesettings_ts, server_js"
 Cohesion: 0.08
 Nodes (23): 1. Scope, 2. Key facts about the existing setup, 3.1 Backend additions (`packages/convex`), 3.2 Shared library additions (`packages/lib`), 3.3 Storefront routes, 3.4 Critical-rule compliance, 3.5 Execution plan (sub-agents), 3.6 Verification (Definition of Done) (+15 more)
 
 ### Community 67 - "lib · i18n_ts"
-Cohesion: 0.14
-Nodes (14): Switch(), ActiveToggle(), ActiveToggleProps, getProductSearchableText(), makeProductColumns(), ProductRow, ProductRowActions(), ProductRowActionsProps (+6 more)
+Cohesion: 0.24
+Nodes (8): getProductSearchableText(), makeProductColumns(), ProductRow, ProductRowActionsProps, toProductRow(), EmptyProducts(), EmptyProductsProps, SoftDeleteAction()
 
 ### Community 68 - "config · package_json"
 Cohesion: 0.29
@@ -542,8 +544,8 @@ Cohesion: 0.22
 Nodes (8): compilerOptions, module, moduleResolution, paths, exclude, extends, include, @workspace/ui/*
 
 ### Community 70 - "convex · server_d_ts"
-Cohesion: 0.13
-Nodes (16): Page(), SectionCard, Tabs(), TabsContent(), TabsList(), tabsListVariants, TabsTrigger(), SentryIssue (+8 more)
+Cohesion: 0.15
+Nodes (12): Page(), SectionCard, SentryIssue, SentryStats, SentryStatsResponse, DashboardClient(), TAB_VALUES, TabValue (+4 more)
 
 ### Community 71 - "config · react_library_json"
 Cohesion: 0.33
@@ -557,13 +559,17 @@ Nodes (7): exports, ./components/*, ./components/admin/*, ./globals.css, ./hooks
 Cohesion: 0.33
 Nodes (5): compilerOptions, outDir, exclude, extends, include
 
+### Community 74 - "doc · readme_md, agents_md, prd_md"
+Cohesion: 0.17
+Nodes (11): Switch(), DetailsTab(), DetailsTabProps, ProductFormState, ActiveToggle(), ActiveToggleProps, FeaturedToggle(), FeaturedToggleProps (+3 more)
+
 ### Community 76 - "ui · sidebar_tsx, nav_documents_tsx, nav_user_tsx"
-Cohesion: 0.15
-Nodes (14): Account dashboard, Apps, Auth flow, Available commands, CI, Code review, Deploying to production, Docker (+6 more)
+Cohesion: 0.25
+Nodes (8): Apps, Available commands, CI, Code review, Deploying to production, Docker, Khit E-Commerce Platform, Shared packages
 
 ### Community 78 - "convex · auth_ts, api_d_ts"
-Cohesion: 0.20
-Nodes (11): Database Schema Rules (Convex codegen + embedded variants), Convex Data Schema, Embedded Product Variants Pattern, Admin (read/write), Data Flow, Email/notifications, Storefront (read), Storefront (write) (+3 more)
+Cohesion: 0.25
+Nodes (8): Admin (read/write), Data Flow, Email/notifications, Storefront (read), Storefront (write), Guest cart merge, Phase 1 — Storefront, User flow
 
 ### Community 79 - "admin · middleware_ts"
 Cohesion: 0.16
@@ -577,17 +583,21 @@ Nodes (3): Teal/Emerald Chart Palette (chart-1..chart-5), Design Tokens (colors,
 Cohesion: 0.11
 Nodes (17): 10. Step 7 — README update + commit, 11. Post-phase state, 12. Rollback, 1. Scope, 2.1 Code is complete and codegenned, 2.2 Why the dashboard is empty, 2. Current state of the backend, 3. Step 0 — Pre-flight (read-only) (+9 more)
 
+### Community 86 - "doc · prd_md"
+Cohesion: 0.27
+Nodes (9): UserRow, EditableRoleSelect(), EditableRoleSelectProps, ROLE_OPTIONS, ROLE_RANK, roleLabelKey(), RoleSelect(), RoleSelectProps (+1 more)
+
 ### Community 95 - "Isolated: httpAction"
 Cohesion: 0.18
 Nodes (16): applyTemplate(), englishPluralCategory(), findMatchingBrace(), findTopLevelComma(), getValue(), isWhitespace(), isWordChar(), Locale (+8 more)
 
 ### Community 105 - "Community 105"
 Cohesion: 0.13
-Nodes (16): ProductEditPageProps, DetailsTab(), DetailsTabProps, SlugField(), ColorVariantForm, createEmptyColorVariant(), createEmptyProductFormState(), ProductFormState (+8 more)
+Nodes (17): ProductEditPageProps, EMPTY_MEASUREMENT, MEASUREMENT_FIELDS, MeasurementsEditor(), MeasurementsEditorProps, ColorVariantForm, createEmptyColorVariant(), createEmptyProductFormState() (+9 more)
 
 ### Community 106 - "Community 106"
-Cohesion: 0.27
-Nodes (8): HomePage(), loadHomepageData(), FeaturedProducts(), HeroBanner(), HeroBannerProps, HomepageHero(), HomepageHeroProps, NewsletterSignup()
+Cohesion: 0.22
+Nodes (9): CategoryPillItem, CategoryPills(), CategoryPillsProps, FeaturedProducts(), HeroBanner(), HeroBannerProps, HomepageHero(), HomepageHeroProps (+1 more)
 
 ### Community 107 - "Community 107"
 Cohesion: 0.11
@@ -598,8 +608,8 @@ Cohesion: 0.08
 Nodes (12): INVENTORY_COLUMNS, INVENTORY_ROWS, InventoryRow, ORDER_COLUMNS, ORDER_ROWS, ORDER_STATUS_LABEL, OrderRow, OrderStatus (+4 more)
 
 ### Community 109 - "Community 109"
-Cohesion: 0.11
-Nodes (21): AnnouncementBarForm(), ContactSocialForm(), ContactSocialFormState, HeroBannerForm(), HeroBannerFormState, InventoryThresholdsForm(), InventoryThresholdsFormState, PickupInfoForm() (+13 more)
+Cohesion: 0.26
+Nodes (9): EmptySettings(), SaveBar(), SaveBarProps, isSettingsFormState(), SettingsClient(), SettingsSkeleton(), EMPTY_FORM_STATE, SettingsFormState (+1 more)
 
 ### Community 110 - "Community 110"
 Cohesion: 0.10
@@ -610,20 +620,20 @@ Cohesion: 0.40
 Nodes (4): AccountHeader(), AccountSidebar(), AccountLayout(), AccountLayoutProps
 
 ### Community 112 - "Community 112"
-Cohesion: 0.22
-Nodes (9): WCAG 2.1 AA Accessibility Standard, Geist Sans + Geist Mono Typography, Locked Technology Stack, Apps and Routes, Core Files, Whole-Project Definition of Done, Dependencies, Environment Contract (+1 more)
+Cohesion: 0.40
+Nodes (5): Apps and Routes, Core Files, Dependencies, Environment Contract, Proposed Architecture
 
 ### Community 113 - "Community 113"
-Cohesion: 0.09
-Nodes (26): defaults, ProfileFormProps, ProfileFormValues, profileSchema, defaults, ForgotFormValues, ForgotPasswordForm(), ForgotPasswordFormProps (+18 more)
+Cohesion: 0.11
+Nodes (20): Input(), Label(), SizeStockGrid(), SizeStockGridProps, SlugFieldProps, AnnouncementBarForm(), AnnouncementBarFormProps, ContactSocialForm() (+12 more)
 
 ### Community 114 - "Community 114"
 Cohesion: 0.13
 Nodes (15): 3a.10 Shared UI — promote `empty-state.tsx`, 3a.11 Shared lib — `packages/lib/src/hooks/use-debounced-value.ts`, 3a.12 i18n — `packages/lib/src/locales/en.json`, 3a.13 Dev-only test page, 3a.14 Verification, 3a.1 Convex — new module `packages/convex/storage.ts`, 3a.2 Convex — additions to `packages/convex/products.ts`, 3a.3 Convex — new module `packages/convex/inventory.ts` (+7 more)
 
 ### Community 115 - "Community 115"
-Cohesion: 0.13
-Nodes (17): RowActions(), getInventorySearchableText(), InventoryRow, InventoryRowActions(), InventoryRowActionsProps, makeInventoryColumns(), EmptyInventory(), EmptyInventoryProps (+9 more)
+Cohesion: 0.15
+Nodes (15): RowActions(), getInventorySearchableText(), InventoryRow, InventoryRowActions(), InventoryRowActionsProps, makeInventoryColumns(), EmptyInventory(), InventoryAuditLog() (+7 more)
 
 ### Community 116 - "Community 116"
 Cohesion: 0.29
@@ -634,12 +644,12 @@ Cohesion: 0.17
 Nodes (11): orderSearchableText, DateRangeValue, EmptyOrders(), ORDER_STATUS_FILTER_VALUES, OrdersFilters(), OrdersFiltersProps, OrderStatusFilter, STATUS_OPTIONS (+3 more)
 
 ### Community 118 - "Community 118"
-Cohesion: 0.17
-Nodes (11): CHANGE / EDIT MODE, CRITICAL RULES - MUST FOLLOW, DATABASE SCHEMA CHANGES, graphify, MONOREPO STRUCTURE, PLANNING MODE, RESPONSES, TECH STACK - LOCKED (+3 more)
+Cohesion: 0.14
+Nodes (13): CHANGE / EDIT MODE, CRITICAL RULES - MUST FOLLOW, DATABASE SCHEMA CHANGES, graphify, MONOREPO STRUCTURE, NEVER DO, PLANNING MODE, RESPONSES (+5 more)
 
 ### Community 119 - "Community 119"
-Cohesion: 0.16
-Nodes (11): fontMono, fontSans, metadata, RootLayout(), viewport, useCartMergeOnAuth(), Toaster(), useWishlistMergeOnAuth() (+3 more)
+Cohesion: 0.18
+Nodes (10): fontMono, fontSans, metadata, RootLayout(), viewport, useCartMergeOnAuth(), Toaster(), useWishlistMergeOnAuth() (+2 more)
 
 ### Community 120 - "Community 120"
 Cohesion: 0.13
@@ -655,11 +665,11 @@ Nodes (15): Continuous deployment, Convex (no rollback), DNS, Environment variab
 
 ### Community 123 - "Community 123"
 Cohesion: 0.15
-Nodes (11): CartPageContent(), CartPageContentProps, CartSummaryBlock(), CartSummaryBlockProps, EmptyCart(), EmptyCartProps, useCartItems(), CheckoutForm() (+3 more)
+Nodes (11): buildLineKey(), CartItemRow(), CartPageContent(), CartPageContentProps, CartSummaryBlock(), CartSummaryBlockProps, EmptyCart(), EmptyCartProps (+3 more)
 
 ### Community 124 - "Community 124"
-Cohesion: 0.14
-Nodes (16): CategoryPage(), CategoryPageProps, CheckoutPage(), CategoryDoc, CategoryPageData, getClient(), HomepageData, loadCategoryChildren() (+8 more)
+Cohesion: 0.31
+Nodes (7): CategoryPage(), CategoryPageProps, loadCategoryPageData(), CategoryHeader(), CategoryHeaderProps, SubcategoryPage(), SubcategoryPageProps
 
 ### Community 125 - "Community 125"
 Cohesion: 0.29
@@ -694,8 +704,8 @@ Cohesion: 0.22
 Nodes (9): 6.1 users, 6.2 categories, 6.3 products (with EMBEDDED VARIANTS), 6.4 cartItems, 6.5 wishlistItems, 6.6 orders (with snapshot items), 6.7 storeSettings (singleton), 6.8 Architecture Rationale (+1 more)
 
 ### Community 133 - "Community 133"
-Cohesion: 0.07
-Nodes (21): ChartAreaInteractive(), chartData, ChartAreaInteractiveProps, ChartConfig, ChartContainer(), ChartContext, ChartContextProps, ChartLegendContent() (+13 more)
+Cohesion: 0.12
+Nodes (8): ChartAreaInteractive(), chartData, chartData, columns, schema, TableCellViewer(), useIsMobile(), ChartAreaInteractive()
 
 ### Community 134 - "Community 134"
 Cohesion: 0.25
@@ -718,8 +728,8 @@ Cohesion: 0.29
 Nodes (7): 7.1 Navigation and Header (P0), 7.2 Homepage (P0/P1), 7.3 Product Listing Page (P0), 7.4 Product Detail Page (P0/P1), 7.5 Cart and Checkout (P0/P1), 7.6 Authentication (P0/P1/P2), 7. Customer Storefront — Feature Requirements
 
 ### Community 139 - "Community 139"
-Cohesion: 0.18
-Nodes (10): CartSummary, CartSummaryItem, DELIVERY_METHODS, DeliveryMethod, ORDER_STATUSES, OrderStatus, PAYMENT_METHODS, PaymentMethod (+2 more)
+Cohesion: 0.31
+Nodes (8): Badge(), badgeVariants, AccountStatusControlProps, formatDate(), roleLabelKey(), roleVariant(), UserDetailHeader(), UserDetailHeaderProps
 
 ### Community 140 - "Community 140"
 Cohesion: 0.29
@@ -746,16 +756,16 @@ Cohesion: 0.40
 Nodes (5): Admin pages, Forms and validation, i18n, Storefront pages, UI Structure
 
 ### Community 147 - "Community 147"
-Cohesion: 0.10
-Nodes (13): DropdownMenuLabel(), DropdownMenuSeparator(), AnnouncementBar(), CartIcon(), CartIconProps, NAV_ITEMS, NavSpec, CategoryTreeNode (+5 more)
+Cohesion: 0.13
+Nodes (14): DropdownMenuGroup(), DropdownMenuLabel(), AnnouncementBar(), CartIcon(), CartIconProps, NAV_ITEMS, NavSpec, CategoryTreeNode (+6 more)
 
 ### Community 148 - "Community 148"
 Cohesion: 0.20
 Nodes (10): ADR-0001 — Resolving the `@workspace/ui` ↔ `@workspace/lib` dependency cycle, Alternatives considered, Consequences, Context, Decision, Exit path, Negative, Positive (+2 more)
 
 ### Community 149 - "Community 149"
-Cohesion: 0.11
-Nodes (17): defaults, LoginFormProps, LoginFormValues, loginSchema, PlaceOrderButtonProps, Button(), buttonVariants, Calendar() (+9 more)
+Cohesion: 0.14
+Nodes (9): Button(), buttonVariants, Calendar(), CalendarDayButton(), ImageThumbnail(), ImageThumbnailProps, ImageUploader(), ImageUploaderProps (+1 more)
 
 ### Community 150 - "Community 150"
 Cohesion: 0.50
@@ -785,6 +795,14 @@ Nodes (3): 8.1 Delivery Methods, 8.2 Payment Methods, 8. Delivery and Payment Sp
 Cohesion: 0.67
 Nodes (3): 9.1 Storefront Routes, 9.2 Admin Routes, 9. Routes and Page Map
 
+### Community 161 - "Community 161"
+Cohesion: 0.22
+Nodes (3): glob, modulePaths, modules
+
+### Community 163 - "Community 163"
+Cohesion: 0.33
+Nodes (5): defaults, ResetPasswordForm(), ResetPasswordFormValues, resetSchema, Page()
+
 ### Community 165 - "Community 165"
 Cohesion: 0.20
 Nodes (10): Admin flow, Cross-browser test plan, Matrix, Per-app checklist, Process, Related, Scope, Sign-off (+2 more)
@@ -794,8 +812,8 @@ Cohesion: 0.33
 Nodes (6): 4a — Foundations (merged), 4b — P1 admin features (merged), 4c — P2 admin features (merged), 4d — i18n infrastructure (merged), 4e — Production hardening (this PR), Phase 4 — QA & polish + production hardening
 
 ### Community 168 - "Community 168"
-Cohesion: 0.20
-Nodes (6): useDebouncedValue(), useStoredRowOrder(), OrdersTableClient(), ProductsTableClient(), FeaturedProductsManager(), UsersTableClient()
+Cohesion: 0.17
+Nodes (9): SlugField(), useDebouncedValue(), useStoredRowOrder(), InventoryTableClient(), resolveLowStockThreshold(), OrdersTableClient(), ProductsTableClient(), FeaturedProductsManager() (+1 more)
 
 ### Community 169 - "Community 169"
 Cohesion: 0.50
@@ -818,8 +836,8 @@ Cohesion: 0.20
 Nodes (10): 4a.0 Convex deployment + seed (new — replaces the 3a hand-update), 4a.1 Typecheck in CI, 4a.2 Test infrastructure, 4a.3 Lint warning cleanup (~20 warnings), 4a.4 Next 16 `middleware` → `proxy` migration, 4a.5 CodeRabbit config, 4a.6 ADR-0001 — ui ↔ lib cycle decision, 4a.7 README polish (+2 more)
 
 ### Community 174 - "Community 174"
-Cohesion: 0.22
-Nodes (6): RowCheckbox(), SelectionCheckbox(), deliveryLabel(), makeOrderColumns(), OrderRow, OrdersTableBulkStatusProps
+Cohesion: 0.43
+Nodes (5): ToggleGroup(), ToggleGroupContext, ToggleGroupItem(), Toggle(), toggleVariants
 
 ### Community 176 - "Community 176"
 Cohesion: 0.25
@@ -838,16 +856,16 @@ Cohesion: 0.29
 Nodes (7): 4b.1 Date range filter on orders (P1), 4b.2 Account suspension toggle (P1), 4b.3 Duplicate product (P1), 4b.4 Restock alert threshold (P1), 4b.5 Stock audit log per variant (P1) — user-flagged as important, 4b.6 Definition of done, 4b — P1 admin features (deferred §7) · PR #2 (parallel after 4a)
 
 ### Community 181 - "Community 181"
-Cohesion: 0.33
-Nodes (5): ActionCtx, DatabaseReader, DatabaseWriter, MutationCtx, QueryCtx
+Cohesion: 0.29
+Nodes (3): glob, modulePaths, modules
 
 ### Community 182 - "Community 182"
-Cohesion: 0.40
-Nodes (5): LowStockItemRaw, LowStockRow, LowStockTable(), LowStockTableProps, resolveLowStockThreshold()
+Cohesion: 0.33
+Nodes (6): LowStockItemRaw, LowStockRow, LowStockTable(), LowStockTableProps, resolveLowStockThreshold(), api
 
 ### Community 184 - "Community 184"
-Cohesion: 0.40
-Nodes (5): EMPTY_MEASUREMENT, MEASUREMENT_FIELDS, MeasurementsEditor(), MeasurementsEditorProps, Measurements
+Cohesion: 0.47
+Nodes (4): CardDescription(), formatTrend(), SectionCardItem(), trendIconDirection()
 
 ### Community 185 - "Community 185"
 Cohesion: 0.33
@@ -871,7 +889,7 @@ Nodes (3): Architecture Decision Records, Conventions, Index
 
 ### Community 190 - "Community 190"
 Cohesion: 0.40
-Nodes (4): DataModel, Doc, Id, TableNames
+Nodes (5): Tabs(), TabsContent(), TabsList(), tabsListVariants, TabsTrigger()
 
 ### Community 191 - "Community 191"
 Cohesion: 0.40
@@ -897,25 +915,49 @@ Nodes (4): config, proxy(), redirectToStorefrontLogin(), getUserRoleFromToken()
 Cohesion: 0.60
 Nodes (4): config, proxy(), redirectToLogin(), safeNextPath()
 
+### Community 205 - "Community 205"
+Cohesion: 0.47
+Nodes (5): formatCount(), formatTimestamp(), WidgetSentryErrors(), WidgetSentryErrorsProps, WidgetSentryStats
+
+### Community 209 - "Community 209"
+Cohesion: 0.33
+Nodes (5): ActionCtx, DatabaseReader, DatabaseWriter, MutationCtx, QueryCtx
+
+### Community 210 - "Community 210"
+Cohesion: 0.33
+Nodes (6): Account dashboard, Auth flow, Guest wishlist merge, Local development, Phase 2 — Auth & accounts, Resend (email verification + password reset)
+
+### Community 211 - "Community 211"
+Cohesion: 0.33
+Nodes (6): scripts, format, format:check, lint, test, typecheck
+
+### Community 212 - "Community 212"
+Cohesion: 0.40
+Nodes (4): DataModel, Doc, Id, TableNames
+
+### Community 213 - "Community 213"
+Cohesion: 0.40
+Nodes (3): columns, Row, rows
+
 ## Knowledge Gaps
-- **1265 isolated node(s):** `data`, `chartData`, `schema`, `columns`, `chartData` (+1260 more)
+- **1264 isolated node(s):** `Decisions locked in this round`, `Out of scope (parking lot for Phase 6)`, `2.1 The shared `DataTable` already exists`, `2.2 Per-page tables (the consumers)`, `2.3 Current dashboard (the thing to replace)` (+1259 more)
   These have ≤1 connection - possible missing edges or undocumented components.
-- **40 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
+- **32 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
 
-- **Why does `cn()` connect `UI primitives — pagination, popover, toggle` to `Storefront auth forms & login flow`, `Storefront UI utilities (color/size selectors, accordion)`, `Community 133`, `Data table, drawer, tabs primitives`, `Dropdown menu, cart icon, header`, `Sidebar, tooltip, layout primitives`, `Account sidebar & order detail components`, `Category navigation & pills`, `Community 147`, `Community 149`, `Sheet / side-panel primitives`, `Convex products module`, `Cart item row & confirm dialog`, `Hero, search overlay, mobile nav`, `Checkout flow (form, place-order, summary)`, `Footer & sale banner`, `PDP-related: stock indicator, size selector`, `Storefront account pages (profile, orders, wishlist)`, `PLP grid, sort, load-more, related products`, `Account orders list & order confirmation client`, `Product filters, category header`, `PDP storefront breadcrumb + featured products`, `Form primitives (form, label, input, select)`, `Data table primitives (sortable, paginated)`, `storefront · profile_form_tsx, page_tsx`, `lib · i18n_ts`, `convex · server_d_ts`, `admin · middleware_ts`, `Community 106`, `Community 110`, `Community 113`, `Community 115`, `Community 119`, `Community 123`, `Community 124`?**
-  _High betweenness centrality (0.068) - this node is a cross-community bridge._
-- **Why does `t()` connect `storefront · profile_form_tsx, page_tsx` to `Storefront auth forms & login flow`, `Storefront UI utilities (color/size selectors, accordion)`, `UI primitives — pagination, popover, toggle`, `Community 136`, `Data table, drawer, tabs primitives`, `Sidebar, tooltip, layout primitives`, `Account sidebar & order detail components`, `Category navigation & pills`, `Community 147`, `Community 149`, `Sheet / side-panel primitives`, `Convex products module`, `Admin sidebar`, `Cart item row & confirm dialog`, `Wishlist icons & account summary`, `Hero, search overlay, mobile nav`, `Checkout flow (form, place-order, summary)`, `Footer & sale banner`, `PDP shell & image gallery`, `PDP-related: stock indicator, size selector`, `Storefront account pages (profile, orders, wishlist)`, `Account orders list & order confirmation client`, `Community 168`, `Product filters, category header`, `PDP storefront breadcrumb + featured products`, `Community 174`, `Form primitives (form, label, input, select)`, `Data table primitives (sortable, paginated)`, `storefront · verify_email_form_tsx, page_tsx, verify_email_flow_tsx`, `Community 182`, `Community 184`, `Community 194`, `lib · i18n_ts`, `convex · server_d_ts`, `admin · middleware_ts`, `Isolated: httpAction`, `Community 105`, `Community 106`, `Community 109`, `Community 110`, `Community 111`, `Community 113`, `Community 115`, `Community 116`, `Community 117`, `Community 119`, `Community 123`, `Community 124`?**
-  _High betweenness centrality (0.060) - this node is a cross-community bridge._
-- **Why does `Button()` connect `Community 149` to `Storefront UI utilities (color/size selectors, accordion)`, `UI primitives — pagination, popover, toggle`, `Data table, drawer, tabs primitives`, `Dropdown menu, cart icon, header`, `Sidebar, tooltip, layout primitives`, `Account sidebar & order detail components`, `Category navigation & pills`, `Community 147`, `Sheet / side-panel primitives`, `Admin sidebar`, `Cart item row & confirm dialog`, `PDP shell & image gallery`, `PDP-related: stock indicator, size selector`, `Storefront account pages (profile, orders, wishlist)`, `Account orders list & order confirmation client`, `Data table primitives (sortable, paginated)`, `Community 182`, `Community 184`, `storefront · profile_form_tsx, page_tsx`, `lib · i18n_ts`, `admin · middleware_ts`, `Community 105`, `Community 106`, `Community 108`, `Community 109`, `Community 110`, `Community 113`, `Community 115`, `Community 117`, `Community 123`?**
-  _High betweenness centrality (0.018) - this node is a cross-community bridge._
+- **Why does `cn()` connect `UI primitives — pagination, popover, toggle` to `Storefront auth forms & login flow`, `Storefront UI utilities (color/size selectors, accordion)`, `Community 139`, `Dropdown menu, cart icon, header`, `Sidebar, tooltip, layout primitives`, `Data table, drawer, tabs primitives`, `Account sidebar & order detail components`, `Category navigation & pills`, `Community 147`, `Community 149`, `Agent critical rules & never-do list`, `Sheet / side-panel primitives`, `Convex products module`, `Cart item row & confirm dialog`, `Hero, search overlay, mobile nav`, `Checkout flow (form, place-order, summary)`, `Footer & sale banner`, `PDP-related: stock indicator, size selector`, `Storefront account pages (profile, orders, wishlist)`, `PLP grid, sort, load-more, related products`, `Account orders list & order confirmation client`, `PDP storefront breadcrumb + featured products`, `Community 174`, `Form primitives (form, label, input, select)`, `Data table primitives (sortable, paginated)`, `storefront · verify_email_form_tsx, page_tsx, verify_email_flow_tsx`, `Community 184`, `storefront · profile_form_tsx, page_tsx`, `Community 190`, `doc · readme_md, agents_md, prd_md`, `admin · middleware_ts`, `Community 106`, `Community 110`, `Community 113`, `Community 115`, `Community 119`, `Community 123`, `Community 124`?**
+  _High betweenness centrality (0.076) - this node is a cross-community bridge._
+- **Why does `t()` connect `storefront · profile_form_tsx, page_tsx` to `Storefront auth forms & login flow`, `Storefront UI utilities (color/size selectors, accordion)`, `Community 136`, `Data table, drawer, tabs primitives`, `Community 139`, `Sidebar, tooltip, layout primitives`, `Category navigation & pills`, `Community 147`, `Community 149`, `Agent critical rules & never-do list`, `Sheet / side-panel primitives`, `Convex products module`, `Account layout & header`, `Admin sidebar`, `Cart item row & confirm dialog`, `Wishlist icons & account summary`, `Hero, search overlay, mobile nav`, `Checkout flow (form, place-order, summary)`, `Footer & sale banner`, `PDP shell & image gallery`, `Community 163`, `PDP-related: stock indicator, size selector`, `Storefront account pages (profile, orders, wishlist)`, `Community 168`, `Account orders list & order confirmation client`, `PDP storefront breadcrumb + featured products`, `Form primitives (form, label, input, select)`, `Data table primitives (sortable, paginated)`, `Community 182`, `Community 194`, `lib · i18n_ts`, `convex · server_d_ts`, `doc · readme_md, agents_md, prd_md`, `Community 205`, `admin · middleware_ts`, `doc · prd_md`, `Isolated: httpAction`, `Community 105`, `Community 106`, `Community 109`, `Community 110`, `Community 111`, `Community 113`, `Community 115`, `Community 116`, `Community 117`, `Community 123`, `Community 124`?**
+  _High betweenness centrality (0.045) - this node is a cross-community bridge._
+- **Why does `api` connect `Community 182` to `Community 161`, `lib · i18n_ts`, `Guest cart state (localStorage + merge)`, `Storefront root layout, fonts, providers`, `convex · server_d_ts`, `Empty states & placeholder image`, `Community 140`, `Category navigation & pills`, `Community 115`, `Community 117`, `Community 181`, `Account layout & header`, `Admin sidebar`, `convex · datamodel_d_ts, schema_ts`?**
+  _High betweenness centrality (0.044) - this node is a cross-community bridge._
 - **Are the 45 inferred relationships involving `cn()` (e.g. with `ProfileForm()` and `RootLayout()`) actually correct?**
   _`cn()` has 45 INFERRED edges - model-reasoned connections that need verification._
-- **Are the 158 inferred relationships involving `t()` (e.g. with `AccountHeader()` and `AccountSidebar()`) actually correct?**
-  _`t()` has 158 INFERRED edges - model-reasoned connections that need verification._
-- **What connects `data`, `chartData`, `schema` to the rest of the system?**
-  _1265 weakly-connected nodes found - possible documentation gaps or missing edges._
-- **Should `Architecture concepts & design rationale (docs)` be split into smaller, more focused modules?**
-  _Cohesion score 0.06659619450317125 - nodes in this community are weakly interconnected._
+- **Are the 157 inferred relationships involving `t()` (e.g. with `AccountHeader()` and `AccountSidebar()`) actually correct?**
+  _`t()` has 157 INFERRED edges - model-reasoned connections that need verification._
+- **What connects `Decisions locked in this round`, `Out of scope (parking lot for Phase 6)`, `2.1 The shared `DataTable` already exists` to the rest of the system?**
+  _1264 weakly-connected nodes found - possible documentation gaps or missing edges._
+- **Should `Storefront auth forms & login flow` be split into smaller, more focused modules?**
+  _Cohesion score 0.12962962962962962 - nodes in this community are weakly interconnected._
