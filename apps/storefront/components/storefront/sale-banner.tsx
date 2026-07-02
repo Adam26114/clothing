@@ -7,7 +7,7 @@ import { XIcon } from 'lucide-react';
 import { useQuery } from 'convex/react';
 
 import { t } from '@workspace/lib/i18n';
-import { cn } from '@workspace/lib/cn';
+import { cn } from '@workspace/ui/lib/utils';
 import { api } from '@workspace/convex/_generated/api';
 import { Button } from '@workspace/ui/components/button';
 

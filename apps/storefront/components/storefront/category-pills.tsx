@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import type { Id } from '@workspace/convex/_generated/dataModel';
 
-import { cn } from '@workspace/lib/cn';
+import { cn } from '@workspace/ui/lib/utils';
 import { t } from '@workspace/lib/i18n';
 
 import { PlaceholderImage } from './placeholder-image';

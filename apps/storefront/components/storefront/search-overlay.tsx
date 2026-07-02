@@ -7,7 +7,7 @@ import { useQuery } from 'convex/react';
 import { SearchIcon } from 'lucide-react';
 
 import { t } from '@workspace/lib/i18n';
-import { cn } from '@workspace/lib/cn';
+import { cn } from '@workspace/ui/lib/utils';
 import { formatMMK } from '@workspace/lib/formatMMK';
 import { api } from '@workspace/convex/_generated/api';
 

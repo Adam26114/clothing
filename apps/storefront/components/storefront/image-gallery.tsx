@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from 'react';
 import useEmblaCarousel from 'embla-carousel-react';
-import { cn } from '@workspace/lib/cn';
+import { cn } from '@workspace/ui/lib/utils';
 import { t } from '@workspace/lib/i18n';
 
 import { PlaceholderImage } from './placeholder-image';

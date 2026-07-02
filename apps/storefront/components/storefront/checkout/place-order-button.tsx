@@ -4,7 +4,7 @@ import { Loader2 } from 'lucide-react';
 
 import { Button } from '@workspace/ui/components/button';
 import { t } from '@workspace/lib/i18n';
-import { cn } from '@workspace/lib/cn';
+import { cn } from '@workspace/ui/lib/utils';
 
 interface PlaceOrderButtonProps {
   isSubmitting: boolean;

@@ -1,5 +1,6 @@
 'use client';
 
+import * as React from 'react';
 import { TrendingDownIcon, TrendingUpIcon } from 'lucide-react';
 
 import { Badge } from '@workspace/ui/components/badge';
@@ -79,7 +80,7 @@ function SectionCardItem({ card }: { card: SectionCard }) {
 
 export function SectionCards({ cards }: { cards: ReadonlyArray<SectionCard> }): React.JSX.Element {
   return (
-    <div className="*:data-[slot=card]:from-primary/5 *:data-[slot=card]:to-card grid grid-cols-1 gap-4 *:data-[slot=card]:bg-gradient-to-t *:data-[slot=card]:shadow-xs @xl/main:grid-cols-2 @5xl/main:grid-cols-4">
+    <div className="*:data-[slot=card]:from-primary/5 *:data-[slot=card]:to-card grid grid-cols-1 gap-4 *:data-[slot=card]:bg-gradient-to-t *:data-[slot=card]:shadow-xs md:grid-cols-2 xl:grid-cols-4">
       {cards.map((card, index) => (
         <SectionCardItem key={`${card.title}-${index}`} card={card} />
       ))}

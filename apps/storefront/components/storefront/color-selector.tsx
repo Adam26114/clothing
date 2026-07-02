@@ -1,6 +1,6 @@
 'use client';
 
-import { cn } from '@workspace/lib/cn';
+import { cn } from '@workspace/ui/lib/utils';
 
 export interface ColorSwatch {
   id: string;

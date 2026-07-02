@@ -16,18 +16,12 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from '@workspace/ui/components/sidebar';
-import {
-  EllipsisVerticalIcon,
-  CircleUserRoundIcon,
-  CreditCardIcon,
-  BellIcon,
-  LogOutIcon,
-} from 'lucide-react';
+import { EllipsisVerticalIcon, LogOutIcon } from 'lucide-react';
 
 export function NavUser({
   user,
   onSignOut,
-  signOutLabel = 'Log out',
+  signOutLabel,
 }: {
   user: {
     name: string;
@@ -35,28 +29,19 @@ export function NavUser({
     avatar?: string | null;
   };
   onSignOut?: () => void;
-  signOutLabel?: string;
+  signOutLabel: string;
 }) {
   const { isMobile } = useSidebar();
-  const initials =
-    user.name
-      .split(/\s+/)
-      .filter((part) => part.length > 0)
-      .slice(0, 2)
-      .map((part) => part.charAt(0).toUpperCase())
-      .join('') || '?';
   return (
     <SidebarMenu>
       <SidebarMenuItem>
         <DropdownMenu>
           <DropdownMenuTrigger
-            render={
-              <SidebarMenuButton size="lg" className="aria-expanded:bg-muted cursor-pointer" />
-            }
+            render={<SidebarMenuButton size="lg" className="aria-expanded:bg-muted" />}
           >
             <Avatar className="size-8 rounded-lg grayscale">
               {user.avatar ? <AvatarImage src={user.avatar} alt={user.name} /> : null}
-              <AvatarFallback className="rounded-lg">{initials}</AvatarFallback>
+              <AvatarFallback className="rounded-lg">CN</AvatarFallback>
             </Avatar>
             <div className="grid flex-1 text-start text-sm leading-tight">
               <span className="truncate font-medium">{user.name}</span>
@@ -75,7 +60,7 @@ export function NavUser({
                 <div className="flex items-center gap-2 px-1 py-1.5 text-start text-sm">
                   <Avatar className="size-8">
                     {user.avatar ? <AvatarImage src={user.avatar} alt={user.name} /> : null}
-                    <AvatarFallback className="rounded-lg">{initials}</AvatarFallback>
+                    <AvatarFallback className="rounded-lg">CN</AvatarFallback>
                   </Avatar>
                   <div className="grid flex-1 text-start text-sm leading-tight">
                     <span className="truncate font-medium">{user.name}</span>
@@ -85,32 +70,10 @@ export function NavUser({
               </DropdownMenuLabel>
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
-            <DropdownMenuGroup>
-              <DropdownMenuItem>
-                <CircleUserRoundIcon />
-                Account
-              </DropdownMenuItem>
-              <DropdownMenuItem>
-                <CreditCardIcon />
-                Billing
-              </DropdownMenuItem>
-              <DropdownMenuItem>
-                <BellIcon />
-                Notifications
-              </DropdownMenuItem>
-            </DropdownMenuGroup>
-            <DropdownMenuSeparator />
-            {onSignOut ? (
-              <DropdownMenuItem onClick={onSignOut}>
-                <LogOutIcon />
-                {signOutLabel}
-              </DropdownMenuItem>
-            ) : (
-              <DropdownMenuItem>
-                <LogOutIcon />
-                {signOutLabel}
-              </DropdownMenuItem>
-            )}
+            <DropdownMenuItem onClick={onSignOut}>
+              <LogOutIcon />
+              {signOutLabel}
+            </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
       </SidebarMenuItem>

@@ -55,7 +55,7 @@ type AppSidebarProps = {
   quickCreateMenu?: React.ReactNode;
   quickCreateLabel?: string;
   onSignOut?: () => void;
-  signOutLabel?: string;
+  signOutLabel: string;
 } & React.ComponentProps<typeof Sidebar>;
 
 export function AppSidebar({
@@ -67,7 +67,7 @@ export function AppSidebar({
   ...props
 }: AppSidebarProps) {
   return (
-    <Sidebar collapsible="offcanvas" {...props}>
+    <Sidebar collapsible="icon" {...props}>
       <SidebarHeader>
         <SidebarMenu>
           <SidebarMenuItem>

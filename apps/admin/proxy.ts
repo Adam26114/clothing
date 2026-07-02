@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { getToken, getUserRoleFromToken } from '@/lib/auth-server';
+import { getCurrentUser } from '@workspace/lib/auth/server';
 import { isAdminRole } from '@workspace/lib/auth';
 
 const STOREFRONT_URL = process.env.NEXT_PUBLIC_STOREFRONT_URL ?? 'http://localhost:3000';
@@ -11,10 +11,8 @@ function redirectToStorefrontLogin(): NextResponse {
 }
 
 export async function proxy() {
-  const token = await getToken();
-  if (!token) return redirectToStorefrontLogin();
-  const role = await getUserRoleFromToken(token);
-  if (!isAdminRole(role)) return redirectToStorefrontLogin();
+  const user = await getCurrentUser();
+  if (!isAdminRole(user?.role)) return redirectToStorefrontLogin();
   return NextResponse.next();
 }
 

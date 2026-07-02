@@ -3,7 +3,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@workspace/ui/components/card';
 import { useCartItems } from '@workspace/lib/cart/merge';
 import { t } from '@workspace/lib/i18n';
-import { cn } from '@workspace/lib/cn';
+import { cn } from '@workspace/ui/lib/utils';
 
 import { CartSummaryBlock } from '../cart/cart-summary-block';
 

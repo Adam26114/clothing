@@ -5,6 +5,7 @@ import { CalendarIcon } from 'lucide-react';
 
 import { Button } from '@workspace/ui/components/button';
 import { Calendar } from '@workspace/ui/components/calendar';
+import { Combobox, type ComboboxOption } from '@workspace/ui/components/combobox';
 import {
   Popover,
   PopoverContent,
@@ -12,20 +13,13 @@ import {
   PopoverTitle,
   PopoverTrigger,
 } from '@workspace/ui/components/popover';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@workspace/ui/components/select';
+import { cn } from '@workspace/ui/lib/utils';
 import { t } from '@workspace/lib/i18n';
 
 export type DateRangePreset = 'all' | 'today' | '7d' | '30d' | '90d' | 'custom';
 
 export type DateRangeValue =
-  | { preset: Exclude<DateRangePreset, 'custom'> }
-  | { preset: 'custom'; from: number; to: number };
+  { preset: Exclude<DateRangePreset, 'custom'> } | { preset: 'custom'; from: number; to: number };
 
 function startOfDay(date: Date): Date {
   const next = new Date(date);
@@ -77,18 +71,21 @@ export function dateRangeToBounds(
   }
 }
 
-const PRESET_OPTIONS: ReadonlyArray<{ value: DateRangePreset; labelKey: string }> = [
-  { value: 'all', labelKey: 'admin.orders.dateRange.all' },
-  { value: 'today', labelKey: 'admin.orders.dateRange.today' },
-  { value: '7d', labelKey: 'admin.orders.dateRange.7d' },
-  { value: '30d', labelKey: 'admin.orders.dateRange.30d' },
-  { value: '90d', labelKey: 'admin.orders.dateRange.90d' },
-  { value: 'custom', labelKey: 'admin.orders.dateRange.custom' },
+const PRESET_VALUES: ReadonlyArray<DateRangePreset> = [
+  'all',
+  'today',
+  '7d',
+  '30d',
+  '90d',
+  'custom',
 ];
 
-function isDateRangePreset(value: string): value is DateRangePreset {
-  return PRESET_OPTIONS.some((option) => option.value === value);
-}
+const PRESET_OPTIONS: ReadonlyArray<ComboboxOption<DateRangePreset>> = PRESET_VALUES.map(
+  (value) => ({
+    value,
+    label: t(`admin.orders.dateRange.${value}`),
+  })
+);
 
 const DATE_FORMAT = new Intl.DateTimeFormat('en-GB', {
   day: '2-digit',
@@ -113,55 +110,53 @@ interface DateRangePickerProps {
 }
 
 export function DateRangePicker({ value, onChange }: DateRangePickerProps) {
-  const [open, setOpen] = React.useState(false);
+  const [customOpen, setCustomOpen] = React.useState(false);
+  const [pendingPreset, setPendingPreset] = React.useState<DateRangePreset | null>(null);
+
+  const handlePresetChange = React.useCallback(
+    (next: DateRangePreset | null) => {
+      if (next === null || next === 'all') {
+        onChange({ preset: 'all' });
+        return;
+      }
+      if (next === 'custom') {
+        setPendingPreset('custom');
+        setCustomOpen(true);
+        return;
+      }
+      onChange({ preset: next });
+    },
+    [onChange]
+  );
 
   return (
     <div className="flex flex-wrap items-center gap-2">
-      <Select
-        value={value.preset}
-        onValueChange={(next) => {
-          if (next === null || !isDateRangePreset(next)) {
-            return;
-          }
-          if (next === 'custom') {
-            const seed = defaultCustomRange();
-            onChange({ preset: 'custom', from: seed.from, to: seed.to });
-          } else {
-            onChange({ preset: next });
-          }
-        }}
-      >
-        <SelectTrigger
-          size="sm"
-          className="min-w-40 cursor-pointer"
-          aria-label={t('admin.orders.dateRange.label')}
-        >
-          <SelectValue placeholder={t('admin.orders.dateRange.label')} />
-        </SelectTrigger>
-        <SelectContent>
-          {PRESET_OPTIONS.map((option) => (
-            <SelectItem key={option.value} value={option.value} className="cursor-pointer">
-              {t(option.labelKey)}
-            </SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
+      <Combobox<DateRangePreset>
+        multiple={false}
+        options={PRESET_OPTIONS}
+        value={pendingPreset ?? value.preset}
+        onChange={handlePresetChange}
+        placeholder={t('admin.orders.dateRange.label')}
+        searchPlaceholder={t('admin.orders.dateRange.search')}
+        emptyMessage={t('admin.orders.dateRange.empty')}
+        clearable={false}
+      />
 
       {value.preset === 'custom' ? (
-        <Popover open={open} onOpenChange={setOpen}>
+        <Popover open={customOpen} onOpenChange={setCustomOpen}>
           <PopoverTrigger
             render={
               <Button
                 type="button"
                 variant="outline"
                 size="sm"
-                className="cursor-pointer font-normal"
+                className={cn('h-7 cursor-pointer font-normal')}
                 aria-label={t('admin.orders.dateRange.custom')}
               />
             }
           >
             <CalendarIcon className="me-1.5 size-4" aria-hidden />
-            {value.preset === 'custom' ? formatRange(value.from, value.to) : null}
+            {formatRange(value.from, value.to)}
           </PopoverTrigger>
           <PopoverContent align="start" className="w-auto p-3">
             <CustomRangeEditor
@@ -170,7 +165,8 @@ export function DateRangePicker({ value, onChange }: DateRangePickerProps) {
               initialTo={value.to}
               onApply={(next) => {
                 onChange({ preset: 'custom', from: next.from, to: next.to });
-                setOpen(false);
+                setCustomOpen(false);
+                setPendingPreset(null);
               }}
             />
           </PopoverContent>

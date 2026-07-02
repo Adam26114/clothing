@@ -1,5 +1,5 @@
 import { t } from '@workspace/lib/i18n';
-import { cn } from '@workspace/lib/cn';
+import { cn } from '@workspace/ui/lib/utils';
 import { Card, CardContent, CardHeader, CardTitle } from '@workspace/ui/components/card';
 import { Separator } from '@workspace/ui/components/separator';
 import { CheckCircle2, Truck, Store, Banknote } from 'lucide-react';

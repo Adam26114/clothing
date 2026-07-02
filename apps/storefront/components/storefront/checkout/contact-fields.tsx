@@ -5,7 +5,7 @@ import type { UseFormRegister, FieldErrors } from 'react-hook-form';
 
 import { Input } from '@workspace/ui/components/input';
 import { Label } from '@workspace/ui/components/label';
-import { cn } from '@workspace/lib/cn';
+import { cn } from '@workspace/ui/lib/utils';
 import { t } from '@workspace/lib/i18n';
 
 import type { CheckoutFormValues } from './schema';

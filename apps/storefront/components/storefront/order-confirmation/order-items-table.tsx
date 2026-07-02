@@ -1,6 +1,6 @@
 import { formatMMK } from '@workspace/lib/formatMMK';
 import { t } from '@workspace/lib/i18n';
-import { cn } from '@workspace/lib/cn';
+import { cn } from '@workspace/ui/lib/utils';
 import {
   Table,
   TableBody,

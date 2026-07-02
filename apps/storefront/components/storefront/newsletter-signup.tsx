@@ -3,7 +3,7 @@
 import { useState, type FormEvent } from 'react';
 import { toast } from 'sonner';
 
-import { cn } from '@workspace/lib/cn';
+import { cn } from '@workspace/ui/lib/utils';
 import { t } from '@workspace/lib/i18n';
 import { Button } from '@workspace/ui/components/button';
 import { Input } from '@workspace/ui/components/input';

@@ -4,7 +4,7 @@ import { formatMMK } from '@workspace/lib/formatMMK';
 import { computeCartSummary, type CartSummaryItem } from '@workspace/lib/cart/summary';
 import { t } from '@workspace/lib/i18n';
 import type { DeliveryMethod } from '@workspace/lib/constants';
-import { cn } from '@workspace/lib/cn';
+import { cn } from '@workspace/ui/lib/utils';
 
 interface CartSummaryBlockProps {
   items: CartSummaryItem[];

@@ -15,7 +15,7 @@ import { Label } from '@workspace/ui/components/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@workspace/ui/components/card';
 import { useCartItems, type UnifiedCartItem } from '@workspace/lib/cart/merge';
 import { t } from '@workspace/lib/i18n';
-import { cn } from '@workspace/lib/cn';
+import { cn } from '@workspace/ui/lib/utils';
 
 import { checkoutFormSchema, checkoutFormDefaults, type CheckoutFormValues } from './schema';
 import { ContactFields } from './contact-fields';

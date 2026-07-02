@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { HeartIcon } from 'lucide-react';
 
-import { cn } from '@workspace/lib/cn';
+import { cn } from '@workspace/ui/lib/utils';
 import { useWishlist } from '@workspace/lib/wishlist';
 import { t } from '@workspace/lib/i18n';
 

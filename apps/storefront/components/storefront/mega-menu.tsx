@@ -7,7 +7,7 @@ import { useQuery } from 'convex/react';
 import { ChevronDownIcon } from 'lucide-react';
 
 import { t } from '@workspace/lib/i18n';
-import { cn } from '@workspace/lib/cn';
+import { cn } from '@workspace/ui/lib/utils';
 import { api } from '@workspace/convex/_generated/api';
 import type { Doc } from '@workspace/convex/_generated/dataModel';
 

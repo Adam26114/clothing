@@ -740,22 +740,24 @@ function ColumnVisibilityMenu<T>({ table }: { table: Table<T> }) {
         <span>Columns</span>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-44">
-        <DropdownMenuLabel>Toggle columns</DropdownMenuLabel>
-        <DropdownMenuSeparator />
-        {columns.map((column) => {
-          const label =
-            typeof column.columnDef.header === 'string' ? column.columnDef.header : column.id;
-          return (
-            <DropdownMenuCheckboxItem
-              key={column.id}
-              className="cursor-pointer capitalize"
-              checked={column.getIsVisible()}
-              onCheckedChange={(value) => column.toggleVisibility(!!value)}
-            >
-              {label}
-            </DropdownMenuCheckboxItem>
-          );
-        })}
+        <DropdownMenuGroup>
+          <DropdownMenuLabel>Toggle columns</DropdownMenuLabel>
+          <DropdownMenuSeparator />
+          {columns.map((column) => {
+            const label =
+              typeof column.columnDef.header === 'string' ? column.columnDef.header : column.id;
+            return (
+              <DropdownMenuCheckboxItem
+                key={column.id}
+                className="cursor-pointer capitalize"
+                checked={column.getIsVisible()}
+                onCheckedChange={(value) => column.toggleVisibility(!!value)}
+              >
+                {label}
+              </DropdownMenuCheckboxItem>
+            );
+          })}
+        </DropdownMenuGroup>
       </DropdownMenuContent>
     </DropdownMenu>
   );

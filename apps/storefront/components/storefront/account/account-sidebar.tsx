@@ -6,7 +6,7 @@ import { usePathname, useRouter } from 'next/navigation';
 import { HeartIcon, LogOutIcon, PackageIcon, UserIcon, ShoppingBagIcon } from 'lucide-react';
 import { toast } from 'sonner';
 
-import { cn } from '@workspace/lib/cn';
+import { cn } from '@workspace/ui/lib/utils';
 import { useAuth } from '@workspace/lib/auth/use-auth';
 import { t } from '@workspace/lib/i18n';
 import {

@@ -151,13 +151,15 @@ export function setStockForVariant(
 export const list = query({
   args: {
     status: v.optional(
-      v.union(
-        v.literal('pending'),
-        v.literal('confirmed'),
-        v.literal('processing'),
-        v.literal('shipped'),
-        v.literal('delivered'),
-        v.literal('cancelled')
+      v.array(
+        v.union(
+          v.literal('pending'),
+          v.literal('confirmed'),
+          v.literal('processing'),
+          v.literal('shipped'),
+          v.literal('delivered'),
+          v.literal('cancelled')
+        )
       )
     ),
     customerId: v.optional(v.id('users')),
@@ -182,7 +184,7 @@ export const list = query({
       if (filterCustomerId !== undefined && order.customerId !== filterCustomerId) {
         return false;
       }
-      if (args.status && order.status !== args.status) {
+      if (args.status && args.status.length > 0 && !args.status.includes(order.status)) {
         return false;
       }
       if (search) {
@@ -569,13 +571,15 @@ export const restore = mutation({
 export const adminList = query({
   args: {
     status: v.optional(
-      v.union(
-        v.literal('pending'),
-        v.literal('confirmed'),
-        v.literal('processing'),
-        v.literal('shipped'),
-        v.literal('delivered'),
-        v.literal('cancelled')
+      v.array(
+        v.union(
+          v.literal('pending'),
+          v.literal('confirmed'),
+          v.literal('processing'),
+          v.literal('shipped'),
+          v.literal('delivered'),
+          v.literal('cancelled')
+        )
       )
     ),
     customerId: v.optional(v.id('users')),
@@ -594,7 +598,7 @@ export const adminList = query({
       if (args.customerId !== undefined && order.customerId !== args.customerId) {
         return false;
       }
-      if (args.status && order.status !== args.status) {
+      if (args.status && args.status.length > 0 && !args.status.includes(order.status)) {
         return false;
       }
       if (args.dateFrom !== undefined && order.createdAt < args.dateFrom) {

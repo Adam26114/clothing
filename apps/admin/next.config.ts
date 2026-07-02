@@ -2,7 +2,7 @@ import path from 'node:path';
 
 import type { NextConfig } from 'next';
 
-import { Sentry } from '@workspace/lib/sentry';
+import * as Sentry from '@sentry/nextjs';
 
 const nextConfig: NextConfig = {
   transpilePackages: ['@workspace/ui', '@workspace/lib', '@workspace/convex'],

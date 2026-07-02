@@ -7,7 +7,7 @@ import { loadCategoryPageData } from '@/lib/convex-ssr';
 import { CategoryHeader } from '@/components/storefront/category-header';
 import { ProductGrid } from '@/components/storefront/product-grid';
 import { StorefrontBreadcrumb } from '@/components/storefront/breadcrumb';
-import { cn } from '@workspace/lib/cn';
+import { cn } from '@workspace/ui/lib/utils';
 
 export const dynamic = 'force-dynamic';
 

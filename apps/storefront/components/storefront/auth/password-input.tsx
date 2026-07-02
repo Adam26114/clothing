@@ -4,7 +4,7 @@ import { forwardRef, useId, useState } from 'react';
 import { EyeIcon, EyeOffIcon } from 'lucide-react';
 
 import { Input } from '@workspace/ui/components/input';
-import { cn } from '@workspace/lib/cn';
+import { cn } from '@workspace/ui/lib/utils';
 import { t } from '@workspace/lib/i18n';
 
 interface PasswordInputProps extends Omit<React.ComponentProps<'input'>, 'type'> {

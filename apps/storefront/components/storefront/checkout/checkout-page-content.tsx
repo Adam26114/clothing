@@ -4,7 +4,7 @@ import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 
 import { useCartItems } from '@workspace/lib/cart/merge';
-import { cn } from '@workspace/lib/cn';
+import { cn } from '@workspace/ui/lib/utils';
 
 import { CheckoutForm } from './checkout-form';
 import { OrderSummary } from './order-summary';

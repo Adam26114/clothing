@@ -6,7 +6,7 @@ import { Truck, Store } from 'lucide-react';
 
 import { RadioGroup, RadioGroupItem } from '@workspace/ui/components/radio-group';
 import { Label } from '@workspace/ui/components/label';
-import { cn } from '@workspace/lib/cn';
+import { cn } from '@workspace/ui/lib/utils';
 import { formatMMK } from '@workspace/lib/formatMMK';
 import { SHIPPING_FEE, SHIPPING_DELIVERY_DAYS } from '@workspace/lib/constants';
 import { t } from '@workspace/lib/i18n';

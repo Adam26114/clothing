@@ -1,4 +1,4 @@
-import { cn } from '@workspace/lib/cn';
+import { cn } from '@workspace/ui/lib/utils';
 import { t } from '@workspace/lib/i18n';
 
 export type PlaceholderAspectRatio = 'portrait' | 'square' | 'landscape' | 'video' | 'banner';

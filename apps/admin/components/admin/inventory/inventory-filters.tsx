@@ -1,21 +1,17 @@
 'use client';
 
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@workspace/ui/components/select';
+import { Combobox, type ComboboxOption } from '@workspace/ui/components/combobox';
 import { Switch } from '@workspace/ui/components/switch';
 import { t } from '@workspace/lib/i18n';
 import type { Doc, Id } from '@workspace/convex/_generated/dataModel';
 
 export type StockFilter = 'none' | 'low' | 'out';
 
+type CategoryFilter = Id<'categories'> | 'all';
+
 interface InventoryFiltersProps {
-  category: Id<'categories'> | 'all';
-  onCategoryChange: (next: Id<'categories'> | 'all') => void;
+  category: CategoryFilter;
+  onCategoryChange: (next: CategoryFilter) => void;
   stockFilter: StockFilter;
   onStockFilterChange: (next: StockFilter) => void;
   categories: ReadonlyArray<Doc<'categories'>>;
@@ -36,35 +32,28 @@ export function InventoryFilters({
     onStockFilterChange(next ? 'out' : 'none');
   };
 
+  const categoryOptions: ReadonlyArray<ComboboxOption<CategoryFilter>> = [
+    { value: 'all', label: t('admin.inventory.filterCategoryAll') },
+    ...categories.map((cat) => ({
+      value: cat._id as CategoryFilter,
+      label: cat.name,
+    })),
+  ];
+
   return (
     <div className="flex flex-wrap items-center gap-2">
-      <Select<string>
+      <Combobox<CategoryFilter>
+        multiple={false}
+        options={categoryOptions}
         value={category}
-        onValueChange={(value) => {
-          if (value === null) {
-            return;
-          }
-          if (value === 'all') {
-            onCategoryChange('all');
-            return;
-          }
-          onCategoryChange(value as Id<'categories'>);
+        onChange={(next) => {
+          onCategoryChange(next ?? 'all');
         }}
-      >
-        <SelectTrigger size="sm" className="min-w-40 cursor-pointer">
-          <SelectValue placeholder={t('admin.inventory.filterCategory')} />
-        </SelectTrigger>
-        <SelectContent>
-          <SelectItem value="all" className="cursor-pointer">
-            {t('admin.inventory.filterCategoryAll')}
-          </SelectItem>
-          {categories.map((cat) => (
-            <SelectItem key={cat._id} value={String(cat._id)} className="cursor-pointer">
-              {cat.name}
-            </SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
+        placeholder={t('admin.inventory.filterCategory')}
+        searchPlaceholder={t('admin.inventory.filterCategorySearch')}
+        emptyMessage={t('admin.inventory.filterCategoryEmpty')}
+        clearable={false}
+      />
 
       <div className="flex items-center gap-2">
         <Switch
