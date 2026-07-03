@@ -40,10 +40,6 @@ interface MergeGuestResponse {
   }>;
 }
 
-function isConvexError(err: unknown): err is ConvexError<string> {
-  return err instanceof ConvexError;
-}
-
 function sameItem(a: GuestCartItem, b: GuestCartItem): boolean {
   return a.productId === b.productId && a.colorVariantId === b.colorVariantId && a.size === b.size;
 }
@@ -97,7 +93,7 @@ export function useCartMergeOnAuth(options?: UseCartMergeOnAuthOptions): void {
         options?.onShowToast?.(msg);
       })
       .catch((err: unknown) => {
-        if (isConvexError(err)) {
+        if (err instanceof ConvexError) {
           console.warn('Cart merge failed (ConvexError), keeping guest cart for retry', err.data);
         } else {
           console.warn('Cart merge failed, keeping guest cart for retry', err);

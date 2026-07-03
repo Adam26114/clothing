@@ -3,7 +3,6 @@ import type { Metadata } from 'next';
 
 import { loadProductData } from '@/lib/convex-ssr';
 import { PdpShell } from '@/components/storefront/pdp-shell';
-import { RelatedProducts } from '@/components/storefront/related-products';
 import { StorefrontBreadcrumb } from '@/components/storefront/breadcrumb';
 import { t } from '@workspace/lib/i18n';
 
@@ -38,7 +37,6 @@ export default async function ProductPage({ params }: ProductPageProps) {
       <div className="container mx-auto max-w-7xl px-4 py-8 md:py-12 lg:py-16">
         <StorefrontBreadcrumb items={[{ label: product.name }]} className="mb-6" />
         <PdpShell product={product} />
-        <RelatedProducts />
       </div>
     </main>
   );

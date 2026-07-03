@@ -5,6 +5,7 @@ import type { Doc } from '@workspace/convex/_generated/dataModel';
 
 import { RowActions, SortableHeader, type ColumnDef } from '@workspace/ui/components/data-table';
 import { DropdownMenuItem } from '@workspace/ui/components/dropdown-menu';
+import { formatDate } from '@workspace/lib/formatDate';
 import { t } from '@workspace/lib/i18n';
 
 import { RoleSelect } from './role-select';
@@ -19,18 +20,6 @@ export interface UserRow {
   role: UserRole;
   isActive: boolean;
   createdAt: number;
-}
-
-function formatDate(timestamp: number): string {
-  try {
-    return new Intl.DateTimeFormat('en-GB', {
-      day: '2-digit',
-      month: 'short',
-      year: 'numeric',
-    }).format(new Date(timestamp));
-  } catch {
-    return new Date(timestamp).toISOString();
-  }
 }
 
 function getUserSearchableText(row: UserRow): string {

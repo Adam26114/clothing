@@ -4,10 +4,10 @@ import { PlusIcon } from 'lucide-react';
 
 import { AdminPageHeader } from '@workspace/ui/components/admin/page-header';
 import { Button } from '@workspace/ui/components/button';
+import { DataTableSkeleton } from '@workspace/ui/components/admin/data-table-skeleton';
 import { t } from '@workspace/lib/i18n';
 
 import { ProductsTableClient } from './products-table-client';
-import { ProductsSkeleton } from '@/components/admin/products/products-skeleton';
 
 export default function Page() {
   return (
@@ -21,7 +21,7 @@ export default function Page() {
           </Button>
         }
       />
-      <Suspense fallback={<ProductsSkeleton />}>
+      <Suspense fallback={<DataTableSkeleton columnCount={9} rowCount={8} />}>
         <ProductsTableClient />
       </Suspense>
     </div>

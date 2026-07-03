@@ -28,7 +28,6 @@ interface ComboboxSharedProps<T extends string> {
   emptyMessage?: string;
   className?: string;
   triggerClassName?: string;
-  contentClassName?: string;
   disabled?: boolean;
 }
 
@@ -39,7 +38,6 @@ type ComboboxProps<T extends string> = ComboboxSharedProps<T> &
         value: ReadonlyArray<T>;
         onChange: (next: ReadonlyArray<T>) => void;
         clearable?: boolean;
-        maxLabelCount?: number;
       }
     | {
         multiple: false;
@@ -57,7 +55,6 @@ export function Combobox<T extends string>(props: ComboboxProps<T>) {
     emptyMessage = 'No results found.',
     className,
     triggerClassName,
-    contentClassName,
     disabled,
   } = props;
   const multiple = props.multiple !== false;
@@ -111,15 +108,11 @@ export function Combobox<T extends string>(props: ComboboxProps<T>) {
       return null;
     }
     if (multiple) {
-      const maxLabelCount = props.maxLabelCount ?? 1;
-      if (selectedOptions.length <= maxLabelCount) {
+      if (selectedOptions.length <= 1) {
         return selectedOptions.map((option) => option.label).join(', ');
       }
-      const visible = selectedOptions
-        .slice(0, maxLabelCount)
-        .map((option) => option.label)
-        .join(', ');
-      const overflow = selectedOptions.length - maxLabelCount;
+      const visible = selectedOptions[0]!.label;
+      const overflow = selectedOptions.length - 1;
       return (
         <>
           {visible}
@@ -153,9 +146,8 @@ export function Combobox<T extends string>(props: ComboboxProps<T>) {
         </span>
         <span className="flex shrink-0 items-center gap-1">
           {clearable && selectedOptions.length > 0 ? (
-            <span
-              role="button"
-              tabIndex={-1}
+            <button
+              type="button"
               aria-label="Clear selection"
               onClick={handleClear}
               onPointerDown={(event) => {
@@ -164,7 +156,7 @@ export function Combobox<T extends string>(props: ComboboxProps<T>) {
               className="text-muted-foreground hover:text-foreground inline-flex size-4 cursor-pointer items-center justify-center rounded-sm"
             >
               <XIcon className="size-3.5" aria-hidden />
-            </span>
+            </button>
           ) : null}
           <ChevronDownIcon
             aria-hidden
@@ -175,11 +167,7 @@ export function Combobox<T extends string>(props: ComboboxProps<T>) {
           />
         </span>
       </PopoverTrigger>
-      <PopoverContent
-        align="start"
-        sideOffset={6}
-        className={cn('w-64 gap-0 p-0', contentClassName)}
-      >
+      <PopoverContent align="start" sideOffset={6} className={cn('w-64 gap-0 p-0')}>
         <Command>
           <CommandInput placeholder={searchPlaceholder} />
           <CommandList>

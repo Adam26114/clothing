@@ -4,11 +4,6 @@ import type { Doc, Id } from './_generated/dataModel';
 import { DEFAULT_PAGE_SIZE, LOW_STOCK_THRESHOLD } from '@workspace/lib/constants';
 import { requireAdmin } from './authHelpers';
 
-function newVariantId(): string {
-  const random = Math.random().toString(36).slice(2, 8);
-  return `variant-${random}`;
-}
-
 const sortValidator = v.optional(
   v.union(
     v.literal('newest'),
@@ -525,7 +520,7 @@ export const duplicate = mutation({
     }
     const now = Date.now();
     const clonedColorVariants = product.colorVariants.map((variant) => ({
-      id: newVariantId(),
+      id: `variant-${Math.random().toString(36).slice(2, 8)}`,
       colorName: variant.colorName,
       colorHex: variant.colorHex,
       images: [],

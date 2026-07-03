@@ -16,24 +16,13 @@ import {
   TableRow,
 } from '@workspace/ui/components/table';
 import { formatMMK } from '@workspace/lib/formatMMK';
+import { formatDate } from '@workspace/lib/formatDate';
 import { t } from '@workspace/lib/i18n';
 
 import { orderStatusLabel } from '@/lib/order-status-label';
 
 interface UserOrderHistoryProps {
   orders: Doc<'orders'>[];
-}
-
-function formatDate(timestamp: number): string {
-  try {
-    return new Intl.DateTimeFormat('en-GB', {
-      day: '2-digit',
-      month: 'short',
-      year: 'numeric',
-    }).format(new Date(timestamp));
-  } catch {
-    return new Date(timestamp).toISOString();
-  }
 }
 
 function deliveryLabel(method: 'shipping' | 'pickup'): string {

@@ -1,8 +1,7 @@
 import { ConvexError, v } from 'convex/values';
-import { query, mutation, internalMutation, type MutationCtx } from './_generated/server';
-import type { Doc, Id } from './_generated/dataModel';
+import { query, mutation, internalMutation } from './_generated/server';
+import type { Doc } from './_generated/dataModel';
 import { DEFAULT_PAGE_SIZE } from '@workspace/lib/constants';
-import { isAdminRole, type UserRole } from '@workspace/lib/auth';
 import { authComponent } from './auth';
 import { getCurrentUser, requireAdmin, requireUser } from './authHelpers';
 import { Sentry } from './sentry_init';
@@ -75,51 +74,33 @@ export const getById = query({
   },
 });
 
-type SetUserRoleCtx = MutationCtx;
-async function setUserRoleImpl(
-  ctx: MutationCtx,
-  args: { userId: Id<'users'>; role: 'customer' | 'admin' | 'super-admin' }
-): Promise<Id<'users'>> {
-  const actor = await requireAdmin(ctx);
-  if (actor.role !== 'super-admin' && args.role !== 'customer') {
-    throw new ConvexError('Only super-admin can promote to admin');
-  }
-  if (args.userId === actor._id && args.role !== 'super-admin') {
-    throw new ConvexError('Cannot demote your own super-admin account');
-  }
-  const target = await ctx.db.get(args.userId);
-  if (!target) {
-    throw new ConvexError('User not found');
-  }
-  try {
-    await ctx.db.patch(args.userId, { role: args.role });
-  } catch (err) {
-    Sentry.captureException(err, {
-      tags: { mutation: 'users.setRole' },
-      extra: { targetUserId: args.userId, newRole: args.role, actorId: actor._id },
-    });
-    throw err;
-  }
-  return args.userId;
-}
-
-export const updateRole = mutation({
-  args: {
-    userId: v.id('users'),
-    role: v.union(v.literal('customer'), v.literal('admin'), v.literal('super-admin')),
-  },
-  handler: async (ctx, args) => {
-    return await setUserRoleImpl(ctx, args);
-  },
-});
-
 export const setRole = mutation({
   args: {
     userId: v.id('users'),
     role: v.union(v.literal('customer'), v.literal('admin'), v.literal('super-admin')),
   },
   handler: async (ctx, args) => {
-    return await setUserRoleImpl(ctx, args);
+    const actor = await requireAdmin(ctx);
+    if (actor.role !== 'super-admin' && args.role !== 'customer') {
+      throw new ConvexError('Only super-admin can promote to admin');
+    }
+    if (args.userId === actor._id && args.role !== 'super-admin') {
+      throw new ConvexError('Cannot demote your own super-admin account');
+    }
+    const target = await ctx.db.get(args.userId);
+    if (!target) {
+      throw new ConvexError('User not found');
+    }
+    try {
+      await ctx.db.patch(args.userId, { role: args.role });
+    } catch (err) {
+      Sentry.captureException(err, {
+        tags: { mutation: 'users.setRole' },
+        extra: { targetUserId: args.userId, newRole: args.role, actorId: actor._id },
+      });
+      throw err;
+    }
+    return args.userId;
   },
 });
 
@@ -152,20 +133,6 @@ export const updateProfile = mutation({
     if (Object.keys(patch).length === 0) return user._id;
     await ctx.db.patch(user._id, patch);
     return user._id;
-  },
-});
-
-export const adminListStats = query({
-  args: {},
-  handler: async (ctx) => {
-    await requireAdmin(ctx);
-    const all = await ctx.db.query('users').collect();
-    return {
-      customerCount: all.filter((u) => u.role === 'customer').length,
-      adminCount: all.filter((u) => u.role === 'admin').length,
-      superAdminCount: all.filter((u) => u.role === 'super-admin').length,
-      activeCount: all.filter((u) => u.isActive).length,
-    };
   },
 });
 
@@ -252,11 +219,3 @@ export const upsertFromBetterAuth = internalMutation({
     });
   },
 });
-
-export type CurrentUserView = {
-  _id: Id<'users'>;
-  email: string;
-  name: string;
-  role: UserRole;
-  isActive: boolean;
-};

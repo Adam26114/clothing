@@ -17,7 +17,6 @@
 import { createClient, type GenericCtx } from '@convex-dev/better-auth';
 import { convex } from '@convex-dev/better-auth/plugins';
 import { betterAuth } from 'better-auth';
-import type { BetterAuthOptions } from 'better-auth';
 import { components } from './_generated/api';
 import type { DataModel } from './_generated/dataModel';
 import authConfig from './auth.config';
@@ -29,40 +28,39 @@ const secret = process.env.BETTER_AUTH_SECRET ?? 'dev-secret-replace-in-producti
 
 export const authComponent = createClient<DataModel>(components.betterAuth);
 
-export const createAuthOptions = (ctx: GenericCtx<DataModel>): BetterAuthOptions => ({
-  appName: APP_NAME,
-  baseURL: siteUrl,
-  secret,
-  database: authComponent.adapter(ctx),
-  emailAndPassword: {
-    enabled: true,
-    requireEmailVerification: true,
-    minPasswordLength: 8,
-    sendResetPassword: async ({ user, url }) => {
-      await sendResendEmail({
-        to: user.email,
-        subject: 'Reset your Khit password',
-        html: resetPasswordHtml(url),
-      });
+export const createAuth = (ctx: GenericCtx<DataModel>) =>
+  betterAuth({
+    appName: APP_NAME,
+    baseURL: siteUrl,
+    secret,
+    database: authComponent.adapter(ctx),
+    emailAndPassword: {
+      enabled: true,
+      requireEmailVerification: true,
+      minPasswordLength: 8,
+      sendResetPassword: async ({ user, url }) => {
+        await sendResendEmail({
+          to: user.email,
+          subject: 'Reset your Khit password',
+          html: resetPasswordHtml(url),
+        });
+      },
     },
-  },
-  emailVerification: {
-    sendOnSignUp: true,
-    autoSignInAfterVerification: true,
-    sendVerificationEmail: async ({ user, url }) => {
-      await sendResendEmail({
-        to: user.email,
-        subject: 'Verify your Khit email',
-        html: verifyEmailHtml(url),
-      });
+    emailVerification: {
+      sendOnSignUp: true,
+      autoSignInAfterVerification: true,
+      sendVerificationEmail: async ({ user, url }) => {
+        await sendResendEmail({
+          to: user.email,
+          subject: 'Verify your Khit email',
+          html: verifyEmailHtml(url),
+        });
+      },
     },
-  },
-  trustedOrigins: [
-    process.env.SITE_URL,
-    process.env.NEXT_PUBLIC_STOREFRONT_URL,
-    process.env.NEXT_PUBLIC_ADMIN_URL,
-  ].filter((u): u is string => Boolean(u)),
-  plugins: [convex({ authConfig })],
-});
-
-export const createAuth = (ctx: GenericCtx<DataModel>) => betterAuth(createAuthOptions(ctx));
+    trustedOrigins: [
+      process.env.SITE_URL,
+      process.env.NEXT_PUBLIC_STOREFRONT_URL,
+      process.env.NEXT_PUBLIC_ADMIN_URL,
+    ].filter((u): u is string => Boolean(u)),
+    plugins: [convex({ authConfig })],
+  });

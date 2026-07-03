@@ -42,7 +42,6 @@ export function OrdersFilters({
         placeholder={t('admin.orders.statusFilter')}
         searchPlaceholder={t('admin.orders.statusFilterSearch')}
         emptyMessage={t('admin.orders.statusFilterEmpty')}
-        maxLabelCount={1}
       />
 
       <DateRangePicker value={dateRange} onChange={onDateRangeChange} />

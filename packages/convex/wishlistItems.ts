@@ -49,21 +49,6 @@ export const list = query({
   },
 });
 
-export const count = query({
-  args: {},
-  handler: async (ctx) => {
-    const userId = await getInternalUserId(ctx);
-    if (!userId) {
-      return { count: 0 };
-    }
-    const rows = await ctx.db
-      .query('wishlistItems')
-      .withIndex('by_user', (q) => q.eq('userId', userId))
-      .collect();
-    return { count: rows.length };
-  },
-});
-
 export const add = mutation({
   args: {
     productId: v.id('products'),
@@ -83,18 +68,16 @@ export const add = mutation({
     if (!variant.selectedSizes.includes(args.size)) {
       throw new ConvexError('Size not available for this variant');
     }
-    const existing = await ctx.db
+    const rows = await ctx.db
       .query('wishlistItems')
       .withIndex('by_user', (q) => q.eq('userId', userId))
-      .collect()
-      .then((rows) =>
-        rows.find(
-          (r) =>
-            r.productId === args.productId &&
-            r.colorVariantId === args.colorVariantId &&
-            r.size === args.size
-        )
-      );
+      .collect();
+    const existing = rows.find(
+      (r) =>
+        r.productId === args.productId &&
+        r.colorVariantId === args.colorVariantId &&
+        r.size === args.size
+    );
     if (existing) {
       return existing._id;
     }

@@ -10,6 +10,7 @@
     "./auth/flows": "./src/auth/flows.ts",
     "./auth/use-auth": "./src/auth/use-auth.ts",
     "./cart/guest": "./src/cart/guest.ts",
+    "./cart/guest-store": "./src/cart/guest-store.ts",
     "./cart/merge": "./src/cart/merge.ts",
     "./cart/summary": "./src/cart/summary.ts",
     "./hooks/use-cart-ui": "./src/hooks/use-cart-ui.ts",
@@ -28,11 +29,9 @@
     "@dnd-kit/sortable": "^10.0.0",
     "@sentry/nextjs": "^10.59.0",
     "better-auth": "^1.6.22",
-    "clsx": "^2.1.1",
     "convex": "^1.16.0",
     "react": "19.2.4",
-    "react-dom": "19.2.4",
-    "tailwind-merge": "^3.6.0"
+    "react-dom": "19.2.4"
   },
   "devDependencies": {
     "@types/bun": "^1.3.14",

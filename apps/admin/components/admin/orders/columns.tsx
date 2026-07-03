@@ -12,6 +12,7 @@ import { Badge } from '@workspace/ui/components/badge';
 import { DropdownMenuItem } from '@workspace/ui/components/dropdown-menu';
 import { StatusBadge, type OrderStatus } from '@workspace/ui/components/admin/status-badge';
 import { formatMMK } from '@workspace/lib/formatMMK';
+import { formatDateTime } from '@workspace/lib/formatDate';
 import { t } from '@workspace/lib/i18n';
 
 import { orderStatusLabel } from '@/lib/order-status-label';
@@ -29,20 +30,6 @@ export interface OrderRow {
   deliveryMethod: 'shipping' | 'pickup';
   status: OrderStatus;
   createdAt: number;
-}
-
-function formatDateTime(timestamp: number): string {
-  try {
-    return new Intl.DateTimeFormat('en-GB', {
-      day: '2-digit',
-      month: 'short',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-    }).format(new Date(timestamp));
-  } catch {
-    return new Date(timestamp).toISOString();
-  }
 }
 
 function deliveryLabel(method: 'shipping' | 'pickup'): string {

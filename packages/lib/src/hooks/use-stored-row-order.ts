@@ -3,31 +3,20 @@ import { arrayMove } from '@dnd-kit/sortable';
 
 const STORAGE_KEY_PREFIX = 'khit:datatable:order:';
 
-function readSavedIds(storageKey: string): string[] {
-  if (typeof window === 'undefined') {
-    return [];
-  }
+function readIds(key: string): string[] {
+  if (typeof window === 'undefined') return [];
   try {
-    const raw = window.localStorage.getItem(storageKey);
-    if (!raw) {
-      return [];
-    }
-    const parsed: unknown = JSON.parse(raw);
-    if (!Array.isArray(parsed)) {
-      return [];
-    }
-    return parsed.filter((value): value is string => typeof value === 'string');
+    const raw = window.localStorage.getItem(key);
+    const parsed: unknown = raw ? JSON.parse(raw) : null;
+    return Array.isArray(parsed) ? parsed.filter((v): v is string => typeof v === 'string') : [];
   } catch {
     return [];
   }
 }
 
-function writeSavedIds(storageKey: string, ids: string[]): void {
-  if (typeof window === 'undefined') {
-    return;
-  }
+function writeIds(key: string, ids: string[]): void {
   try {
-    window.localStorage.setItem(storageKey, JSON.stringify(ids));
+    window.localStorage.setItem(key, JSON.stringify(ids));
   } catch {
     // ignore
   }
@@ -38,18 +27,12 @@ export function useStoredRowOrder<T>(
   items: T[],
   getRowId: (item: T) => string
 ): { ordered: T[]; reorder: (oldIndex: number, newIndex: number) => void } {
-  const storageKey = `${STORAGE_KEY_PREFIX}${tableId}`;
-
-  const [savedIds, setSavedIds] = useState<string[]>(() => readSavedIds(storageKey));
+  const key = `${STORAGE_KEY_PREFIX}${tableId}`;
+  const [savedIds, setSavedIds] = useState<string[]>(() => readIds(key));
 
   const ordered = useMemo(() => {
-    if (savedIds.length === 0) {
-      return items;
-    }
-    const byId = new Map<string, T>();
-    for (const item of items) {
-      byId.set(getRowId(item), item);
-    }
+    if (savedIds.length === 0) return items;
+    const byId = new Map(items.map((item) => [getRowId(item), item]));
     const seen = new Set<string>();
     const result: T[] = [];
     for (const id of savedIds) {
@@ -61,22 +44,18 @@ export function useStoredRowOrder<T>(
     }
     for (const item of items) {
       const id = getRowId(item);
-      if (!seen.has(id)) {
-        result.push(item);
-        seen.add(id);
-      }
+      if (!seen.has(id)) result.push(item);
     }
     return result;
   }, [items, savedIds, getRowId]);
 
   const reorder = useCallback(
     (oldIndex: number, newIndex: number) => {
-      const ids = items.map(getRowId);
-      const next = arrayMove(ids, oldIndex, newIndex);
-      writeSavedIds(storageKey, next);
+      const next = arrayMove(items.map(getRowId), oldIndex, newIndex);
+      writeIds(key, next);
       setSavedIds(next);
     },
-    [items, getRowId, storageKey]
+    [items, getRowId, key]
   );
 
   return { ordered, reorder };

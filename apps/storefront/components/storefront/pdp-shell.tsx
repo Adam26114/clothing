@@ -18,7 +18,6 @@ import {
 import { Button } from '@workspace/ui/components/button';
 import { Separator } from '@workspace/ui/components/separator';
 
-import { FreePickupBadge } from './free-pickup-badge';
 import { StockIndicator } from './stock-indicator';
 import { ColorSelector, type ColorSwatch } from './color-selector';
 import { SizeSelector } from './size-selector';
@@ -152,7 +151,9 @@ export function PdpShell({ product }: PdpShellProps) {
               />
             )}
           </div>
-          <FreePickupBadge className="self-start" />
+          <span className="text-muted-foreground self-start text-xs font-medium tracking-wider uppercase">
+            {t('pdp.freePickup')}
+          </span>
         </div>
         <Separator />
         <Accordion>

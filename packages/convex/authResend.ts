@@ -46,34 +46,48 @@ export async function sendResendEmail(args: SendArgs): Promise<void> {
   }
 }
 
-export function verifyEmailHtml(url: string): string {
+function emailHtml({
+  title,
+  body,
+  cta,
+  url,
+  footer,
+}: {
+  title: string;
+  body: string;
+  cta: string;
+  url: string;
+  footer: string;
+}): string {
   return `<!doctype html>
 <html>
   <body style="font-family: -apple-system, system-ui, sans-serif; line-height: 1.5; color: #1a1a1a; padding: 24px;">
-    <h1 style="font-size: 20px; margin-bottom: 16px;">Verify your Khit email</h1>
-    <p>Welcome to Khit. Confirm your email address to finish creating your account.</p>
+    <h1 style="font-size: 20px; margin-bottom: 16px;">${title}</h1>
+    <p>${body}</p>
     <p style="margin: 24px 0;">
       <a href="${url}" style="background: #1a1a1a; color: #fff; padding: 12px 20px; text-decoration: none; border-radius: 4px; display: inline-block;">
-        Verify email
+        ${cta}
       </a>
     </p>
-    <p style="color: #666; font-size: 14px;">If you did not create an account, you can safely ignore this email.</p>
+    <p style="color: #666; font-size: 14px;">${footer}</p>
   </body>
 </html>`;
 }
 
-export function resetPasswordHtml(url: string): string {
-  return `<!doctype html>
-<html>
-  <body style="font-family: -apple-system, system-ui, sans-serif; line-height: 1.5; color: #1a1a1a; padding: 24px;">
-    <h1 style="font-size: 20px; margin-bottom: 16px;">Reset your Khit password</h1>
-    <p>Click the link below to set a new password for your account.</p>
-    <p style="margin: 24px 0;">
-      <a href="${url}" style="background: #1a1a1a; color: #fff; padding: 12px 20px; text-decoration: none; border-radius: 4px; display: inline-block;">
-        Reset password
-      </a>
-    </p>
-    <p style="color: #666; font-size: 14px;">If you did not request a password reset, you can safely ignore this email.</p>
-  </body>
-</html>`;
-}
+export const verifyEmailHtml = (url: string) =>
+  emailHtml({
+    title: 'Verify your Khit email',
+    body: 'Welcome to Khit. Confirm your email address to finish creating your account.',
+    cta: 'Verify email',
+    url,
+    footer: 'If you did not create an account, you can safely ignore this email.',
+  });
+
+export const resetPasswordHtml = (url: string) =>
+  emailHtml({
+    title: 'Reset your Khit password',
+    body: 'Click the link below to set a new password for your account.',
+    cta: 'Reset password',
+    url,
+    footer: 'If you did not request a password reset, you can safely ignore this email.',
+  });

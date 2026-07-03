@@ -84,8 +84,6 @@ import {
   TableHeader,
   TableRow,
 } from '@workspace/ui/components/table';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@workspace/ui/components/tabs';
-
 import { DataTableSkeleton } from '@workspace/ui/components/admin/data-table-skeleton';
 import { EmptyState } from '@workspace/ui/components/empty-state';
 import { cn } from '@workspace/ui/lib/utils';
@@ -195,13 +193,6 @@ export function useDataTable<T>({
   return { table };
 }
 
-export interface DataTableTab {
-  value: string;
-  label: string;
-  icon?: React.ComponentType<{ className?: string }>;
-  content: React.ReactNode;
-}
-
 export interface DataTableProps<T> {
   columns: ColumnDef<T, unknown>[];
   data: T[];
@@ -221,7 +212,6 @@ export interface DataTableProps<T> {
   toolbarActions?: React.ReactNode;
   toolbarFilters?: React.ReactNode;
   toolbarSummary?: React.ReactNode;
-  tabs?: DataTableTab[];
   enableRowReorder?: boolean;
   onReorder?: (oldIndex: number, newIndex: number, rows: T[]) => void;
   hideToolbarHeader?: boolean;
@@ -246,7 +236,6 @@ export function DataTable<T>({
   toolbarActions,
   toolbarFilters,
   toolbarSummary,
-  tabs,
   enableRowReorder = false,
   onReorder,
   hideToolbarHeader = false,
@@ -357,55 +346,6 @@ export function DataTable<T>({
     useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
   );
 
-  if (tabs && tabs.length > 0) {
-    const firstTab = tabs[0];
-    if (!firstTab) {
-      return <></>;
-    }
-    return (
-      <div className="flex flex-col gap-4">
-        {!hideToolbarHeader && toolbarTitle ? (
-          <DataTableHeader
-            title={toolbarTitle}
-            description={toolbarDescription}
-            actions={toolbarActions}
-          />
-        ) : null}
-        {globalSearchPlaceholder || toolbarFilters ? (
-          <DataTableToolbar>
-            {globalSearchPlaceholder ? (
-              <SearchInput
-                value={globalSearch}
-                onChange={setGlobalSearch}
-                placeholder={globalSearchPlaceholder}
-              />
-            ) : null}
-            {toolbarFilters}
-            <ColumnVisibilityMenu table={table} />
-          </DataTableToolbar>
-        ) : null}
-        {toolbarSummary ? (
-          <div className="text-muted-foreground text-sm tabular-nums">{toolbarSummary}</div>
-        ) : null}
-        <Tabs defaultValue={firstTab.value} className="gap-3">
-          <TabsList>
-            {tabs.map((tab) => (
-              <TabsTrigger key={tab.value} value={tab.value} className="cursor-pointer">
-                {tab.icon ? <tab.icon className="size-4" /> : null}
-                {tab.label}
-              </TabsTrigger>
-            ))}
-          </TabsList>
-          {tabs.map((tab) => (
-            <TabsContent key={tab.value} value={tab.value} className="flex flex-col gap-4">
-              {tab.content}
-            </TabsContent>
-          ))}
-        </Tabs>
-      </div>
-    );
-  }
-
   if (isLoading) {
     return <DataTableSkeleton columnCount={effectiveColumns.length} rowCount={defaultPageSize} />;
   }
@@ -418,11 +358,17 @@ export function DataTable<T>({
     return (
       <div className="flex flex-col gap-4">
         {!hideToolbarHeader && toolbarTitle ? (
-          <DataTableHeader
-            title={toolbarTitle}
-            description={toolbarDescription}
-            actions={toolbarActions}
-          />
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+            <div className="flex flex-col gap-1">
+              <h2 className="text-lg font-semibold tracking-tight">{toolbarTitle}</h2>
+              {toolbarDescription ? (
+                <p className="text-muted-foreground text-sm">{toolbarDescription}</p>
+              ) : null}
+            </div>
+            {toolbarActions ? (
+              <div className="flex flex-wrap items-center gap-2">{toolbarActions}</div>
+            ) : null}
+          </div>
         ) : null}
         <DataTableToolbar>
           {globalSearchPlaceholder ? (
@@ -466,11 +412,17 @@ export function DataTable<T>({
   return (
     <div className="flex flex-col gap-4">
       {!hideToolbarHeader && toolbarTitle ? (
-        <DataTableHeader
-          title={toolbarTitle}
-          description={toolbarDescription}
-          actions={toolbarActions}
-        />
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+          <div className="flex flex-col gap-1">
+            <h2 className="text-lg font-semibold tracking-tight">{toolbarTitle}</h2>
+            {toolbarDescription ? (
+              <p className="text-muted-foreground text-sm">{toolbarDescription}</p>
+            ) : null}
+          </div>
+          {toolbarActions ? (
+            <div className="flex flex-wrap items-center gap-2">{toolbarActions}</div>
+          ) : null}
+        </div>
       ) : null}
 
       <DataTableToolbar>
@@ -659,26 +611,6 @@ export function DraggableRow<T>({
         {children}
       </tr>
     </SortableItemContext.Provider>
-  );
-}
-
-function DataTableHeader({
-  title,
-  description,
-  actions,
-}: {
-  title: string;
-  description?: string;
-  actions?: React.ReactNode;
-}) {
-  return (
-    <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
-      <div className="flex flex-col gap-1">
-        <h2 className="text-lg font-semibold tracking-tight">{title}</h2>
-        {description ? <p className="text-muted-foreground text-sm">{description}</p> : null}
-      </div>
-      {actions ? <div className="flex flex-wrap items-center gap-2">{actions}</div> : null}
-    </div>
   );
 }
 

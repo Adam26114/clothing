@@ -11,7 +11,7 @@ import { SidebarInset, SidebarProvider } from '@workspace/ui/components/sidebar'
 import { AdminHeader } from '@/components/admin-header';
 import { AdminSidebar } from '@/components/admin-sidebar';
 import { TooltipProvider } from '@workspace/ui/components/tooltip';
-import { cn } from '@workspace/lib/cn';
+import { cn } from '@workspace/ui/lib/utils';
 
 const fontSans = Geist({
   subsets: ['latin'],

@@ -5,8 +5,10 @@ import { ConvexReactClient } from 'convex/react';
 import { ConvexBetterAuthProvider, type AuthClient } from '@convex-dev/better-auth/react';
 import { authClient } from '@workspace/lib/auth/client';
 
-const PLACEHOLDER_CONVEX_URL = 'https://unconfigured-khit-000.convex.cloud';
-const convexUrl = process.env.NEXT_PUBLIC_CONVEX_URL ?? PLACEHOLDER_CONVEX_URL;
+const convexUrl = process.env.NEXT_PUBLIC_CONVEX_URL;
+if (!convexUrl) {
+  throw new Error('Missing env: NEXT_PUBLIC_CONVEX_URL');
+}
 const convex = new ConvexReactClient(convexUrl);
 
 export function ConvexProvider({
@@ -20,7 +22,7 @@ export function ConvexProvider({
     <ConvexBetterAuthProvider
       client={convex}
       authClient={authClient as unknown as AuthClient}
-      initialToken={initialToken ?? null}
+      initialToken={initialToken}
     >
       {children}
     </ConvexBetterAuthProvider>

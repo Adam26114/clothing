@@ -60,15 +60,6 @@ export const listAsTree = query({
   },
 });
 
-export const adminList = query({
-  args: {},
-  handler: async (ctx) => {
-    await requireAdmin(ctx);
-    const all = await ctx.db.query('categories').collect();
-    return all.sort((a, b) => a.sortOrder - b.sortOrder);
-  },
-});
-
 export const create = mutation({
   args: {
     name: v.string(),

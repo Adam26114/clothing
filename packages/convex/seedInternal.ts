@@ -1,4 +1,4 @@
-import { v, ConvexError } from 'convex/values';
+import { v } from 'convex/values';
 import { internalMutation, internalQuery } from './_generated/server';
 import type { Id } from './_generated/dataModel';
 
@@ -29,16 +29,6 @@ export const listProducts = internalQuery({
   args: {},
   handler: async (ctx) => {
     return await ctx.db.query('products').collect();
-  },
-});
-
-export const findCategoryBySlug = internalQuery({
-  args: { slug: v.string() },
-  handler: async (ctx, args) => {
-    return await ctx.db
-      .query('categories')
-      .withIndex('by_slug', (q) => q.eq('slug', args.slug))
-      .unique();
   },
 });
 
@@ -104,16 +94,6 @@ export const insertStoreSettings = internalMutation({
   },
 });
 
-export const findUserByBetterAuthId = internalQuery({
-  args: { betterAuthUserId: v.string() },
-  handler: async (ctx, args) => {
-    return await ctx.db
-      .query('users')
-      .withIndex('betterAuthUserId', (q) => q.eq('betterAuthUserId', args.betterAuthUserId))
-      .unique();
-  },
-});
-
 export const findUserByEmail = internalQuery({
   args: { email: v.string() },
   handler: async (ctx, args) => {
@@ -133,40 +113,5 @@ export const updateUserRole = internalMutation({
     const target: Id<'users'> = args.userId;
     await ctx.db.patch(target, { role: args.role });
     return target;
-  },
-});
-
-export const promoteSuperAdmin = internalMutation({
-  args: { userId: v.id('users') },
-  handler: async (ctx, args) => {
-    const user = await ctx.db.get(args.userId);
-    if (!user) {
-      throw new ConvexError('User not found');
-    }
-    if (user.role === 'super-admin') {
-      return args.userId;
-    }
-    await ctx.db.patch(args.userId, { role: 'super-admin' });
-    return args.userId;
-  },
-});
-
-/**
- * Used by the seed to delete any pre-existing `users` rows that were tied to
- * a previous Convex Auth migration. The `users` table may have orphan rows
- * keyed by Convex Auth's old id scheme; this lets the seed clean them up
- * before re-seeding the admin/super-admin.
- */
-export const deleteOrphanUsers = internalMutation({
-  args: { userIds: v.array(v.id('users')) },
-  handler: async (ctx, args) => {
-    const deleted: Id<'users'>[] = [];
-    for (const id of args.userIds) {
-      const user = await ctx.db.get(id);
-      if (!user) continue;
-      await ctx.db.delete(id);
-      deleted.push(id);
-    }
-    return deleted;
   },
 });

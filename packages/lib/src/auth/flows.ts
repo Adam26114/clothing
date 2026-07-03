@@ -10,78 +10,38 @@ export type RequestPasswordResetInput = { email: string };
 export type ConfirmPasswordResetInput = { token: string; newPassword: string };
 export type VerifyEmailInput = { token: string };
 
+const flowWrap =
+  <TArgs extends unknown[]>(fn: (...args: TArgs) => Promise<{ error?: unknown } | void>) =>
+  async (...args: TArgs): Promise<AuthFlowResult> => {
+    try {
+      const result = await fn(...args);
+      return result?.error ? { ok: false, error: humanizeError(result.error) } : { ok: true };
+    } catch (e) {
+      return { ok: false, error: humanizeError(e) };
+    }
+  };
+
 export function useAuthFlows() {
-  const signUp = async (input: SignUpInput): Promise<AuthFlowResult> => {
-    try {
-      const { error } = await authClient.signUp.email({ ...input, callbackURL: '/account' });
-      return error ? { ok: false, error: humanizeError(error) } : { ok: true };
-    } catch (e) {
-      return { ok: false, error: humanizeError(e) };
-    }
-  };
-
-  const signInWithPassword = async (input: SignInInput): Promise<AuthFlowResult> => {
-    try {
-      const { error } = await authClient.signIn.email({ ...input, callbackURL: '/account' });
-      return error ? { ok: false, error: humanizeError(error) } : { ok: true };
-    } catch (e) {
-      return { ok: false, error: humanizeError(e) };
-    }
-  };
-
-  const signOutCurrent = async (): Promise<AuthFlowResult> => {
-    try {
-      await authClient.signOut();
-      return { ok: true };
-    } catch (e) {
-      return { ok: false, error: humanizeError(e) };
-    }
-  };
-
-  const requestPasswordReset = async (
-    input: RequestPasswordResetInput
-  ): Promise<AuthFlowResult> => {
-    try {
-      const { error } = await authClient.requestPasswordReset({
+  return {
+    signUp: flowWrap((input: SignUpInput) =>
+      authClient.signUp.email({ ...input, callbackURL: '/account' })
+    ),
+    signIn: flowWrap((input: SignInInput) =>
+      authClient.signIn.email({ ...input, callbackURL: '/account' })
+    ),
+    signOut: flowWrap(() => authClient.signOut()),
+    requestPasswordReset: flowWrap((input: RequestPasswordResetInput) =>
+      authClient.requestPasswordReset({
         email: input.email,
         redirectTo: '/auth/reset-password',
-      });
-      return error ? { ok: false, error: humanizeError(error) } : { ok: true };
-    } catch (e) {
-      return { ok: false, error: humanizeError(e) };
-    }
-  };
-
-  const confirmPasswordReset = async (
-    input: ConfirmPasswordResetInput
-  ): Promise<AuthFlowResult> => {
-    try {
-      const { error } = await authClient.resetPassword({
-        newPassword: input.newPassword,
-        token: input.token,
-      });
-      return error ? { ok: false, error: humanizeError(error) } : { ok: true };
-    } catch (e) {
-      return { ok: false, error: humanizeError(e) };
-    }
-  };
-
-  const verifyEmail = async (input: VerifyEmailInput): Promise<AuthFlowResult> => {
-    try {
-      const { error } = await authClient.verifyEmail({ query: { token: input.token } });
-      return error ? { ok: false, error: humanizeError(error) } : { ok: true };
-    } catch (e) {
-      return { ok: false, error: humanizeError(e) };
-    }
-  };
-
-  return {
-    signUp,
-    signIn: signInWithPassword,
-    signOut: signOutCurrent,
-    requestPasswordReset,
-    confirmPasswordReset,
-    verifyEmail,
+      })
+    ),
+    confirmPasswordReset: flowWrap((input: ConfirmPasswordResetInput) =>
+      authClient.resetPassword({ newPassword: input.newPassword, token: input.token })
+    ),
+    verifyEmail: flowWrap((input: VerifyEmailInput) =>
+      authClient.verifyEmail({ query: { token: input.token } })
+    ),
   };
 }
 

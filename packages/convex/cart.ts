@@ -149,21 +149,6 @@ export const remove = mutation({
   },
 });
 
-export const clear = mutation({
-  args: {},
-  handler: async (ctx) => {
-    const userId = await requireUserId(ctx);
-    const items = await ctx.db
-      .query('cartItems')
-      .withIndex('by_user', (q) => q.eq('userId', userId))
-      .collect();
-    for (const item of items) {
-      await ctx.db.delete(item._id);
-    }
-    return items.length;
-  },
-});
-
 export const mergeGuest = mutation({
   args: {
     items: v.array(

@@ -12,7 +12,7 @@ import { formatMMK } from '@workspace/lib/formatMMK';
 import { computeCartSummary } from '@workspace/lib/cart/summary';
 import { useCartItems, type UnifiedCartItem } from '@workspace/lib/cart/merge';
 import { useCartUIStore } from '@workspace/lib/hooks/use-cart-ui';
-import { useIsAuthenticated } from '@workspace/lib/auth/client';
+import { useSession } from '@workspace/lib/auth/client';
 import { api } from '@workspace/convex/_generated/api';
 
 import {
@@ -46,7 +46,7 @@ const PRODUCT_LOOKUP_PAGE_SIZE = 100;
 
 export function CartDrawer() {
   const { isOpen, close } = useCartUIStore();
-  const isAuthed = useIsAuthenticated();
+  const isAuthed = Boolean(useSession().data);
   const { items, updateQty, remove } = useCartItems();
   const [pendingRemoveKey, setPendingRemoveKey] = useState<string | null>(null);
 

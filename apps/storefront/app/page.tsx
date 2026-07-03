@@ -2,7 +2,6 @@ import { loadHomepageData } from '@/lib/convex-ssr';
 import { CategoryPills } from '@/components/storefront/category-pills';
 import { FeaturedProducts } from '@/components/storefront/featured-products';
 import { HomepageHero } from '@/components/storefront/homepage-hero';
-import { NewsletterSignup } from '@/components/storefront/newsletter-signup';
 
 export const dynamic = 'force-dynamic';
 
@@ -24,7 +23,6 @@ export default async function HomePage() {
           />
           <CategoryPills items={categories ?? []} />
           <FeaturedProducts items={featured?.items ?? []} />
-          <NewsletterSignup />
         </div>
       </div>
     </main>

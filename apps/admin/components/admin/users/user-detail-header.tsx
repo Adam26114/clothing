@@ -21,6 +21,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@workspace/ui/componen
 import { Switch } from '@workspace/ui/components/switch';
 import { t } from '@workspace/lib/i18n';
 import { formatMMK } from '@workspace/lib/formatMMK';
+import { formatDate } from '@workspace/lib/formatDate';
 import type { UserRole } from '@workspace/lib/auth';
 
 interface UserDetailHeaderProps {
@@ -33,18 +34,6 @@ interface UserDetailHeaderProps {
   currentUser: { _id: Id<'users'>; role: 'customer' | 'admin' | 'super-admin' } | null;
   onSuspend?: () => void | Promise<void>;
   onReactivate?: () => void | Promise<void>;
-}
-
-function formatDate(timestamp: number): string {
-  try {
-    return new Intl.DateTimeFormat('en-GB', {
-      day: '2-digit',
-      month: 'short',
-      year: 'numeric',
-    }).format(new Date(timestamp));
-  } catch {
-    return new Date(timestamp).toISOString();
-  }
 }
 
 function roleLabelKey(role: UserRole): string {
