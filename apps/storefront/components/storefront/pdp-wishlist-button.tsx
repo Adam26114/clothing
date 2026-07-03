@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { HeartIcon } from 'lucide-react';
 import { toast } from 'sonner';
 
-import { cn } from '@workspace/lib/cn';
+import { cn } from '@workspace/ui/lib/utils';
 import { t } from '@workspace/lib/i18n';
 import { useWishlist, type WishlistMutatorArgs } from '@workspace/lib/wishlist';
 

@@ -1,4 +1,4 @@
-import { cn } from '@workspace/lib/cn';
+import { cn } from '@workspace/ui/lib/utils';
 
 interface CategoryHeaderProps {
   name: string;

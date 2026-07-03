@@ -4,7 +4,7 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 
-import { cn } from '@workspace/lib/cn';
+import { cn } from '@workspace/ui/lib/utils';
 import { formatMMK } from '@workspace/lib/formatMMK';
 import { t } from '@workspace/lib/i18n';
 import type { ProductListItem } from '@workspace/convex/products';

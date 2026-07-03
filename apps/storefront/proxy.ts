@@ -1,5 +1,5 @@
 import { NextResponse, type NextRequest } from 'next/server';
-import { getToken } from '@/lib/auth-server';
+import { getToken } from '@workspace/lib/auth/server';
 
 function safeNextPath(value: string | null | undefined): string | null {
   if (!value) return null;

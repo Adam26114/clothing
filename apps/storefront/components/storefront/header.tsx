@@ -16,7 +16,7 @@ import {
 import { toast } from 'sonner';
 
 import { t } from '@workspace/lib/i18n';
-import { cn } from '@workspace/lib/cn';
+import { cn } from '@workspace/ui/lib/utils';
 import { useAuth } from '@workspace/lib/auth/use-auth';
 
 import { Button } from '@workspace/ui/components/button';

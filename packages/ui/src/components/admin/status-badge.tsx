@@ -4,12 +4,7 @@ import { cn } from '@workspace/ui/lib/utils';
 import { Badge } from '@workspace/ui/components/badge';
 
 export type OrderStatus =
-  | 'pending'
-  | 'confirmed'
-  | 'processing'
-  | 'shipped'
-  | 'delivered'
-  | 'cancelled';
+  'pending' | 'confirmed' | 'processing' | 'shipped' | 'delivered' | 'cancelled';
 
 interface StatusBadgeProps {
   status: OrderStatus;

@@ -13,7 +13,7 @@ import { Label } from '@workspace/ui/components/label';
 import { useAuth } from '@workspace/lib/auth/use-auth';
 import { t } from '@workspace/lib/i18n';
 import { api } from '@workspace/convex/_generated/api';
-import { cn } from '@workspace/lib/cn';
+import { cn } from '@workspace/ui/lib/utils';
 
 const profileSchema = z.object({
   name: z.string({ message: 'Please enter your name' }).trim().min(1, 'Please enter your name'),

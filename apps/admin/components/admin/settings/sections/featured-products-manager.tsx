@@ -45,7 +45,7 @@ import {
   TableRow,
 } from '@workspace/ui/components/table';
 import { useDebouncedValue } from '@workspace/lib/hooks/use-debounced-value';
-import { cn } from '@workspace/lib/cn';
+import { cn } from '@workspace/ui/lib/utils';
 import { t } from '@workspace/lib/i18n';
 
 const DEFAULT_PAGE_SIZE = 20;

@@ -4,7 +4,7 @@ import { useQuery } from 'convex/react';
 import { useSearchParams } from 'next/navigation';
 import { PackageXIcon } from 'lucide-react';
 
-import { cn } from '@workspace/lib/cn';
+import { cn } from '@workspace/ui/lib/utils';
 import { api } from '@workspace/convex/_generated/api';
 import { t } from '@workspace/lib/i18n';
 import type { ProductListItem } from '@workspace/convex/products';

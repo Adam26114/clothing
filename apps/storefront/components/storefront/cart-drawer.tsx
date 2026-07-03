@@ -7,7 +7,7 @@ import { useQuery } from 'convex/react';
 import { ShoppingBagIcon, XIcon } from 'lucide-react';
 
 import { t } from '@workspace/lib/i18n';
-import { cn } from '@workspace/lib/cn';
+import { cn } from '@workspace/ui/lib/utils';
 import { formatMMK } from '@workspace/lib/formatMMK';
 import { computeCartSummary } from '@workspace/lib/cart/summary';
 import { useCartItems, type UnifiedCartItem } from '@workspace/lib/cart/merge';

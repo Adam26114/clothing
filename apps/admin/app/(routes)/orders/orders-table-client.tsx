@@ -8,13 +8,14 @@ import { useStoredRowOrder } from '@workspace/lib/hooks/use-stored-row-order';
 
 import { DataTable, type ColumnDef } from '@workspace/ui/components/data-table';
 import { t } from '@workspace/lib/i18n';
+import type { OrderStatus } from '@workspace/ui/components/admin/status-badge';
 
 import {
   makeOrderColumns,
   orderSearchableText,
   type OrderRow,
 } from '@/components/admin/orders/columns';
-import { OrdersFilters, type OrderStatusFilter } from '@/components/admin/orders/orders-filters';
+import { OrdersFilters } from '@/components/admin/orders/orders-filters';
 import {
   dateRangeToBounds,
   type DateRangeValue,
@@ -45,10 +46,10 @@ interface OrdersTableClientProps {
 }
 
 export function OrdersTableClient({ hideHeader = false }: OrdersTableClientProps = {}) {
-  const [status, setStatus] = React.useState<OrderStatusFilter>('all');
+  const [status, setStatus] = React.useState<ReadonlyArray<OrderStatus>>([]);
   const [dateRange, setDateRange] = React.useState<DateRangeValue>({ preset: 'all' });
 
-  const statusArg = status === 'all' ? undefined : status;
+  const statusArg = status.length > 0 ? [...status] : undefined;
   const { dateFrom, dateTo } = React.useMemo(() => dateRangeToBounds(dateRange), [dateRange]);
 
   const result = useQuery(api.orders.adminList, {

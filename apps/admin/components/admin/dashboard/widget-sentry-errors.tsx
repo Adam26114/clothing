@@ -11,30 +11,11 @@ import {
 } from '@workspace/ui/components/card';
 import { t } from '@workspace/lib/i18n';
 
-export interface WidgetSentryStats {
-  configured: boolean;
-  issuesLast24h: number | null;
-  errorRate: number | null;
-  unresolvedIssues: number | null;
-  fetchedAt: number;
-}
+import type { SentryStats } from '@workspace/convex/sentry';
 
 interface WidgetSentryErrorsProps {
-  stats: WidgetSentryStats | undefined;
+  stats: SentryStats | undefined;
   loadError?: boolean;
-}
-
-function formatTimestamp(ms: number): string {
-  try {
-    return new Intl.DateTimeFormat('en-GB', {
-      day: '2-digit',
-      month: 'short',
-      hour: '2-digit',
-      minute: '2-digit',
-    }).format(new Date(ms));
-  } catch {
-    return new Date(ms).toISOString();
-  }
 }
 
 function formatCount(value: number | null): string {
@@ -125,7 +106,14 @@ export function WidgetSentryErrors({ stats, loadError = false }: WidgetSentryErr
           ) : null}
         </div>
         <span className="text-muted-foreground text-xs">
-          Last updated: {formatTimestamp(stats.fetchedAt)}
+          {t('admin.dashboard.sentryLastUpdated', 'en', {
+            time: new Intl.DateTimeFormat('en-GB', {
+              day: '2-digit',
+              month: 'short',
+              hour: '2-digit',
+              minute: '2-digit',
+            }).format(new Date(stats.fetchedAt)),
+          })}
         </span>
       </CardContent>
     </Card>

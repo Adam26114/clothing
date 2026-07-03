@@ -37,23 +37,10 @@ describe('humanizeError — code branch', () => {
   });
 });
 
-describe('humanizeError — message substring branch', () => {
-  test('"Invalid email or password" → auth.errorInvalidCredentials', () => {
-    expect(humanizeError(new Error('Invalid email or password'))).toBe(
-      'auth.errorInvalidCredentials'
-    );
-  });
-
-  test('"User already exists" → auth.errorUserExists', () => {
-    expect(humanizeError(new Error('User already exists'))).toBe('auth.errorUserExists');
-  });
-
-  test('"Please verify your email" → auth.errorEmailNotVerified', () => {
-    expect(humanizeError(new Error('Please verify your email'))).toBe('auth.errorEmailNotVerified');
-  });
-
-  test('"Weak password" → auth.errorWeakPassword', () => {
-    expect(humanizeError(new Error('Weak password'))).toBe('auth.errorWeakPassword');
+describe('humanizeError — fallback when no code', () => {
+  // ponytail: BA always returns error.code; substring matching on message was removed
+  test('plain Error → auth.errorGeneric (no code)', () => {
+    expect(humanizeError(new Error('Invalid email or password'))).toBe('auth.errorGeneric');
   });
 });
 

@@ -3,7 +3,7 @@
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 
-import { cn } from '@workspace/lib/cn';
+import { cn } from '@workspace/ui/lib/utils';
 import { t } from '@workspace/lib/i18n';
 import { useCartItems, type UnifiedCartItem } from '@workspace/lib/cart/merge';
 import { Button } from '@workspace/ui/components/button';
@@ -11,7 +11,7 @@ import { Separator } from '@workspace/ui/components/separator';
 
 import { CartItemRow } from './cart-item-row';
 import { CartSummaryBlock } from './cart-summary-block';
-import { EmptyCart } from './empty-cart';
+import { EmptyCart } from '../empty-cart';
 
 interface CartPageContentProps {
   className?: string;

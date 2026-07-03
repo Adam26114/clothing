@@ -4,7 +4,7 @@ import { useTransition } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { XIcon } from 'lucide-react';
 
-import { cn } from '@workspace/lib/cn';
+import { cn } from '@workspace/ui/lib/utils';
 import { t } from '@workspace/lib/i18n';
 import { SIZE_OPTIONS, type SizeOption } from '@workspace/lib/constants';
 import { Button } from '@workspace/ui/components/button';

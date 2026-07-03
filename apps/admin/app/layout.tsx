@@ -3,7 +3,8 @@ import { Geist, Geist_Mono } from 'next/font/google';
 
 import './globals.css';
 import { ConvexProvider } from '@workspace/lib/providers/convex';
-import { getToken } from '@/lib/auth-server';
+import { getToken } from '@workspace/lib/auth/server';
+import { AdminAuthBoundary } from '@/components/admin-auth-boundary';
 import { ThemeProvider } from '@/components/theme-provider';
 import { Toaster } from '@workspace/ui/components/sonner';
 import { SidebarInset, SidebarProvider } from '@workspace/ui/components/sidebar';
@@ -62,31 +63,33 @@ export default async function RootLayout({
     >
       <body>
         <ConvexProvider initialToken={token}>
-          <ThemeProvider
-            attribute="class"
-            defaultTheme="system"
-            enableSystem
-            disableTransitionOnChange
-          >
-            <TooltipProvider>
-              <SidebarProvider
-                style={
-                  {
-                    '--sidebar-width': '18rem',
-                    '--header-height': 'calc(var(--spacing) * 12)',
-                    '--sidebar-width-icon': '3rem',
-                  } as React.CSSProperties
-                }
-              >
-                <AdminSidebar />
-                <SidebarInset>
-                  <AdminHeader />
-                  <main className="flex-1 p-4 md:p-6 lg:p-8">{children}</main>
-                </SidebarInset>
-              </SidebarProvider>
-              <Toaster />
-            </TooltipProvider>
-          </ThemeProvider>
+          <AdminAuthBoundary>
+            <ThemeProvider
+              attribute="class"
+              defaultTheme="system"
+              enableSystem
+              disableTransitionOnChange
+            >
+              <TooltipProvider>
+                <SidebarProvider
+                  style={
+                    {
+                      '--sidebar-width': '18rem',
+                      '--header-height': 'calc(var(--spacing) * 12)',
+                      '--sidebar-width-icon': '3rem',
+                    } as React.CSSProperties
+                  }
+                >
+                  <AdminSidebar />
+                  <SidebarInset>
+                    <AdminHeader />
+                    <main className="flex-1 p-4 md:p-6 lg:p-8">{children}</main>
+                  </SidebarInset>
+                </SidebarProvider>
+                <Toaster />
+              </TooltipProvider>
+            </ThemeProvider>
+          </AdminAuthBoundary>
         </ConvexProvider>
       </body>
     </html>

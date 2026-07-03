@@ -553,3 +553,83 @@ export const duplicate = mutation({
     });
   },
 });
+
+function startOfMonthMs(d: Date = new Date()): number {
+  return new Date(d.getFullYear(), d.getMonth(), 1).getTime();
+}
+
+function addMonthsDate(d: Date, months: number): Date {
+  return new Date(d.getFullYear(), d.getMonth() + months, 1);
+}
+
+function trendPct(current: number, previous: number): number {
+  if (previous === 0) {
+    return current > 0 ? 100 : 0;
+  }
+  return ((current - previous) / previous) * 100;
+}
+
+export const productStats = query({
+  args: {},
+  handler: async (ctx) => {
+    await requireAdmin(ctx);
+
+    const now = new Date();
+    const monthStart = startOfMonthMs(now);
+    const prevMonthStart = startOfMonthMs(addMonthsDate(now, -1));
+
+    const allProducts = await ctx.db.query('products').collect();
+    const allOrders = await ctx.db.query('orders').collect();
+    const settings = await ctx.db.query('storeSettings').unique();
+    const threshold = settings?.lowStockThreshold ?? LOW_STOCK_THRESHOLD;
+
+    const totalProducts = allProducts.length;
+    const activeProducts = allProducts.filter((p) => p.isPublished).length;
+    const featuredProducts = allProducts.filter((p) => p.isFeatured).length;
+
+    let lowStockVariants = 0;
+    for (const product of allProducts) {
+      for (const variant of product.colorVariants) {
+        for (const qty of Object.values(variant.stock)) {
+          if (qty < threshold) {
+            lowStockVariants++;
+          }
+        }
+      }
+    }
+
+    const unitsSold = (orders: ReadonlyArray<Doc<'orders'>>): number =>
+      orders.reduce(
+        (sum, order) =>
+          order.status === 'cancelled'
+            ? sum
+            : sum + order.items.reduce((s, item) => s + item.quantity, 0),
+        0
+      );
+
+    const monthOrders = allOrders.filter((o) => o.createdAt >= monthStart);
+    const prevMonthOrders = allOrders.filter(
+      (o) => o.createdAt >= prevMonthStart && o.createdAt < monthStart
+    );
+    const totalSoldThisMonth = unitsSold(monthOrders);
+    const totalSoldPrevMonth = unitsSold(prevMonthOrders);
+
+    const newActiveThisMonth = allProducts.filter(
+      (p) => p.createdAt >= monthStart && p.isPublished
+    ).length;
+    const newActivePrevMonth = allProducts.filter(
+      (p) => p.createdAt >= prevMonthStart && p.createdAt < monthStart && p.isPublished
+    ).length;
+
+    return {
+      totalProducts,
+      activeProducts,
+      inactiveProducts: totalProducts - activeProducts,
+      featuredProducts,
+      lowStockVariants,
+      totalSoldThisMonth,
+      totalSoldTrendPct: trendPct(totalSoldThisMonth, totalSoldPrevMonth),
+      activeProductsTrendPct: trendPct(newActiveThisMonth, newActivePrevMonth),
+    };
+  },
+});

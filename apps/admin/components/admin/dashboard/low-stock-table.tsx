@@ -9,6 +9,7 @@ import { LOW_STOCK_THRESHOLD } from '@workspace/lib/constants';
 
 import { Button } from '@workspace/ui/components/button';
 import { Card } from '@workspace/ui/components/card';
+import { cn } from '@workspace/ui/lib/utils';
 import { DataTable, type ColumnDef } from '@workspace/ui/components/data-table';
 import { t } from '@workspace/lib/i18n';
 
@@ -22,44 +23,17 @@ interface LowStockRow {
   stock: number;
 }
 
-interface LowStockItemRaw {
-  productId: string;
-  productSlug: string;
-  productName: string;
-  variantId: string;
-  colorName: string;
-  colorHex: string;
-  size: string;
-  stock: number;
-}
-
-function resolveLowStockThreshold(
-  settings: { lowStockThreshold?: number } | null | undefined
-): number {
-  if (settings && typeof settings === 'object' && 'lowStockThreshold' in settings) {
-    const value = settings.lowStockThreshold;
-    if (typeof value === 'number' && Number.isFinite(value)) {
-      return value;
-    }
-  }
-  return LOW_STOCK_THRESHOLD;
-}
-
 interface LowStockTableProps {
   className?: string;
 }
 
 export function LowStockTable({ className }: LowStockTableProps = {}) {
   const settings = useQuery(api.storeSettings.get, {});
-  const lowStock = useQuery(api.products.lowStockCount, {
-    limit: 10,
-    threshold: resolveLowStockThreshold(settings),
-  });
+  const threshold = settings?.lowStockThreshold ?? LOW_STOCK_THRESHOLD;
+  const lowStock = useQuery(api.products.lowStockCount, { limit: 10, threshold });
 
-  const items: ReadonlyArray<LowStockItemRaw> = lowStock ?? [];
-
-  const columns = React.useMemo<ColumnDef<LowStockRow, unknown>[]>(() => {
-    return [
+  const columns = React.useMemo<ColumnDef<LowStockRow, unknown>[]>(
+    () => [
       {
         id: 'product',
         header: t('admin.dashboard.lowStockColumn.product'),
@@ -119,17 +93,16 @@ export function LowStockTable({ className }: LowStockTableProps = {}) {
         enableSorting: false,
         enableHiding: false,
       },
-    ];
-  }, []);
-
-  const rows: LowStockRow[] = [...items];
+    ],
+    []
+  );
 
   return (
-    <Card className={className}>
+    <Card className={cn('px-(--card-spacing)', className)}>
       <DataTable<LowStockRow>
         tableId="dashboard-low-stock"
         columns={columns}
-        data={rows}
+        data={lowStock ?? []}
         getRowId={(row) => `${row.productId}-${row.variantId}-${row.size}`}
         enableRowReorder
         defaultPageSize={10}

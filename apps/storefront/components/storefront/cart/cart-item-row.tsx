@@ -4,7 +4,7 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { Minus, Plus, Trash2 } from 'lucide-react';
 
-import { cn } from '@workspace/lib/cn';
+import { cn } from '@workspace/ui/lib/utils';
 import { formatMMK } from '@workspace/lib/formatMMK';
 import { t } from '@workspace/lib/i18n';
 import type { UnifiedCartItem } from '@workspace/lib/cart/merge';

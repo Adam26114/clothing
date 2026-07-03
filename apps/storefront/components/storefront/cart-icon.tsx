@@ -3,7 +3,7 @@
 import { ShoppingBagIcon } from 'lucide-react';
 
 import { t } from '@workspace/lib/i18n';
-import { cn } from '@workspace/lib/cn';
+import { cn } from '@workspace/ui/lib/utils';
 import { useCartItems } from '@workspace/lib/cart/merge';
 import { useCartUIStore } from '@workspace/lib/hooks/use-cart-ui';
 

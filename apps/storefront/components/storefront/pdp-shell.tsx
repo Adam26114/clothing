@@ -4,7 +4,7 @@ import { useMemo, useState } from 'react';
 import dynamic from 'next/dynamic';
 import { toast } from 'sonner';
 
-import { cn } from '@workspace/lib/cn';
+import { cn } from '@workspace/ui/lib/utils';
 import { t } from '@workspace/lib/i18n';
 import { formatMMK } from '@workspace/lib/formatMMK';
 import { useCartItems } from '@workspace/lib/cart/merge';

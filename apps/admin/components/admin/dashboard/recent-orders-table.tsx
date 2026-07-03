@@ -8,6 +8,7 @@ import { api } from '@workspace/convex/_generated/api';
 
 import { Button } from '@workspace/ui/components/button';
 import { Card } from '@workspace/ui/components/card';
+import { cn } from '@workspace/ui/lib/utils';
 import { DataTable, type ColumnDef } from '@workspace/ui/components/data-table';
 import { StatusBadge, type OrderStatus } from '@workspace/ui/components/admin/status-badge';
 import { formatMMK } from '@workspace/lib/formatMMK';
@@ -114,7 +115,7 @@ export function RecentOrdersTable({ className }: RecentOrdersTableProps = {}) {
   const rows = React.useMemo(() => orders.map(toRow), [orders]);
 
   return (
-    <Card className={className}>
+    <Card className={cn('px-(--card-spacing)', className)}>
       <DataTable<RecentOrderRow>
         tableId="dashboard-recent-orders"
         columns={columns}
